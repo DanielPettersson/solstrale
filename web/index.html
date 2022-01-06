@@ -19,9 +19,12 @@
 		});
 
 		async function run() {
-			let p = document.createElement("p");
-			p.innerText = raytrace();
-			document.body.appendChild(p);
+			raytrace(m => {
+				let p = document.createElement("p");
+				p.innerText = m;
+				document.body.appendChild(p);
+			})
+			
 		}
 	</script>
 
