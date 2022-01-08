@@ -12,15 +12,16 @@ func RayTrace(width int, height int, progress chan float32, byteBuffer *bytes.Bu
 		for x := 0; x < width; x++ {
 			i := (y*width + x) * 4
 
-			r := float32(x) / float32(width)
-			g := float32(y) / float32(height)
-			b := 0.25
-			a := 1.0
+			col := color{
+				float64(x) / float64(width),
+				float64(y) / float64(height),
+				0.25,
+			}.toRgba()
 
-			ret[i] = byte(r * 255.9)
-			ret[i+1] = byte(g * 255.9)
-			ret[i+2] = byte(b * 255.9)
-			ret[i+3] = byte(a * 255.9)
+			ret[i] = col.r
+			ret[i+1] = col.g
+			ret[i+2] = col.b
+			ret[i+3] = col.a
 		}
 		progress <- float32(y) / float32(height)
 	}
