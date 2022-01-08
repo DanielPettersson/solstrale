@@ -18,17 +18,26 @@
 			console.error(err);
 		});
 
+		const width = 800;
+		const height = 600;
+
 		async function run() {
-			raytrace(m => {
-				let p = document.createElement("p");
-				p.innerText = m;
-				document.body.appendChild(p);
+			WASMTrace.raytrace(width, height, imageBytes => {
+				let canvas = document.getElementById('canvas');
+				canvas.width = width;
+				canvas.height = height;
+				let ctx = canvas.getContext('2d');
+				let imageData = new ImageData(imageBytes, width, height);
+				ctx.putImageData(imageData, 0, 0);
 			})
 			
 		}
 	</script>
 
-	<button onClick="run();" id="runButton" disabled>Run</button>
+	<div>
+		<button onClick="run();" id="runButton" disabled>Run</button>
+	</div>
+	<canvas id="canvas"></canvas>
 </body>
 
 </html>
