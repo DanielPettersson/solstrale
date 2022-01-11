@@ -33,7 +33,7 @@ func (v vec3) divS(t float64) vec3 {
 }
 
 func (v vec3) dot(w vec3) float64 {
-	return v.x*w.x + v.y*w.y + v.z + w.z
+	return v.x*w.x + v.y*w.y + v.z*w.z
 }
 
 func (v vec3) cross(w vec3) vec3 {
