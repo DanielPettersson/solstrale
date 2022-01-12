@@ -8,13 +8,20 @@ import (
 
 var (
 	world           hittableList
-	samplesPerPixel int = 50
+	samplesPerPixel int = 100
+	maxDepth        int = 50
 )
 
-func rayColor(r ray) vec3 {
-	hit, hitRecord := world.hit(r, interval{0, infinity})
+func rayColor(r ray, depth int) vec3 {
+	if depth >= maxDepth {
+		return black
+	}
+
+	hit, rec := world.hit(r, interval{0.001, infinity})
 	if hit {
-		return hitRecord.normal.add(vec3{1, 1, 1}).mulS(0.5)
+		target := rec.p.add(rec.normal).add(randomUnitVector())
+		ray := ray{rec.p, target.sub(rec.p)}
+		return rayColor(ray, depth+1).mulS(0.5)
 	}
 
 	t := 0.5 * (r.dir.unit().y + 1)
@@ -49,7 +56,7 @@ func RayTrace(imageWidth int, imageHeight int, progress chan float32, byteBuffer
 				u := (float64(x) + rand.Float64()) / float64(imageWidth-1)
 				v := (float64(y) + rand.Float64()) / float64(imageHeight-1)
 				r := camera.getRay(u, v)
-				pixelColor = pixelColor.add(rayColor(r))
+				pixelColor = pixelColor.add(rayColor(r, 0))
 			}
 			col := pixelColor.toRgba(samplesPerPixel)
 
@@ -58,12 +65,23 @@ func RayTrace(imageWidth int, imageHeight int, progress chan float32, byteBuffer
 			ret[i+2] = col.b
 			ret[i+3] = col.a
 		}
-		progress <- float32(y) / float32(imageHeight)
-		if y%(imageHeight/100) == 0 {
-			time.Sleep(2 * time.Millisecond)
-		}
+		reportProgress(y, imageHeight, progress)
+
 	}
 
 	byteBuffer.Write(ret)
 	close(progress)
+}
+
+func reportProgress(num int, total int, progress chan float32) {
+
+	progressInterval := total / 100
+	if progressInterval == 0 {
+		progressInterval = 1
+	}
+
+	if num%progressInterval == 0 {
+		progress <- float32(num) / float32(total)
+		time.Sleep(5 * time.Millisecond)
+	}
 }

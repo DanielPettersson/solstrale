@@ -1,11 +1,34 @@
 package trace
 
-import "math"
+import (
+	"math"
+)
 
 type vec3 struct {
 	x float64
 	y float64
 	z float64
+}
+
+func randomVec3(min float64, max float64) vec3 {
+	return vec3{
+		randomFloat(min, max),
+		randomFloat(min, max),
+		randomFloat(min, max),
+	}
+}
+
+func randomVec3InUnitSphere() vec3 {
+	for {
+		p := randomVec3(-1, 1)
+		if p.lengthSquared() < 1 {
+			return p
+		}
+	}
+}
+
+func randomUnitVector() vec3 {
+	return randomVec3InUnitSphere().unit()
 }
 
 func (v vec3) neg() vec3 {
@@ -68,10 +91,12 @@ func (c vec3) toRgba(samplesPerPixel int) rgbaColor {
 	g := c.y
 	b := c.z
 
+	// Divide the color by the number of samples
+	// and gamma-correct for gamma=2.0
 	scale := 1.0 / float64(samplesPerPixel)
-	r *= scale
-	g *= scale
-	b *= scale
+	r = math.Sqrt(scale * r)
+	g = math.Sqrt(scale * g)
+	b = math.Sqrt(scale * b)
 
 	intensity := interval{0, 0.999}
 
