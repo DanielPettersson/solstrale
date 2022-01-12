@@ -22,5 +22,5 @@ func createHitRecord(r ray, p vec3, normal vec3, t float64) hitRecord {
 }
 
 type hittable interface {
-	hit(r ray, rayTmin float64, rayTmax float64) (bool, hitRecord)
+	hit(r ray, rayTmin float64, rayTmax float64) (bool, *hitRecord)
 }

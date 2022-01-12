@@ -2,39 +2,19 @@ package trace
 
 import (
 	"bytes"
-	"math"
 )
 
 var (
-	white        vec3    = vec3{1, 1, 1}
-	lightBlue    vec3    = vec3{0.5, 0.7, 1}
-	sphereCenter vec3    = vec3{0, 0, -1}
-	sphereRadius float64 = 0.5
+	world hittableList
 )
 
-func hitSphere(center vec3, radius float64, r ray) float64 {
-	oc := r.orig.sub(center)
-	a := r.dir.lengthSquared()
-	halfB := oc.dot(r.dir)
-	c := oc.lengthSquared() - radius*radius
-	discriminant := halfB*halfB - a*c
-
-	if discriminant < 0 {
-		return -1
-	} else {
-		return (-halfB - math.Sqrt(discriminant)) / a
-	}
-
-}
-
 func rayColor(r ray) vec3 {
-	t := hitSphere(sphereCenter, sphereRadius, r)
-	if t > 0 {
-		n := r.at(t).sub(sphereCenter).unit()
-		return vec3{n.x + 1, n.y + 1, n.z + 1}.mulS(0.5)
+	hit, hitRecord := world.hit(r, 0, infinity)
+	if hit {
+		return hitRecord.normal.add(vec3{1, 1, 1}).mulS(0.5)
 	}
 
-	t = 0.5 * (r.dir.unit().y + 1)
+	t := 0.5 * (r.dir.unit().y + 1)
 
 	whiteness := white.mulS(1 - t)
 	blueness := lightBlue.mulS(t)
@@ -45,8 +25,11 @@ func rayColor(r ray) vec3 {
 func RayTrace(imageWidth int, imageHeight int, progress chan float32, byteBuffer *bytes.Buffer) {
 
 	ret := make([]byte, imageWidth*imageHeight*4)
-
 	aspectRatio := float64(imageWidth) / float64(imageHeight)
+
+	world = hittableList{}
+	world.add(sphere{vec3{0, -100.5, -1}, 100})
+	world.add(sphere{vec3{0, 0, -1}, 0.5})
 
 	viewPortHeight := 2.0
 	viewPortWidth := aspectRatio * viewPortHeight
