@@ -1,6 +1,8 @@
 package trace
 
-import "math"
+import (
+	"math"
+)
 
 // colors
 

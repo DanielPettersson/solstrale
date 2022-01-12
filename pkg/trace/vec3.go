@@ -63,11 +63,22 @@ type rgbaColor struct {
 	a byte
 }
 
-func (c vec3) toRgba() rgbaColor {
+func (c vec3) toRgba(samplesPerPixel int) rgbaColor {
+	r := c.x
+	g := c.y
+	b := c.z
+
+	scale := 1.0 / float64(samplesPerPixel)
+	r *= scale
+	g *= scale
+	b *= scale
+
+	intensity := interval{0, 0.999}
+
 	return rgbaColor{
-		byte(c.x * 255.999),
-		byte(c.y * 255.999),
-		byte(c.z * 255.999),
+		byte(256 * intensity.clamp(r)),
+		byte(256 * intensity.clamp(g)),
+		byte(256 * intensity.clamp(b)),
 		255,
 	}
 }

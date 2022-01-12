@@ -7,7 +7,7 @@ type sphere struct {
 	radius float64
 }
 
-func (s sphere) hit(r ray, rayTmin float64, rayTmax float64) (bool, *hitRecord) {
+func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
 
 	oc := r.orig.sub(s.center)
 	a := r.dir.lengthSquared()
@@ -21,9 +21,9 @@ func (s sphere) hit(r ray, rayTmin float64, rayTmax float64) (bool, *hitRecord) 
 	sqrtd := math.Sqrt(discriminant)
 
 	root := (-halfB - sqrtd) / a
-	if root < rayTmin || root > rayTmax {
+	if !rayT.contains(root) {
 		root = (-halfB + sqrtd) / a
-		if root < rayTmin || root > rayTmax {
+		if !rayT.contains(root) {
 			return false, nil
 		}
 	}

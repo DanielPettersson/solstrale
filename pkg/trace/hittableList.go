@@ -10,13 +10,13 @@ func (hl *hittableList) add(h hittable) {
 	*hl = append(*hl, h)
 }
 
-func (hl *hittableList) hit(r ray, rayTmin float64, rayTmax float64) (bool, *hitRecord) {
+func (hl *hittableList) hit(r ray, rayT interval) (bool, *hitRecord) {
 	var closestHitRecord *hitRecord
 	hitAnything := false
-	closestSoFar := rayTmax
+	closestSoFar := rayT.max
 
 	for _, h := range *hl {
-		hit, hitRecord := h.hit(r, rayTmin, closestSoFar)
+		hit, hitRecord := h.hit(r, interval{rayT.min, closestSoFar})
 		if hit {
 			hitAnything = true
 			closestSoFar = hitRecord.t
