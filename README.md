@@ -1,2 +1,2 @@
 # wasm-trace
-A simple go/wasm ray tracer
+A ray tracer implemented in Golang compiled to WebAssembly with a web interface to start and view the render
