@@ -6,7 +6,7 @@ A ray tracer implemented in Golang compiled to WebAssembly with a web interface 
 ## Running
 
 ```
-scripts/run.sh
+script/run.sh
 ```
 
 and then point your browser to localhost:8080
