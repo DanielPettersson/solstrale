@@ -1,26 +1,22 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"syscall/js"
 
 	"github.com/DanielPettersson/wasm-trace/pkg/trace"
 )
 
-func doTrace(width int, height int, imageCallback js.Value, progressCallback js.Value) {
+func doTrace(width int, height int, callback js.Value) {
 
-	var buffer bytes.Buffer
-	progress := make(chan float32)
-	go trace.RayTrace(width, height, progress, &buffer)
+	output := make(chan trace.TraceProgress)
+	go trace.RayTrace(width, height, output)
 
-	for p := range progress {
-		progressCallback.Invoke(p)
+	for p := range output {
+		jsBytes := js.Global().Get("Uint8ClampedArray").New(len(p.ImageData))
+		js.CopyBytesToJS(jsBytes, p.ImageData)
+		callback.Invoke(jsBytes, p.Progress)
 	}
-
-	jsBytes := js.Global().Get("Uint8ClampedArray").New(len(buffer.Bytes()))
-	js.CopyBytesToJS(jsBytes, buffer.Bytes())
-	imageCallback.Invoke(jsBytes)
 }
 
 func raytraceWrapper() js.Func {
@@ -28,10 +24,9 @@ func raytraceWrapper() js.Func {
 
 		width := args[0].Int()
 		height := args[1].Int()
-		imageCallback := args[2]
-		progressCallback := args[3]
+		callback := args[2]
 
-		go doTrace(width, height, imageCallback, progressCallback)
+		go doTrace(width, height, callback)
 		return nil
 	})
 }

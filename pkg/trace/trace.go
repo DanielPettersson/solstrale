@@ -1,10 +1,14 @@
 package trace
 
 import (
-	"bytes"
 	"math/rand"
 	"time"
 )
+
+type TraceProgress struct {
+	Progress  float64
+	ImageData []byte
+}
 
 var (
 	world           hittableList
@@ -32,10 +36,9 @@ func rayColor(r ray, depth int) vec3 {
 	return whiteness.add(blueness)
 }
 
-func RayTrace(imageWidth int, imageHeight int, progress chan float32, byteBuffer *bytes.Buffer) {
+func RayTrace(imageWidth int, imageHeight int, output chan TraceProgress) {
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	ret := make([]byte, imageWidth*imageHeight*4)
 
 	// world
 
@@ -47,41 +50,47 @@ func RayTrace(imageWidth int, imageHeight int, progress chan float32, byteBuffer
 
 	camera := createCamera(imageWidth, imageHeight)
 
-	for y := 0; y < imageHeight; y++ {
-		for x := 0; x < imageWidth; x++ {
-			i := (((imageHeight-1)-y)*imageWidth + x) * 4
+	pixels := make([]vec3, imageWidth*imageHeight*4)
 
-			pixelColor := vec3{}
-			for s := 0; s < samplesPerPixel; s++ {
+	for s := 0; s < samplesPerPixel; s++ {
+
+		i := 0
+
+		for y := 0; y < imageHeight; y++ {
+			for x := 0; x < imageWidth; x++ {
+
 				u := (float64(x) + rand.Float64()) / float64(imageWidth-1)
 				v := (float64(y) + rand.Float64()) / float64(imageHeight-1)
 				r := camera.getRay(u, v)
-				pixelColor = pixelColor.add(rayColor(r, 0))
+				pixelColor := rayColor(r, 0)
+
+				pixels[i] = pixels[i].add(pixelColor)
+				i += 1
 			}
-			col := pixelColor.toRgba(samplesPerPixel)
 
-			ret[i] = col.r
-			ret[i+1] = col.g
-			ret[i+2] = col.b
-			ret[i+3] = col.a
 		}
-		reportProgress(y, imageHeight, progress)
 
+		ret := make([]byte, imageWidth*imageHeight*4)
+		i = 0
+
+		for y := 0; y < imageHeight; y++ {
+			for x := 0; x < imageWidth; x++ {
+				ri := (((imageHeight-1)-y)*imageWidth + x) * 4
+
+				col := pixels[i].toRgba(s)
+
+				ret[ri] = col.r
+				ret[ri+1] = col.g
+				ret[ri+2] = col.b
+				ret[ri+3] = col.a
+
+				i += 1
+			}
+		}
+
+		output <- TraceProgress{float64(s+1) / float64(samplesPerPixel), ret}
+		time.Sleep(10 * time.Millisecond)
 	}
 
-	byteBuffer.Write(ret)
-	close(progress)
-}
-
-func reportProgress(num int, total int, progress chan float32) {
-
-	progressInterval := total / 100
-	if progressInterval == 0 {
-		progressInterval = 1
-	}
-
-	if num%progressInterval == 0 {
-		progress <- float32(num) / float32(total)
-		time.Sleep(5 * time.Millisecond)
-	}
+	close(output)
 }

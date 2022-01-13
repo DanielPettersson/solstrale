@@ -18,23 +18,23 @@
 			console.error(err);
 		});
 
-		const width = 400;
-		const height = 225;
+		const width = 800;
+		const height = 450;
 
 		async function run() {
+			document.getElementById("runButton").disabled = true;
+			let canvas = document.getElementById('canvas');
+			let ctx = canvas.getContext('2d');
+			canvas.width = width;
+			canvas.height = height;
 			WASMTrace.raytrace(
 				width, height, 
-				imageBytes => {
-					let canvas = document.getElementById('canvas');
-					canvas.width = width;
-					canvas.height = height;
-					let ctx = canvas.getContext('2d');
+				(imageBytes, progress) => {
 					let imageData = new ImageData(imageBytes, width, height);
 					ctx.putImageData(imageData, 0, 0);
-				},
-				progress => {
+
 					let p = document.getElementById("progress");
-					p.innerText = (progress * 100).toFixed(0)
+					p.innerText = (progress * 100).toFixed(1)
 				}
 			)
 			
