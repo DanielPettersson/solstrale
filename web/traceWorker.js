@@ -10,7 +10,7 @@ WebAssembly.instantiateStreaming(fetch("trace.wasm"), go.importObject).then((res
 
 onmessage = function(e) {
     WASMTrace.raytrace(
-        e.data.width, e.data.height, 
+        e.data.width, e.data.height, e.data.interlaceSize, e.data.interlaceOffset,
         (imageBytes, progress) => {
 
             postMessage(

@@ -3,7 +3,13 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Wasm trace</title>
+	<title>Solstråle</title>
+	<style type="text/css">
+		body {
+			margin: 0;
+			overflow: hidden;
+		}
+	</style>
 </head>
 
 <body>
@@ -15,39 +21,64 @@
 
 	<script>
 
-		const width = 800;
-		const height = 450;
-
 		let canvas = document.getElementById('canvas');
+		const width = window.innerWidth;
+		const height = window.innerHeight - canvas.getBoundingClientRect().top;
 		let ctx = canvas.getContext('2d');
 		canvas.width = width;
 		canvas.height = height;
 
-		var traceWorker = new Worker('traceWorker.js');
-		traceWorker.onerror = function(event) {
-			console.log('There is an error in trace worker: ' + event);
-		}
-		traceWorker.onmessage = function(e) {
-			if (e.data.type === "init") {
-				document.getElementById("runButton").disabled = false;
+		
+		let traceWorkers = [];
 
-			} else if (e.data.type === "image") {
-				let imageArray = new Uint8ClampedArray(e.data.buffer)
-				let imageData = new ImageData(imageArray, width, height);
-				ctx.putImageData(imageData, 0, 0);
+		for (let i = 0; i < window.navigator.hardwareConcurrency; i++) {
 
-				let p = document.getElementById("progress");
-				p.innerText = (e.data.progress * 100).toFixed(1)
+			let traceWorker = new Worker('traceWorker.js');
+			traceWorker.onerror = function(event) {
+				console.log('There is an error in trace worker: ' + event);
 			}
+			traceWorker.onmessage = function(e) {
+				if (e.data.type === "init") {
+					document.getElementById("runButton").disabled = false;
+
+				} else if (e.data.type === "image") {
+					let newData = new Uint8ClampedArray(e.data.buffer)
+					let oldData = ctx.getImageData(0, 0, width, height).data;
+
+					for(let y = 0; y < height; y++) {
+						for(let x = 0; x < width; x++) {
+							let i = ((width * y) + x) * 4;
+							if (newData[i + 3] == 0) {
+								newData[i] = oldData[i]
+								newData[i + 1] = oldData[i + 1]
+								newData[i + 2] = oldData[i + 2]
+								newData[i + 3] = oldData[i + 3]
+							} 
+						}
+					}					
+
+					let imageData = new ImageData(newData, width, height);
+					ctx.putImageData(imageData, 0, 0);
+
+					let p = document.getElementById("progress");
+					p.innerText = (e.data.progress * 100).toFixed(1)
+				}
+			}
+
+			traceWorkers.push(traceWorker);
 		}
 
 		function run() {
 			document.getElementById("runButton").disabled = true;
 
-			traceWorker.postMessage({
-				width: width,
-				height: height
-			})			
+			for (i = 0; i < traceWorkers.length; i++) {
+				traceWorkers[i].postMessage({
+					width: width,
+					height: height,
+					interlaceSize: traceWorkers.length,
+					interlaceOffset: i
+				})			
+			}
 		}
 	</script>
 

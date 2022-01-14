@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+type TraceSpecification struct {
+	ImageWidth      int
+	ImageHeight     int
+	InterlaceSize   int
+	InterlaceOffset int
+}
+
 type TraceProgress struct {
 	Progress  float64
 	ImageData []byte
@@ -36,9 +43,13 @@ func rayColor(r ray, depth int) vec3 {
 	return whiteness.add(blueness)
 }
 
-func RayTrace(imageWidth int, imageHeight int, output chan TraceProgress) {
+func RayTrace(specification TraceSpecification, output chan TraceProgress) {
 
 	rand.Seed(time.Now().UTC().UnixNano())
+	imageWidth := specification.ImageWidth
+	imageHeight := specification.ImageHeight
+	interlaceSize := specification.InterlaceSize
+	interlaceOffset := specification.InterlaceOffset
 
 	// world
 
@@ -54,10 +65,14 @@ func RayTrace(imageWidth int, imageHeight int, output chan TraceProgress) {
 
 	for s := 0; s < samplesPerPixel; s++ {
 
-		i := 0
-
 		for y := 0; y < imageHeight; y++ {
+
+			if y%interlaceSize != interlaceOffset {
+				continue
+			}
+
 			for x := 0; x < imageWidth; x++ {
+				i := (((imageHeight-1)-y)*imageWidth + x)
 
 				u := (float64(x) + rand.Float64()) / float64(imageWidth-1)
 				v := (float64(y) + rand.Float64()) / float64(imageHeight-1)
@@ -65,18 +80,21 @@ func RayTrace(imageWidth int, imageHeight int, output chan TraceProgress) {
 				pixelColor := rayColor(r, 0)
 
 				pixels[i] = pixels[i].add(pixelColor)
-				i += 1
 			}
 
 		}
 
 		ret := make([]byte, imageWidth*imageHeight*4)
-		i = 0
 
 		for y := 0; y < imageHeight; y++ {
-			for x := 0; x < imageWidth; x++ {
-				ri := (((imageHeight-1)-y)*imageWidth + x) * 4
 
+			if y%interlaceSize != interlaceOffset {
+				continue
+			}
+
+			for x := 0; x < imageWidth; x++ {
+				i := (((imageHeight-1)-y)*imageWidth + x)
+				ri := i * 4
 				col := pixels[i].toRgba(s)
 
 				ret[ri] = col.r
@@ -84,12 +102,17 @@ func RayTrace(imageWidth int, imageHeight int, output chan TraceProgress) {
 				ret[ri+2] = col.b
 				ret[ri+3] = col.a
 
-				i += 1
 			}
 		}
 
-		output <- TraceProgress{float64(s+1) / float64(samplesPerPixel), ret}
-		time.Sleep(10 * time.Millisecond)
+		reportOutput := s%interlaceSize == interlaceOffset || s == samplesPerPixel-1
+
+		if reportOutput {
+			output <- TraceProgress{float64(s+1) / float64(samplesPerPixel), ret}
+
+			// A bit of a hack to let the running web worker context interrupt and do it's callback
+			time.Sleep(1 * time.Millisecond)
+		}
 	}
 
 	close(output)

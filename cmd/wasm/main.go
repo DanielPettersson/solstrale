@@ -1,16 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"syscall/js"
 
 	"github.com/DanielPettersson/wasm-trace/pkg/trace"
 )
 
-func doTrace(width int, height int, callback js.Value) {
+func doTrace(width, height, interlaceSize, interlaceOffset int, callback js.Value) {
 
 	output := make(chan trace.TraceProgress)
-	go trace.RayTrace(width, height, output)
+	specification := trace.TraceSpecification{
+		ImageWidth:      width,
+		ImageHeight:     height,
+		InterlaceSize:   interlaceSize,
+		InterlaceOffset: interlaceOffset,
+	}
+
+	go trace.RayTrace(specification, output)
 
 	for p := range output {
 		jsBytes := js.Global().Get("Uint8ClampedArray").New(len(p.ImageData))
@@ -24,16 +30,16 @@ func raytraceWrapper() js.Func {
 
 		width := args[0].Int()
 		height := args[1].Int()
-		callback := args[2]
+		interlaceSize := args[2].Int()
+		interlaceOffset := args[3].Int()
+		callback := args[4]
 
-		go doTrace(width, height, callback)
+		go doTrace(width, height, interlaceSize, interlaceOffset, callback)
 		return nil
 	})
 }
 
 func main() {
-	fmt.Println("Initialized WebAssembly")
-
 	WASMTrace := js.ValueOf(make(map[string]interface{}))
 	WASMTrace.Set("raytrace", raytraceWrapper())
 	js.Global().Set("WASMTrace", WASMTrace)
