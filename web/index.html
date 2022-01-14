@@ -7,45 +7,50 @@
 </head>
 
 <body>
-	<script src="wasm_exec.js"></script>
-	<script>
-
-		const go = new Go();
-		WebAssembly.instantiateStreaming(fetch("trace.wasm"), go.importObject).then((result) => {
-			go.run(result.instance);			
-			document.getElementById("runButton").disabled = false;
-		}).catch((err) => {
-			console.error(err);
-		});
-
-		const width = 800;
-		const height = 450;
-
-		async function run() {
-			document.getElementById("runButton").disabled = true;
-			let canvas = document.getElementById('canvas');
-			let ctx = canvas.getContext('2d');
-			canvas.width = width;
-			canvas.height = height;
-			WASMTrace.raytrace(
-				width, height, 
-				(imageBytes, progress) => {
-					let imageData = new ImageData(imageBytes, width, height);
-					ctx.putImageData(imageData, 0, 0);
-
-					let p = document.getElementById("progress");
-					p.innerText = (progress * 100).toFixed(1)
-				}
-			)
-			
-		}
-	</script>
-
 	<div>
 		<button onClick="run();" id="runButton" disabled>Run</button>
 		progress: <span id="progress"></span>%
 	</div>
 	<canvas id="canvas"></canvas>
+
+	<script>
+
+		const width = 800;
+		const height = 450;
+
+		let canvas = document.getElementById('canvas');
+		let ctx = canvas.getContext('2d');
+		canvas.width = width;
+		canvas.height = height;
+
+		var traceWorker = new Worker('traceWorker.js');
+		traceWorker.onerror = function(event) {
+			console.log('There is an error in trace worker: ' + event);
+		}
+		traceWorker.onmessage = function(e) {
+			if (e.data.type === "init") {
+				document.getElementById("runButton").disabled = false;
+
+			} else if (e.data.type === "image") {
+				let imageArray = new Uint8ClampedArray(e.data.buffer)
+				let imageData = new ImageData(imageArray, width, height);
+				ctx.putImageData(imageData, 0, 0);
+
+				let p = document.getElementById("progress");
+				p.innerText = (e.data.progress * 100).toFixed(1)
+			}
+		}
+
+		function run() {
+			document.getElementById("runButton").disabled = true;
+
+			traceWorker.postMessage({
+				width: width,
+				height: height
+			})			
+		}
+	</script>
+
 </body>
 
 </html>
