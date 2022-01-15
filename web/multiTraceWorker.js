@@ -7,19 +7,10 @@ onmessage = function(e) {
 
     if (e.data.type === "init") {
 
-        spec = e.data.specification;
-        
         // Use double the available cores, as some parts of the image will render faster than others.
         // This reduces starvation of threads at end of render
-        numWorkers = Math.max(spec.availableConcurrency * 2, 1)
+        numWorkers = Math.max(e.data.availableConcurrency * 2, 1)
         console.log("Multi trace worker will initialize " + numWorkers + " workers")
-
-        
-        width = spec.width
-        height = spec.height;
-        
-        drawHeight = Math.floor(height / numWorkers)
-        drawHeightRemainder = height % numWorkers
 
         for (let i = 0; i < numWorkers; i++) {
 
@@ -27,15 +18,6 @@ onmessage = function(e) {
             traceWorker.postMessage({
                 type: "init",
                 id: i,
-                specification: {
-                    imageWidth: width,
-                    imageHeight: height,
-                    drawOffsetX: 0,
-                    drawOffsetY: i * drawHeight,
-                    drawWidth: width,
-                    drawHeight: drawHeight + (i == numWorkers - 1 ? drawHeightRemainder : 0),
-                    samplesPerPixel: spec.samplesPerPixel
-                }
             })
             traceWorker.onerror = function(event) {
                 throw event;
@@ -77,9 +59,26 @@ onmessage = function(e) {
 
     } else if (e.data.type === "start") {
 
-        for (let traceWorker of Object.values(traceWorkers)) {
+        let spec = e.data.specification
+
+        width = spec.width
+        height = spec.height;
+        
+        drawHeight = Math.floor(height / numWorkers)
+        drawHeightRemainder = height % numWorkers
+
+        for (let [i, traceWorker] of Object.entries(traceWorkers)) {
             traceWorker.worker.postMessage({
-                type: "start"
+                type: "start",
+                specification: {
+                    imageWidth: width,
+                    imageHeight: height,
+                    drawOffsetX: 0,
+                    drawOffsetY: i * drawHeight,
+                    drawWidth: width,
+                    drawHeight: drawHeight + (i == numWorkers - 1 ? drawHeightRemainder : 0),
+                    samplesPerPixel: spec.samplesPerPixel
+                }
             })			
         }
     }

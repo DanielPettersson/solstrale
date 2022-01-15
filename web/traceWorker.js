@@ -8,7 +8,6 @@ onmessage = function(e) {
     if (e.data.type === "init") {
        
         id = e.data.id;
-        specification = e.data.specification;
 
         const go = new Go();
         WebAssembly.instantiateStreaming(fetch("trace.wasm"), go.importObject).then((result) => {
@@ -21,7 +20,7 @@ onmessage = function(e) {
 
     } else if (e.data.type === "start") {
         WASMTrace.raytrace(
-            specification,
+            e.data.specification,
             (imageBytes, progress) => {
     
                 postMessage(
@@ -30,7 +29,7 @@ onmessage = function(e) {
                         id: id,
                         progress: progress,
                         buffer: imageBytes.buffer,
-                        specification: specification
+                        specification: e.data.specification
                     },
                     [
                         imageBytes.buffer

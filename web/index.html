@@ -14,6 +14,7 @@
 
 <body>
 	<div>
+		samplesPerPixel: <input id="samplesPerPixel" type="number" min="1" value="100"/>
 		<button onClick="run();" id="runButton" disabled>Run</button>
 		progress: <span id="progress"></span>
 	</div>
@@ -34,12 +35,7 @@
 		let traceWorker = new Worker('multiTraceWorker.js');
 		traceWorker.postMessage({
 			type: "init",
-			specification: {
-				availableConcurrency: window.navigator.hardwareConcurrency,
-				width: width,
-				height: height,
-				samplesPerPixel: 10
-			}			
+			availableConcurrency: window.navigator.hardwareConcurrency,
 		})
 
 		traceWorker.onerror = function(event) {
@@ -71,7 +67,15 @@
 
 		function run() {
 			document.getElementById("runButton").disabled = true;
-			traceWorker.postMessage({type: "start"})
+			let samplesPerPixel = document.getElementById("samplesPerPixel").value;
+			traceWorker.postMessage({
+				type: "start",
+				specification: {
+					width: width,
+					height: height,
+					samplesPerPixel: parseInt(samplesPerPixel)
+				},
+			})
 			startTime = performance.now()	
 		}
 	</script>
