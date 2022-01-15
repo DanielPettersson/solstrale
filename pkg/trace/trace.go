@@ -33,7 +33,7 @@ func rayColor(r ray, depth int) vec3 {
 
 	hit, rec := world.hit(r, interval{0.001, infinity})
 	if hit {
-		target := rec.p.add(rec.normal).add(randomUnitVector())
+		target := rec.p.add(rec.normal).add(randomInHemisphere(rec.normal))
 		ray := ray{rec.p, target.sub(rec.p)}
 		return rayColor(ray, depth+1).mulS(0.5)
 	}

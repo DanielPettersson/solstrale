@@ -18,7 +18,7 @@ func randomVec3(min float64, max float64) vec3 {
 	}
 }
 
-func randomVec3InUnitSphere() vec3 {
+func randomInUnitSphere() vec3 {
 	for {
 		p := randomVec3(-1, 1)
 		if p.lengthSquared() < 1 {
@@ -28,7 +28,16 @@ func randomVec3InUnitSphere() vec3 {
 }
 
 func randomUnitVector() vec3 {
-	return randomVec3InUnitSphere().unit()
+	return randomInUnitSphere().unit()
+}
+
+func randomInHemisphere(normal vec3) vec3 {
+	inUnitSphere := randomInUnitSphere()
+	if inUnitSphere.dot(normal) > 0 {
+		return inUnitSphere
+	} else {
+		return inUnitSphere.neg()
+	}
 }
 
 func (v vec3) neg() vec3 {
