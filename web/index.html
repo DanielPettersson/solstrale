@@ -23,16 +23,10 @@
 	<script>
 
 		let canvas = document.getElementById('canvas');
-		const width = window.innerWidth;
-		const height = window.innerHeight - canvas.getBoundingClientRect().top;
 		let ctx = canvas.getContext('2d');
-		canvas.width = width;
-		canvas.height = height;
-
 		let startTime;
-
-		
 		let traceWorker = new Worker('multiTraceWorker.js');
+
 		traceWorker.postMessage({
 			type: "init",
 			availableConcurrency: window.navigator.hardwareConcurrency,
@@ -66,8 +60,15 @@
 		}
 
 		function run() {
-			document.getElementById("runButton").disabled = true;
+
 			let samplesPerPixel = document.getElementById("samplesPerPixel").value;
+			let width = window.innerWidth;
+			let height = window.innerHeight - canvas.getBoundingClientRect().top;			
+			canvas.width = width;
+			canvas.height = height;
+
+			document.getElementById("runButton").disabled = true;
+			
 			traceWorker.postMessage({
 				type: "start",
 				specification: {
