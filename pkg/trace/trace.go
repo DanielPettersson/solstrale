@@ -84,30 +84,31 @@ func RayTrace(specification TraceSpecification, output chan TraceProgress) {
 
 		}
 
-		ret := make([]byte, imageWidth*imageHeight*4)
-
-		for y := 0; y < imageHeight; y++ {
-
-			if y%interlaceSize != interlaceOffset {
-				continue
-			}
-
-			for x := 0; x < imageWidth; x++ {
-				i := (((imageHeight-1)-y)*imageWidth + x)
-				ri := i * 4
-				col := pixels[i].toRgba(s)
-
-				ret[ri] = col.r
-				ret[ri+1] = col.g
-				ret[ri+2] = col.b
-				ret[ri+3] = col.a
-
-			}
-		}
-
 		reportOutput := s%interlaceSize == interlaceOffset || s == samplesPerPixel-1
 
 		if reportOutput {
+
+			ret := make([]byte, imageWidth*imageHeight*4)
+
+			for y := 0; y < imageHeight; y++ {
+
+				if y%interlaceSize != interlaceOffset {
+					continue
+				}
+
+				for x := 0; x < imageWidth; x++ {
+					i := (((imageHeight-1)-y)*imageWidth + x)
+					ri := i * 4
+					col := pixels[i].toRgba(s)
+
+					ret[ri] = col.r
+					ret[ri+1] = col.g
+					ret[ri+2] = col.b
+					ret[ri+3] = col.a
+
+				}
+			}
+
 			output <- TraceProgress{float64(s+1) / float64(samplesPerPixel), ret}
 
 			// A bit of a hack to let the running web worker context interrupt and do it's callback
