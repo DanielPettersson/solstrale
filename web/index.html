@@ -34,9 +34,12 @@
 		let traceWorker = new Worker('multiTraceWorker.js');
 		traceWorker.postMessage({
 			type: "init",
-			availableConcurrency: window.navigator.hardwareConcurrency,
-			width: width,
-			height: height,
+			specification: {
+				availableConcurrency: window.navigator.hardwareConcurrency,
+				width: width,
+				height: height,
+				samplesPerPixel: 10
+			}			
 		})
 
 		traceWorker.onerror = function(event) {

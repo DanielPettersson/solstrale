@@ -6,12 +6,13 @@ import (
 )
 
 type TraceSpecification struct {
-	ImageWidth  int
-	ImageHeight int
-	DrawOffsetX int
-	DrawOffsetY int
-	DrawWidth   int
-	DrawHeight  int
+	ImageWidth      int
+	ImageHeight     int
+	DrawOffsetX     int
+	DrawOffsetY     int
+	DrawWidth       int
+	DrawHeight      int
+	SamplesPerPixel int
 }
 
 type TraceProgress struct {
@@ -21,9 +22,8 @@ type TraceProgress struct {
 }
 
 var (
-	world           hittableList
-	samplesPerPixel int = 50
-	maxDepth        int = 50
+	world    hittableList
+	maxDepth int = 50
 )
 
 func rayColor(r ray, depth int) vec3 {
@@ -33,9 +33,12 @@ func rayColor(r ray, depth int) vec3 {
 
 	hit, rec := world.hit(r, interval{0.001, infinity})
 	if hit {
-		target := rec.p.add(rec.normal).add(randomInHemisphere(rec.normal))
-		ray := ray{rec.p, target.sub(rec.p)}
-		return rayColor(ray, depth+1).mulS(0.5)
+
+		scatter, attenuation, scatterRay := rec.mat.scatter(r, *rec)
+		if scatter {
+			return attenuation.mul(rayColor(scatterRay, depth+1))
+		}
+		return black
 	}
 
 	t := 0.5 * (r.dir.unit().y + 1)
@@ -53,8 +56,16 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	// world
 
 	world = hittableList{}
-	world.add(sphere{vec3{0, -100.5, -1}, 100})
-	world.add(sphere{vec3{0, 0, -1}, 0.5})
+
+	materialGround := lambertian{vec3{0.8, 0.8, 0}}
+	materialCenter := lambertian{vec3{0.7, 0.3, 0.3}}
+	materialLeft := metal{vec3{0.8, 0.8, 0.8}, 0.3}
+	materialRight := metal{vec3{0.8, 0.6, 0.2}, 1.0}
+
+	world.add(sphere{vec3{0, -100.5, -1}, 100, materialGround})
+	world.add(sphere{vec3{0, 0, -1}, 0.5, materialCenter})
+	world.add(sphere{vec3{-1, 0, -1}, 0.5, materialLeft})
+	world.add(sphere{vec3{1, 0, -1}, 0.5, materialRight})
 
 	// camera
 
@@ -62,7 +73,7 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 
 	pixels := make([]vec3, spec.DrawWidth*spec.DrawHeight)
 
-	for s := 0; s < samplesPerPixel; s++ {
+	for s := 0; s < spec.SamplesPerPixel; s++ {
 
 		yStart := spec.ImageHeight - spec.DrawOffsetY - spec.DrawHeight
 		for y := yStart; y < yStart+spec.DrawHeight; y++ {
@@ -100,7 +111,7 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 		}
 
 		output <- TraceProgress{
-			float64(s+1) / float64(samplesPerPixel),
+			float64(s+1) / float64(spec.SamplesPerPixel),
 			spec,
 			ret,
 		}

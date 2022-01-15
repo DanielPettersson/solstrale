@@ -5,6 +5,7 @@ import "math"
 type sphere struct {
 	center vec3
 	radius float64
+	mat    material
 }
 
 func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
@@ -30,7 +31,7 @@ func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
 
 	p := r.at(root)
 	normal := p.sub(s.center).divS(s.radius)
-	hitRecord := createHitRecord(r, p, normal, root)
+	hitRecord := createHitRecord(r, p, normal, root, s.mat)
 	return true, &hitRecord
 
 }

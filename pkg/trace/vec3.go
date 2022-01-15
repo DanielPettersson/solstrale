@@ -88,6 +88,15 @@ func (v vec3) unit() vec3 {
 	return v.divS(v.length())
 }
 
+func (v vec3) nearZero() bool {
+	s := 1e-8
+	return math.Abs(v.x) < s && math.Abs(v.y) < s && math.Abs(v.z) < s
+}
+
+func (v vec3) reflect(n vec3) vec3 {
+	return v.sub(n.mulS(v.dot(n) * 2))
+}
+
 type rgbaColor struct {
 	r byte
 	g byte

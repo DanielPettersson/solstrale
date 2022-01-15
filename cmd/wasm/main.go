@@ -25,12 +25,13 @@ func raytraceWrapper() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 
 		go doTrace(trace.TraceSpecification{
-			ImageWidth:  args[0].Get("imageWidth").Int(),
-			ImageHeight: args[0].Get("imageHeight").Int(),
-			DrawOffsetX: args[0].Get("drawOffsetX").Int(),
-			DrawOffsetY: args[0].Get("drawOffsetY").Int(),
-			DrawWidth:   args[0].Get("drawWidth").Int(),
-			DrawHeight:  args[0].Get("drawHeight").Int(),
+			ImageWidth:      args[0].Get("imageWidth").Int(),
+			ImageHeight:     args[0].Get("imageHeight").Int(),
+			DrawOffsetX:     args[0].Get("drawOffsetX").Int(),
+			DrawOffsetY:     args[0].Get("drawOffsetY").Int(),
+			DrawWidth:       args[0].Get("drawWidth").Int(),
+			DrawHeight:      args[0].Get("drawHeight").Int(),
+			SamplesPerPixel: args[0].Get("samplesPerPixel").Int(),
 		}, args[1])
 		return nil
 	})

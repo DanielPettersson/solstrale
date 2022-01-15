@@ -7,13 +7,16 @@ onmessage = function(e) {
 
     if (e.data.type === "init") {
 
-        // Number of workers should be available concurrency subtracted with 
-        // this worker thread and browser main thread. But a minimun of 1
-        numWorkers = Math.max(e.data.availableConcurrency - 2, 1)
+        spec = e.data.specification;
+        
+        // Use double the available cores, as some parts of the image will render faster than others.
+        // This reduces starvation of threads at end of render
+        numWorkers = Math.max(spec.availableConcurrency * 2, 1)
         console.log("Multi trace worker will initialize " + numWorkers + " workers")
 
-        width = e.data.width;
-        height = e.data.height;
+        
+        width = spec.width
+        height = spec.height;
         
         drawHeight = Math.floor(height / numWorkers)
         drawHeightRemainder = height % numWorkers
@@ -30,7 +33,8 @@ onmessage = function(e) {
                     drawOffsetX: 0,
                     drawOffsetY: i * drawHeight,
                     drawWidth: width,
-                    drawHeight: drawHeight + (i == numWorkers - 1 ? drawHeightRemainder : 0)
+                    drawHeight: drawHeight + (i == numWorkers - 1 ? drawHeightRemainder : 0),
+                    samplesPerPixel: spec.samplesPerPixel
                 }
             })
             traceWorker.onerror = function(event) {
