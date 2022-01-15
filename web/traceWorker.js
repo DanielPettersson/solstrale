@@ -1,28 +1,42 @@
 importScripts("wasm_exec.js")
 
-const go = new Go();
-WebAssembly.instantiateStreaming(fetch("trace.wasm"), go.importObject).then((result) => {
-    go.run(result.instance);			
-    postMessage({
-        type: "init"
-    })
-});
+let id;
+let specification;
 
 onmessage = function(e) {
-    WASMTrace.raytrace(
-        e.data.width, e.data.height, e.data.interlaceSize, e.data.interlaceOffset,
-        (imageBytes, progress) => {
 
-            postMessage(
-                {
-                    type: "image",
-                    progress: progress,
-                    buffer: imageBytes.buffer
-                },
-                [
-                    imageBytes.buffer
-                ]
-            )
-        }
-    )
+    if (e.data.type === "init") {
+       
+        id = e.data.id;
+        specification = e.data.specification;
+
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("trace.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);			
+            postMessage({
+                type: "init",
+                id: id
+            })
+        });
+
+    } else if (e.data.type === "start") {
+        WASMTrace.raytrace(
+            specification,
+            (imageBytes, progress) => {
+    
+                postMessage(
+                    {
+                        type: "image",
+                        id: id,
+                        progress: progress,
+                        buffer: imageBytes.buffer,
+                        specification: specification
+                    },
+                    [
+                        imageBytes.buffer
+                    ]
+                )
+            }
+        )
+    }    
 };

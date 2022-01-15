@@ -6,35 +6,32 @@ import (
 	"github.com/DanielPettersson/wasm-trace/pkg/trace"
 )
 
-func doTrace(width, height, interlaceSize, interlaceOffset int, callback js.Value) {
+func doTrace(spec trace.TraceSpecification, callback js.Value) {
 
 	output := make(chan trace.TraceProgress)
-	specification := trace.TraceSpecification{
-		ImageWidth:      width,
-		ImageHeight:     height,
-		InterlaceSize:   interlaceSize,
-		InterlaceOffset: interlaceOffset,
-	}
-
-	go trace.RayTrace(specification, output)
+	go trace.RayTrace(spec, output)
 
 	for p := range output {
 		jsBytes := js.Global().Get("Uint8ClampedArray").New(len(p.ImageData))
 		js.CopyBytesToJS(jsBytes, p.ImageData)
-		callback.Invoke(jsBytes, p.Progress)
+		callback.Invoke(
+			jsBytes,
+			p.Progress,
+		)
 	}
 }
 
 func raytraceWrapper() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 
-		width := args[0].Int()
-		height := args[1].Int()
-		interlaceSize := args[2].Int()
-		interlaceOffset := args[3].Int()
-		callback := args[4]
-
-		go doTrace(width, height, interlaceSize, interlaceOffset, callback)
+		go doTrace(trace.TraceSpecification{
+			ImageWidth:  args[0].Get("imageWidth").Int(),
+			ImageHeight: args[0].Get("imageHeight").Int(),
+			DrawOffsetX: args[0].Get("drawOffsetX").Int(),
+			DrawOffsetY: args[0].Get("drawOffsetY").Int(),
+			DrawWidth:   args[0].Get("drawWidth").Int(),
+			DrawHeight:  args[0].Get("drawHeight").Int(),
+		}, args[1])
 		return nil
 	})
 }

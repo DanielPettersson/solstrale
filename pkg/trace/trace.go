@@ -6,20 +6,23 @@ import (
 )
 
 type TraceSpecification struct {
-	ImageWidth      int
-	ImageHeight     int
-	InterlaceSize   int
-	InterlaceOffset int
+	ImageWidth  int
+	ImageHeight int
+	DrawOffsetX int
+	DrawOffsetY int
+	DrawWidth   int
+	DrawHeight  int
 }
 
 type TraceProgress struct {
-	Progress  float64
-	ImageData []byte
+	Progress      float64
+	Specification TraceSpecification
+	ImageData     []byte
 }
 
 var (
 	world           hittableList
-	samplesPerPixel int = 100
+	samplesPerPixel int = 50
 	maxDepth        int = 50
 )
 
@@ -43,13 +46,9 @@ func rayColor(r ray, depth int) vec3 {
 	return whiteness.add(blueness)
 }
 
-func RayTrace(specification TraceSpecification, output chan TraceProgress) {
+func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	imageWidth := specification.ImageWidth
-	imageHeight := specification.ImageHeight
-	interlaceSize := specification.InterlaceSize
-	interlaceOffset := specification.InterlaceOffset
 
 	// world
 
@@ -59,23 +58,22 @@ func RayTrace(specification TraceSpecification, output chan TraceProgress) {
 
 	// camera
 
-	camera := createCamera(imageWidth, imageHeight)
+	camera := createCamera(spec.ImageWidth, spec.ImageHeight)
 
-	pixels := make([]vec3, imageWidth*imageHeight*4)
+	pixels := make([]vec3, spec.DrawWidth*spec.DrawHeight)
 
 	for s := 0; s < samplesPerPixel; s++ {
 
-		for y := 0; y < imageHeight; y++ {
+		yStart := spec.ImageHeight - spec.DrawOffsetY - spec.DrawHeight
+		for y := yStart; y < yStart+spec.DrawHeight; y++ {
 
-			if y%interlaceSize != interlaceOffset {
-				continue
-			}
+			for x := spec.DrawOffsetX; x < spec.DrawOffsetX+spec.DrawWidth; x++ {
+				dx := x - spec.DrawOffsetX
+				dy := y - yStart
+				i := (((spec.DrawHeight-1)-dy)*spec.DrawWidth + dx)
 
-			for x := 0; x < imageWidth; x++ {
-				i := (((imageHeight-1)-y)*imageWidth + x)
-
-				u := (float64(x) + rand.Float64()) / float64(imageWidth-1)
-				v := (float64(y) + rand.Float64()) / float64(imageHeight-1)
+				u := (float64(x) + rand.Float64()) / float64(spec.ImageWidth-1)
+				v := (float64(y) + rand.Float64()) / float64(spec.ImageHeight-1)
 				r := camera.getRay(u, v)
 				pixelColor := rayColor(r, 0)
 
@@ -84,36 +82,31 @@ func RayTrace(specification TraceSpecification, output chan TraceProgress) {
 
 		}
 
-		reportOutput := s%interlaceSize == interlaceOffset || s == samplesPerPixel-1
+		ret := make([]byte, len(pixels)*4)
 
-		if reportOutput {
+		for y := 0; y < spec.DrawHeight; y++ {
+			for x := 0; x < spec.DrawWidth; x++ {
 
-			ret := make([]byte, imageWidth*imageHeight*4)
+				i := (((spec.DrawHeight-1)-y)*spec.DrawWidth + x)
+				ri := i * 4
+				col := pixels[i].toRgba(s)
 
-			for y := 0; y < imageHeight; y++ {
+				ret[ri] = col.r
+				ret[ri+1] = col.g
+				ret[ri+2] = col.b
+				ret[ri+3] = col.a
 
-				if y%interlaceSize != interlaceOffset {
-					continue
-				}
-
-				for x := 0; x < imageWidth; x++ {
-					i := (((imageHeight-1)-y)*imageWidth + x)
-					ri := i * 4
-					col := pixels[i].toRgba(s)
-
-					ret[ri] = col.r
-					ret[ri+1] = col.g
-					ret[ri+2] = col.b
-					ret[ri+3] = col.a
-
-				}
 			}
-
-			output <- TraceProgress{float64(s+1) / float64(samplesPerPixel), ret}
-
-			// A bit of a hack to let the running web worker context interrupt and do it's callback
-			time.Sleep(1 * time.Millisecond)
 		}
+
+		output <- TraceProgress{
+			float64(s+1) / float64(samplesPerPixel),
+			spec,
+			ret,
+		}
+
+		// A bit of a hack to let the running web worker context interrupt and do it's callback
+		time.Sleep(1 * time.Millisecond)
 	}
 
 	close(output)

@@ -15,7 +15,7 @@
 <body>
 	<div>
 		<button onClick="run();" id="runButton" disabled>Run</button>
-		progress: <span id="progress"></span>%
+		progress: <span id="progress"></span>
 	</div>
 	<canvas id="canvas"></canvas>
 
@@ -28,57 +28,48 @@
 		canvas.width = width;
 		canvas.height = height;
 
+		let startTime;
+
 		
-		let traceWorkers = [];
+		let traceWorker = new Worker('multiTraceWorker.js');
+		traceWorker.postMessage({
+			type: "init",
+			availableConcurrency: window.navigator.hardwareConcurrency,
+			width: width,
+			height: height,
+		})
 
-		for (let i = 0; i < window.navigator.hardwareConcurrency; i++) {
+		traceWorker.onerror = function(event) {
+			console.log('There is an error in trace worker: ' + event);
+		}
+		traceWorker.onmessage = function(e) {
+			if (e.data.type === "init") {
+				document.getElementById("runButton").disabled = false;
 
-			let traceWorker = new Worker('traceWorker.js');
-			traceWorker.onerror = function(event) {
-				console.log('There is an error in trace worker: ' + event);
-			}
-			traceWorker.onmessage = function(e) {
-				if (e.data.type === "init") {
-					document.getElementById("runButton").disabled = false;
+			} else if (e.data.type === "image") {
 
-				} else if (e.data.type === "image") {
-					let newData = new Uint8ClampedArray(e.data.buffer)
-					let oldData = ctx.getImageData(0, 0, width, height).data;
+				let spec = e.data.specification
 
-					for(let y = 0; y < height; y++) {
-						for(let x = 0; x < width; x++) {
-							let i = ((width * y) + x) * 4;
-							if (newData[i + 3] == 0) {
-								newData[i] = oldData[i]
-								newData[i + 1] = oldData[i + 1]
-								newData[i + 2] = oldData[i + 2]
-								newData[i + 3] = oldData[i + 3]
-							} 
-						}
-					}					
+				let imageArray = new Uint8ClampedArray(e.data.buffer)
+				let imageData = new ImageData(imageArray, spec.drawWidth, spec.drawHeight);
+				ctx.putImageData(imageData, spec.drawOffsetX, spec.drawOffsetY);
 
-					let imageData = new ImageData(newData, width, height);
-					ctx.putImageData(imageData, 0, 0);
+				let p = document.getElementById("progress");
+				let percent = (e.data.progress * 100).toFixed(1)
+				p.innerText = percent + "%"
 
-					let p = document.getElementById("progress");
-					p.innerText = (e.data.progress * 100).toFixed(1)
+				if (percent === "100.0") {
+					let duration = ((performance.now() - startTime) / 1000).toFixed(2)
+					p.innerText += ', took ' + duration + 's'
 				}
-			}
 
-			traceWorkers.push(traceWorker);
+			}
 		}
 
 		function run() {
 			document.getElementById("runButton").disabled = true;
-
-			for (i = 0; i < traceWorkers.length; i++) {
-				traceWorkers[i].postMessage({
-					width: width,
-					height: height,
-					interlaceSize: traceWorkers.length,
-					interlaceOffset: i
-				})			
-			}
+			traceWorker.postMessage({type: "start"})
+			startTime = performance.now()	
 		}
 	</script>
 
