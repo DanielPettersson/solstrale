@@ -1,5 +1,7 @@
 package trace
 
+import "math"
+
 type camera struct {
 	origin          vec3
 	lowerLeftCorner vec3
@@ -7,25 +9,33 @@ type camera struct {
 	vertical        vec3
 }
 
-func createCamera(imageWidth int, imageHeight int) camera {
-	aspectRatio := float64(imageWidth) / float64(imageHeight)
-
-	viewPortHeight := 2.0
+func createCamera(
+	spec TraceSpecification,
+	verticalFovDegrees float64,
+	lookFrom vec3,
+	lookAt vec3,
+	vup vec3,
+) camera {
+	aspectRatio := float64(spec.ImageWidth) / float64(spec.ImageHeight)
+	theta := degreesToRadians(verticalFovDegrees)
+	h := math.Tan(theta / 2)
+	viewPortHeight := 2.0 * h
 	viewPortWidth := aspectRatio * viewPortHeight
-	focalLength := 1.0
 
-	origin := vec3{0, 0, 0}
-	horizontal := vec3{viewPortWidth, 0, 0}
-	vertical := vec3{0, viewPortHeight, 0}
-	lowerLeftCorner := origin.sub(horizontal.divS(2))
-	lowerLeftCorner = lowerLeftCorner.sub(vertical.divS(2))
-	lowerLeftCorner = lowerLeftCorner.sub(vec3{0, 0, focalLength})
+	w := lookFrom.sub(lookAt).unit()
+	u := vup.cross(w).unit()
+	v := w.cross(u)
+
+	origin := lookFrom
+	horizontal := u.mulS(viewPortWidth)
+	vertical := v.mulS(viewPortHeight)
+	lowerLeftCorner := origin.sub(horizontal.divS(2)).sub(vertical.divS(2)).sub(w)
 
 	return camera{
-		origin:          origin,
-		lowerLeftCorner: lowerLeftCorner,
-		horizontal:      horizontal,
-		vertical:        vertical,
+		origin,
+		lowerLeftCorner,
+		horizontal,
+		vertical,
 	}
 }
 

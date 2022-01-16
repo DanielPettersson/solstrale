@@ -17,9 +17,12 @@ var (
 
 var (
 	infinity float64 = math.Inf(1)
-	pi       float64 = math.Pi
 )
 
 func randomFloat(min float64, max float64) float64 {
 	return rand.Float64()*(max-min) + min
+}
+
+func degreesToRadians(degrees float64) float64 {
+	return degrees * (math.Pi / 180)
 }

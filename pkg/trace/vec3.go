@@ -70,9 +70,9 @@ func (v vec3) dot(w vec3) float64 {
 
 func (v vec3) cross(w vec3) vec3 {
 	return vec3{
-		w.y*v.z - w.z*v.y,
-		w.z*v.x - w.x*v.z,
-		w.x*v.y - w.y*v.x,
+		v.y*w.z - v.z*w.y,
+		v.z*w.x - v.x*w.z,
+		v.x*w.y - v.y*w.x,
 	}
 }
 
