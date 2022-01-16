@@ -7,7 +7,7 @@ Example of output from renderer at about 500 samples per pixel:
 ![nedladdning (2)](https://user-images.githubusercontent.com/3603911/149679982-4ed90b55-8556-44f6-907c-91edba0f04e1.png)
 
 # Credits
-The ray tracing is heavily inspired by the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
+The ray tracing is heavily inspired by the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html) by Peter Shirley
 
 ## Running
 
