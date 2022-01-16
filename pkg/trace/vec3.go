@@ -97,6 +97,13 @@ func (v vec3) reflect(n vec3) vec3 {
 	return v.sub(n.mulS(v.dot(n) * 2))
 }
 
+func (v vec3) refract(n vec3, indexOfRefraction float64) vec3 {
+	cosTheta := math.Min(v.neg().dot(n), 1)
+	rOutPerp := n.mulS(cosTheta).add(v).mulS(indexOfRefraction)
+	rOutParallel := n.mulS(-math.Sqrt(math.Abs(1 - rOutPerp.lengthSquared())))
+	return rOutPerp.add(rOutParallel)
+}
+
 type rgbaColor struct {
 	r byte
 	g byte

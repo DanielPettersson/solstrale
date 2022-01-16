@@ -1,5 +1,10 @@
 package trace
 
+import (
+	"math"
+	"math/rand"
+)
+
 type material interface {
 	scatter(rayIn ray, rec hitRecord) (bool, vec3, ray)
 }
@@ -29,4 +34,41 @@ func (m metal) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 	scatter := scatterRay.dir.dot(rec.normal) > 0
 
 	return scatter, m.albedo, scatterRay
+}
+
+type dielectric struct {
+	albedo            vec3
+	indexOfRefraction float64
+}
+
+func (m dielectric) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
+	var refractionRatio float64
+	if rec.frontFace {
+		refractionRatio = 1 / m.indexOfRefraction
+	} else {
+		refractionRatio = m.indexOfRefraction
+	}
+
+	unitDirection := rayIn.dir.unit()
+	cosTheta := math.Min(unitDirection.neg().dot(rec.normal), 1)
+	sinTheta := math.Sqrt(1 - cosTheta*cosTheta)
+	cannotRefract := refractionRatio*sinTheta > 1
+
+	var direction vec3
+	if cannotRefract || reflectance(cosTheta, refractionRatio) > rand.Float64() {
+		direction = unitDirection.reflect(rec.normal)
+	} else {
+		direction = unitDirection.refract(rec.normal, refractionRatio)
+	}
+
+	scatter := ray{rec.p, direction}
+
+	return true, m.albedo, scatter
+}
+
+// Calculate reflectance using Schlick's approximation
+func reflectance(cosine, indexOfRefraction float64) float64 {
+	r0 := (1 - indexOfRefraction) / (1 + indexOfRefraction)
+	r0 = r0 * r0
+	return r0 + (1-r0)*math.Pow(1-cosine, 5)
 }
