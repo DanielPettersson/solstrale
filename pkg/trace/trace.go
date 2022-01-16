@@ -37,9 +37,21 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	world.add(sphere{vec3{-1, 0, -1}, -0.4, materialLeft})
 	world.add(sphere{vec3{1, 0, -1}, 0.5, materialRight})
 
+	lookFrom := vec3{-2, 2, 1}
+	lookAt := vec3{0, 0, -1}
+	vup := vec3{0, 1, 0}
+
 	scene{
-		world:  world,
-		cam:    createCamera(spec, 20, vec3{-2, 2, 1}, vec3{0, 0, -1}, vec3{0, 1, 0}),
+		world: world,
+		cam: createCamera(
+			spec,
+			20,
+			0.3,
+			lookFrom.sub(lookAt).length(),
+			lookFrom,
+			lookAt,
+			vup,
+		),
 		spec:   spec,
 		output: output,
 	}.render()

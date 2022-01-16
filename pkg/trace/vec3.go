@@ -40,6 +40,15 @@ func randomInHemisphere(normal vec3) vec3 {
 	}
 }
 
+func randomInUnitDisc() vec3 {
+	for {
+		p := vec3{randomFloat(-1, 1), randomFloat(-1, 1), 0}
+		if p.lengthSquared() < 1 {
+			return p
+		}
+	}
+}
+
 func (v vec3) neg() vec3 {
 	return vec3{-v.x, -v.y, -v.z}
 }
