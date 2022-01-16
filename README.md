@@ -3,8 +3,11 @@ A ray tracer implemented in Golang compiled to WebAssembly with a web interface 
 
 The rendering is multithreaded in the browser by executing multiple web workers each rendering a part of the image.
 
-Still basic rendering, as can be seen in the example. Only diffuse and metallic materials and no light sources.
-![nedladdning (1)](https://user-images.githubusercontent.com/3603911/149635353-1e6892ef-72ca-4c22-a477-551fd1bb870a.png)
+Example of output from renderer at about 500 samples per pixel:
+![nedladdning (2)](https://user-images.githubusercontent.com/3603911/149679982-4ed90b55-8556-44f6-907c-91edba0f04e1.png)
+
+# Credits
+The ray tracing is heavily inspired by the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
 
 ## Running
 
