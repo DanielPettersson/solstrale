@@ -2,7 +2,6 @@ package trace
 
 import (
 	"math/rand"
-	"time"
 )
 
 type TraceSpecification struct {
@@ -13,6 +12,7 @@ type TraceSpecification struct {
 	DrawWidth       int
 	DrawHeight      int
 	SamplesPerPixel int
+	RandomSeed      int
 }
 
 type TraceProgress struct {
@@ -22,36 +22,52 @@ type TraceProgress struct {
 }
 
 func RayTrace(spec TraceSpecification, output chan TraceProgress) {
-	rand.Seed(time.Now().UTC().UnixNano())
+	rand.Seed(int64(spec.RandomSeed))
+
+	camera := createCamera(
+		spec,
+		20,
+		0.1,
+		10,
+		vec3{13, 2, 3},
+		vec3{0, 0, 0},
+		vec3{0, 1, 0},
+	)
 
 	world := hittableList{}
 
-	materialGround := lambertian{vec3{0.8, 0.8, 0}}
-	materialCenter := lambertian{vec3{0.1, 0.2, 0.5}}
-	materialLeft := dielectric{vec3{1, 0.8, 0.8}, 1.5}
-	materialRight := metal{vec3{0.8, 0.6, 0.2}, 0.1}
+	groundMaterial := lambertian{vec3{0.5, 0.5, 0.5}}
+	world.add(sphere{vec3{0, -1000, 0}, 1000, groundMaterial})
 
-	world.add(sphere{vec3{0, -100.5, -1}, 100, materialGround})
-	world.add(sphere{vec3{0, 0, -1}, 0.5, materialCenter})
-	world.add(sphere{vec3{-1, 0, -1}, 0.5, materialLeft})
-	world.add(sphere{vec3{-1, 0, -1}, -0.4, materialLeft})
-	world.add(sphere{vec3{1, 0, -1}, 0.5, materialRight})
+	for a := -11.0; a < 11; a++ {
+		for b := -11.0; b < 11; b++ {
+			chooseMat := rand.Float64()
+			center := vec3{a + 0.9*rand.Float64(), 0.2, b + 0.9*rand.Float64()}
 
-	lookFrom := vec3{-2, 2, 1}
-	lookAt := vec3{0, 0, -1}
-	vup := vec3{0, 1, 0}
+			if center.sub(vec3{4, 0.2, 0}).length() > 0.9 {
+
+				var material material
+				if chooseMat < 0.8 {
+					material = lambertian{randomVec3(0, 1).mul(randomVec3(0, 1))}
+				} else if chooseMat < 0.95 {
+					material = metal{randomVec3(0.5, 1), randomFloat(0, 0.5)}
+				} else {
+					material = dielectric{vec3{1, 1, 1}, 1.5}
+				}
+
+				world.add(sphere{center, 0.2, material})
+
+			}
+		}
+	}
+
+	world.add(sphere{vec3{0, 1, 0}, 1.0, dielectric{white, 1.5}})
+	world.add(sphere{vec3{-4, 1, 0}, 1, lambertian{vec3{0.4, 0.2, 0.1}}})
+	world.add(sphere{vec3{4, 1, 0}, 1.0, metal{vec3{0.7, 0.6, 0.5}, 0}})
 
 	scene{
-		world: world,
-		cam: createCamera(
-			spec,
-			20,
-			0.3,
-			lookFrom.sub(lookAt).length(),
-			lookFrom,
-			lookAt,
-			vup,
-		),
+		world:  world,
+		cam:    camera,
 		spec:   spec,
 		output: output,
 	}.render()

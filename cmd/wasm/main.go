@@ -32,6 +32,7 @@ func raytraceWrapper() js.Func {
 			DrawWidth:       args[0].Get("drawWidth").Int(),
 			DrawHeight:      args[0].Get("drawHeight").Int(),
 			SamplesPerPixel: args[0].Get("samplesPerPixel").Int(),
+			RandomSeed:      args[0].Get("randomSeed").Int(),
 		}, args[1])
 		return nil
 	})

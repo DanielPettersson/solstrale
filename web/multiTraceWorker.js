@@ -67,6 +67,8 @@ onmessage = function(e) {
         drawHeight = Math.floor(height / numWorkers)
         drawHeightRemainder = height % numWorkers
 
+        randomSeed = Math.floor(Math.random() * 2000000000)
+
         for (let [i, traceWorker] of Object.entries(traceWorkers)) {
             traceWorker.worker.postMessage({
                 type: "start",
@@ -77,7 +79,8 @@ onmessage = function(e) {
                     drawOffsetY: i * drawHeight,
                     drawWidth: width,
                     drawHeight: drawHeight + (i == numWorkers - 1 ? drawHeightRemainder : 0),
-                    samplesPerPixel: spec.samplesPerPixel
+                    samplesPerPixel: spec.samplesPerPixel,
+                    randomSeed: randomSeed
                 }
             })			
         }
