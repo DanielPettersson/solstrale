@@ -1,10 +1,11 @@
 package trace
 
 type ray struct {
-	orig vec3
-	dir  vec3
+	origin    vec3
+	direction vec3
+	time      float64
 }
 
-func (r ray) at(t float64) vec3 {
-	return r.orig.add(r.dir.mulS(t))
+func (r ray) at(distance float64) vec3 {
+	return r.origin.add(r.direction.mulS(distance))
 }

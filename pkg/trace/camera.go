@@ -1,6 +1,9 @@
 package trace
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 type camera struct {
 	origin          vec3
@@ -57,7 +60,8 @@ func (c camera) getRay(u float64, v float64) ray {
 	rDir = rDir.add(c.vertical.mulS(v))
 	rDir = rDir.sub(c.origin).sub(offset)
 	return ray{
-		c.origin.add(offset),
-		rDir,
+		origin:    c.origin.add(offset),
+		direction: rDir,
+		time:      rand.Float64(),
 	}
 }

@@ -9,7 +9,7 @@ type hitRecord struct {
 }
 
 func createHitRecord(r ray, p vec3, normal vec3, t float64, mat material) hitRecord {
-	frontFace := r.dir.dot(normal) < 0
+	frontFace := r.direction.dot(normal) < 0
 	n := normal
 	if !frontFace {
 		n = normal.neg()

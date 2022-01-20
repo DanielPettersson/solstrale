@@ -46,16 +46,18 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 
 			if center.sub(vec3{4, 0.2, 0}).length() > 0.9 {
 
-				var material material
 				if chooseMat < 0.8 {
-					material = lambertian{randomVec3(0, 1).mul(randomVec3(0, 1))}
+					material := lambertian{randomVec3(0, 1).mul(randomVec3(0, 1))}
+					sphere := sphere{center, 0.2, material}
+					blur := motionBlur{sphere, vec3{0, randomFloat(0, 0.5), 0}}
+					world.add(blur)
 				} else if chooseMat < 0.95 {
-					material = metal{randomVec3(0.5, 1), randomFloat(0, 0.5)}
+					material := metal{randomVec3(0.5, 1), randomFloat(0, 0.5)}
+					world.add(sphere{center, 0.2, material})
 				} else {
-					material = dielectric{vec3{1, 1, 1}, 1.5}
+					material := dielectric{vec3{1, 1, 1}, 1.5}
+					world.add(sphere{center, 0.2, material})
 				}
-
-				world.add(sphere{center, 0.2, material})
 
 			}
 		}

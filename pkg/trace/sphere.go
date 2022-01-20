@@ -10,9 +10,9 @@ type sphere struct {
 
 func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
 
-	oc := r.orig.sub(s.center)
-	a := r.dir.lengthSquared()
-	halfB := oc.dot(r.dir)
+	oc := r.origin.sub(s.center)
+	a := r.direction.lengthSquared()
+	halfB := oc.dot(r.direction)
 	c := oc.lengthSquared() - s.radius*s.radius
 
 	discriminant := halfB*halfB - a*c

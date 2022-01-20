@@ -31,7 +31,7 @@ func (s scene) rayColor(r ray, depth int) vec3 {
 		return black
 	}
 
-	t := 0.5 * (r.dir.unit().y + 1)
+	t := 0.5 * (r.direction.unit().y + 1)
 
 	whiteness := white.mulS(1 - t)
 	blueness := lightBlue.mulS(t)

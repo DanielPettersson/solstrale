@@ -19,7 +19,7 @@ func (m lambertian) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 		scatterDirection = rec.normal
 	}
 
-	scatterRay := ray{rec.p, scatterDirection}
+	scatterRay := ray{rec.p, scatterDirection, rayIn.time}
 	return true, m.albedo, scatterRay
 }
 
@@ -29,9 +29,9 @@ type metal struct {
 }
 
 func (m metal) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
-	reflected := rayIn.dir.unit().reflect(rec.normal)
-	scatterRay := ray{rec.p, reflected.add(randomInUnitSphere().mulS(m.fuzz))}
-	scatter := scatterRay.dir.dot(rec.normal) > 0
+	reflected := rayIn.direction.unit().reflect(rec.normal)
+	scatterRay := ray{rec.p, reflected.add(randomInUnitSphere().mulS(m.fuzz)), rayIn.time}
+	scatter := scatterRay.direction.dot(rec.normal) > 0
 
 	return scatter, m.albedo, scatterRay
 }
@@ -49,7 +49,7 @@ func (m dielectric) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 		refractionRatio = m.indexOfRefraction
 	}
 
-	unitDirection := rayIn.dir.unit()
+	unitDirection := rayIn.direction.unit()
 	cosTheta := math.Min(unitDirection.neg().dot(rec.normal), 1)
 	sinTheta := math.Sqrt(1 - cosTheta*cosTheta)
 	cannotRefract := refractionRatio*sinTheta > 1
@@ -61,7 +61,7 @@ func (m dielectric) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 		direction = unitDirection.refract(rec.normal, refractionRatio)
 	}
 
-	scatter := ray{rec.p, direction}
+	scatter := ray{rec.p, direction, rayIn.time}
 
 	return true, m.albedo, scatter
 }
