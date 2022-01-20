@@ -1,0 +1,69 @@
+package trace
+
+import "math"
+
+// Axis Aligned Bounding Box
+type aabb struct {
+	x, y, z interval
+}
+
+func createAabbFromPoints(a vec3, b vec3) aabb {
+	return aabb{
+		interval{math.Min(a.x, b.x), math.Max(a.x, b.x)},
+		interval{math.Min(a.y, b.y), math.Max(a.y, b.y)},
+		interval{math.Min(a.z, b.z), math.Max(a.z, b.z)},
+	}
+}
+
+func combineAabbs(a aabb, b aabb) aabb {
+	return aabb{
+		combineIntervals(a.x, b.x),
+		combineIntervals(a.y, b.y),
+		combineIntervals(a.z, b.z),
+	}
+}
+
+func (a aabb) add(offset vec3) aabb {
+	return aabb{
+		a.x.add(offset.x),
+		a.y.add(offset.y),
+		a.z.add(offset.z),
+	}
+}
+
+func (aabb aabb) hit(r ray, rayT interval) bool {
+
+	tMin := (aabb.x.min - r.origin.x) / r.direction.x
+	tMax := (aabb.x.max - r.origin.x) / r.direction.x
+
+	t0 := math.Min(tMin, tMax)
+	t1 := math.Max(tMin, tMax)
+	rayTMin := math.Max(t0, rayT.min)
+	rayTMax := math.Min(t1, rayT.max)
+
+	if rayTMax <= rayTMin {
+		return false
+	}
+
+	tMin = (aabb.y.min - r.origin.y) / r.direction.y
+	tMax = (aabb.y.max - r.origin.y) / r.direction.y
+
+	t0 = math.Min(tMin, tMax)
+	t1 = math.Max(tMin, tMax)
+	rayTMin = math.Max(t0, rayT.min)
+	rayTMax = math.Min(t1, rayT.max)
+
+	if rayTMax <= rayTMin {
+		return false
+	}
+
+	tMin = (aabb.z.min - r.origin.z) / r.direction.z
+	tMax = (aabb.z.max - r.origin.z) / r.direction.z
+
+	t0 = math.Min(tMin, tMax)
+	t1 = math.Max(tMin, tMax)
+	rayTMin = math.Max(t0, rayT.min)
+	rayTMax = math.Min(t1, rayT.max)
+
+	return rayTMax > rayTMin
+}

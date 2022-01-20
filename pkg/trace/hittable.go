@@ -25,4 +25,5 @@ func createHitRecord(r ray, p vec3, normal vec3, t float64, mat material) hitRec
 
 type hittable interface {
 	hit(r ray, rayT interval) (bool, *hitRecord)
+	boundingBox() aabb
 }

@@ -6,6 +6,24 @@ type sphere struct {
 	center vec3
 	radius float64
 	mat    material
+	bBox   aabb
+}
+
+func createSphere(
+	center vec3,
+	radius float64,
+	mat material,
+) sphere {
+
+	rVec := vec3{radius, radius, radius}
+	boundingBox := createAabbFromPoints(center.sub(rVec), center.add(rVec))
+
+	return sphere{
+		center,
+		radius,
+		mat,
+		boundingBox,
+	}
 }
 
 func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
@@ -34,4 +52,8 @@ func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
 	hitRecord := createHitRecord(r, p, normal, root, s.mat)
 	return true, &hitRecord
 
+}
+
+func (s sphere) boundingBox() aabb {
+	return s.bBox
 }

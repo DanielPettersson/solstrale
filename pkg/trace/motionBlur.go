@@ -3,6 +3,23 @@ package trace
 type motionBlur struct {
 	blurredHittable hittable
 	blurDirection   vec3
+	bBox            aabb
+}
+
+func createMotionBlur(
+	blurredHittable hittable,
+	blurDirection vec3,
+) motionBlur {
+
+	boundingBox1 := blurredHittable.boundingBox()
+	boundingBox2 := blurredHittable.boundingBox().add(blurDirection)
+	boundingBox := combineAabbs(boundingBox1, boundingBox2)
+
+	return motionBlur{
+		blurredHittable,
+		blurDirection,
+		boundingBox,
+	}
 }
 
 func (m motionBlur) hit(r ray, rayT interval) (bool, *hitRecord) {
@@ -21,4 +38,8 @@ func (m motionBlur) hit(r ray, rayT interval) (bool, *hitRecord) {
 	}
 
 	return hit, record
+}
+
+func (m motionBlur) boundingBox() aabb {
+	return m.bBox
 }
