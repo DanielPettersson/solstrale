@@ -4,6 +4,10 @@ import (
 	"math/rand"
 )
 
+var (
+	textureData map[string]imageTexture = map[string]imageTexture{}
+)
+
 type TraceSpecification struct {
 	ImageWidth      int
 	ImageHeight     int
@@ -21,11 +25,19 @@ type TraceProgress struct {
 	ImageData     []byte
 }
 
+func AddTexture(name string, width, height int, bytes []byte) {
+	textureData[name] = imageTexture{
+		bytes:  &bytes,
+		width:  width,
+		height: height,
+	}
+}
+
 func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	rand.Seed(int64(spec.RandomSeed))
 
 	//world, camera := randomSpheres(spec)
-	world, camera := twoSpheres(spec)
+	world, camera := earth(spec)
 
 	scene{
 		world:  world,
@@ -34,6 +46,25 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 		output: output,
 	}.render()
 
+}
+
+func earth(spec TraceSpecification) (hittableList, camera) {
+	camera := createCamera(
+		spec,
+		20,
+		0,
+		20,
+		vec3{0, 0, 12},
+		vec3{0, 0, 0},
+		vec3{0, 1, 0},
+	)
+
+	earthMaterial := lambertian{textureData["earth"]}
+
+	world := emptyHittableList()
+	world.add(createSphere(vec3{0, 0, 0}, 2, earthMaterial))
+
+	return world, camera
 }
 
 func twoSpheres(spec TraceSpecification) (hittableList, camera) {

@@ -21,6 +21,22 @@ func doTrace(spec trace.TraceSpecification, callback js.Value) {
 	}
 }
 
+func addTextureWrapper() js.Func {
+	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+
+		name := args[0].Get("name").String()
+		width := args[0].Get("width").Int()
+		height := args[0].Get("height").Int()
+
+		jsBytes := args[0].Get("data")
+		imageBytes := make([]byte, jsBytes.Get("byteLength").Int())
+		js.CopyBytesToGo(imageBytes, jsBytes)
+
+		trace.AddTexture(name, width, height, imageBytes)
+		return nil
+	})
+}
+
 func raytraceWrapper() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 
@@ -41,6 +57,7 @@ func raytraceWrapper() js.Func {
 func main() {
 	WASMTrace := js.ValueOf(make(map[string]interface{}))
 	WASMTrace.Set("raytrace", raytraceWrapper())
+	WASMTrace.Set("addTexture", addTextureWrapper())
 	js.Global().Set("WASMTrace", WASMTrace)
 	<-make(chan bool)
 }

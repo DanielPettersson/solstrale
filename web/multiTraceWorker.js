@@ -10,12 +10,15 @@ onmessage = function(e) {
         numWorkers = Math.max(e.data.availableConcurrency, 1)
         console.log("Multi trace worker will initialize " + numWorkers + " workers")
 
+        let texture = e.data.texture
+
         for (let i = 0; i < numWorkers; i++) {
 
             let traceWorker = new Worker('traceWorker.js');
             traceWorker.postMessage({
                 type: "init",
                 id: i,
+                texture: texture,
             })
             traceWorker.onerror = function(event) {
                 throw event;

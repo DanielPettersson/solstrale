@@ -117,32 +117,3 @@ func (v vec3) refract(n vec3, indexOfRefraction float64) vec3 {
 func (v vec3) String() string {
 	return fmt.Sprintf("[%f, %f, %f]", v.x, v.y, v.z)
 }
-
-type rgbaColor struct {
-	r byte
-	g byte
-	b byte
-	a byte
-}
-
-func (c vec3) toRgba(samplesPerPixel int) rgbaColor {
-	r := c.x
-	g := c.y
-	b := c.z
-
-	// Divide the color by the number of samples
-	// and gamma-correct for gamma=2.0
-	scale := 1.0 / float64(samplesPerPixel)
-	r = math.Sqrt(scale * r)
-	g = math.Sqrt(scale * g)
-	b = math.Sqrt(scale * b)
-
-	intensity := interval{0, 0.999}
-
-	return rgbaColor{
-		byte(256 * intensity.clamp(r)),
-		byte(256 * intensity.clamp(g)),
-		byte(256 * intensity.clamp(b)),
-		255,
-	}
-}

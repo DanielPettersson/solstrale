@@ -11,7 +11,10 @@ onmessage = function(e) {
 
         const go = new Go();
         WebAssembly.instantiateStreaming(fetch("trace.wasm"), go.importObject).then((result) => {
-            go.run(result.instance);			
+            go.run(result.instance);
+            
+            WASMTrace.addTexture(e.data.texture)
+
             postMessage({
                 type: "init",
                 id: id

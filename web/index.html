@@ -27,10 +27,27 @@
 		let startTime;
 		let traceWorker = new Worker('multiTraceWorker.js');
 
-		traceWorker.postMessage({
-			type: "init",
-			availableConcurrency: window.navigator.hardwareConcurrency,
-		})
+		
+		let image = new Image()
+		image.onload = function() {
+
+			let offscreen = new OffscreenCanvas(image.width, image.height)
+			offscrenCtx = offscreen.getContext('2d')
+			offscrenCtx.drawImage(image, 0, 0)
+			imageData = offscrenCtx.getImageData(0, 0, image.width, image.height)
+
+			traceWorker.postMessage({
+				type: "init",
+				availableConcurrency: window.navigator.hardwareConcurrency,
+				texture: {
+					name: "earth",
+					width: image.width,
+					height: image.height,
+					data: imageData.data,
+				}
+			})
+		}
+		image.src = "earthmap.jpg"
 
 		traceWorker.onerror = function(event) {
 			console.log('There is an error in trace worker: ' + event);

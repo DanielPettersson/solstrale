@@ -20,7 +20,7 @@ func (m lambertian) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 	}
 
 	scatterRay := ray{rec.hitPoint, scatterDirection, rayIn.time}
-	return true, m.tex.color(rec.u, rec.v, rec.hitPoint), scatterRay
+	return true, m.tex.color(rec), scatterRay
 }
 
 type metal struct {
@@ -33,7 +33,7 @@ func (m metal) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 	scatterRay := ray{rec.hitPoint, reflected.add(randomInUnitSphere().mulS(m.fuzz)), rayIn.time}
 	scatter := scatterRay.direction.dot(rec.normal) > 0
 
-	return scatter, m.tex.color(rec.u, rec.v, rec.hitPoint), scatterRay
+	return scatter, m.tex.color(rec), scatterRay
 }
 
 type dielectric struct {
@@ -63,7 +63,7 @@ func (m dielectric) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 
 	scatter := ray{rec.hitPoint, direction, rayIn.time}
 
-	return true, m.tex.color(rec.u, rec.v, rec.hitPoint), scatter
+	return true, m.tex.color(rec), scatter
 }
 
 // Calculate reflectance using Schlick's approximation
