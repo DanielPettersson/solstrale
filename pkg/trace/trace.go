@@ -40,8 +40,8 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	world.add(createSphere(vec3{0, -1000, 0}, 1000, groundMaterial))
 
 	spheres := emptyHittableList()
-	for a := -11.0; a < 11; a++ {
-		for b := -11.0; b < 11; b++ {
+	for a := -7.0; a < 7; a++ {
+		for b := -5.0; b < 5; b++ {
 			chooseMat := rand.Float64()
 			center := vec3{a + 0.9*rand.Float64(), 0.2, b + 0.9*rand.Float64()}
 
