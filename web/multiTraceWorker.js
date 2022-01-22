@@ -7,9 +7,7 @@ onmessage = function(e) {
 
     if (e.data.type === "init") {
 
-        // Use double the available cores, as some parts of the image will render faster than others.
-        // This reduces starvation of threads at end of render
-        numWorkers = Math.max(e.data.availableConcurrency * 2, 1)
+        numWorkers = Math.max(e.data.availableConcurrency, 1)
         console.log("Multi trace worker will initialize " + numWorkers + " workers")
 
         for (let i = 0; i < numWorkers; i++) {

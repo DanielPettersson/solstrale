@@ -1,13 +1,15 @@
 package trace
 
+import "fmt"
+
 type hittableList struct {
-	list *[]hittable
+	list []hittable
 	bBox aabb
 }
 
 func emptyHittableList() hittableList {
 	return hittableList{
-		&[]hittable{},
+		[]hittable{},
 		aabb{empty_interval, empty_interval, empty_interval},
 	}
 }
@@ -17,7 +19,7 @@ func (hl *hittableList) clear() {
 }
 
 func (hl *hittableList) add(h hittable) {
-	*hl.list = append(*hl.list, h)
+	hl.list = append(hl.list, h)
 	hl.bBox = combineAabbs(hl.bBox, h.boundingBox())
 }
 
@@ -26,7 +28,7 @@ func (hl *hittableList) hit(r ray, rayT interval) (bool, *hitRecord) {
 	hitAnything := false
 	closestSoFar := rayT.max
 
-	for _, h := range *hl.list {
+	for _, h := range hl.list {
 		hit, hitRecord := h.hit(r, interval{rayT.min, closestSoFar})
 		if hit {
 			hitAnything = true
@@ -40,4 +42,8 @@ func (hl *hittableList) hit(r ray, rayT interval) (bool, *hitRecord) {
 
 func (hl *hittableList) boundingBox() aabb {
 	return hl.bBox
+}
+
+func (hl hittableList) String() string {
+	return fmt.Sprintf("HittableList(%v)", hl.list)
 }

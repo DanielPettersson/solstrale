@@ -1,6 +1,9 @@
 package trace
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 type sphere struct {
 	center vec3
@@ -56,4 +59,8 @@ func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
 
 func (s sphere) boundingBox() aabb {
 	return s.bBox
+}
+
+func (s sphere) String() string {
+	return fmt.Sprintf("Sphere(%v, r:%f)", s.center, s.radius)
 }

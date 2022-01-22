@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -111,6 +112,10 @@ func (v vec3) refract(n vec3, indexOfRefraction float64) vec3 {
 	rOutPerp := n.mulS(cosTheta).add(v).mulS(indexOfRefraction)
 	rOutParallel := n.mulS(-math.Sqrt(math.Abs(1 - rOutPerp.lengthSquared())))
 	return rOutPerp.add(rOutParallel)
+}
+
+func (v vec3) String() string {
+	return fmt.Sprintf("[%f, %f, %f]", v.x, v.y, v.z)
 }
 
 type rgbaColor struct {

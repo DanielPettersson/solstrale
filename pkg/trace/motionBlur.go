@@ -1,5 +1,7 @@
 package trace
 
+import "fmt"
+
 type motionBlur struct {
 	blurredHittable hittable
 	blurDirection   vec3
@@ -42,4 +44,8 @@ func (m motionBlur) hit(r ray, rayT interval) (bool, *hitRecord) {
 
 func (m motionBlur) boundingBox() aabb {
 	return m.bBox
+}
+
+func (m motionBlur) String() string {
+	return fmt.Sprintf("%v", m.blurredHittable)
 }
