@@ -23,16 +23,16 @@ func (hl *hittableList) add(h hittable) {
 	hl.bBox = combineAabbs(hl.bBox, h.boundingBox())
 }
 
-func (hl *hittableList) hit(r ray, rayT interval) (bool, *hitRecord) {
+func (hl *hittableList) hit(r ray, rayLength interval) (bool, *hitRecord) {
 	var closestHitRecord *hitRecord
 	hitAnything := false
-	closestSoFar := rayT.max
+	closestSoFar := rayLength.max
 
 	for _, h := range hl.list {
-		hit, hitRecord := h.hit(r, interval{rayT.min, closestSoFar})
+		hit, hitRecord := h.hit(r, interval{rayLength.min, closestSoFar})
 		if hit {
 			hitAnything = true
-			closestSoFar = hitRecord.t
+			closestSoFar = hitRecord.rayLength
 			closestHitRecord = hitRecord
 		}
 	}

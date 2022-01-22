@@ -29,7 +29,7 @@ func createSphere(
 	}
 }
 
-func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
+func (s sphere) hit(r ray, rayLength interval) (bool, *hitRecord) {
 
 	oc := r.origin.sub(s.center)
 	a := r.direction.lengthSquared()
@@ -43,9 +43,9 @@ func (s sphere) hit(r ray, rayT interval) (bool, *hitRecord) {
 	sqrtd := math.Sqrt(discriminant)
 
 	root := (-halfB - sqrtd) / a
-	if !rayT.contains(root) {
+	if !rayLength.contains(root) {
 		root = (-halfB + sqrtd) / a
-		if !rayT.contains(root) {
+		if !rayLength.contains(root) {
 			return false, nil
 		}
 	}

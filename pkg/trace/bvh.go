@@ -76,17 +76,17 @@ func sortHittablesByBoundingBox(list []hittable, boundingIntervalFunc func(h hit
 	sort.Slice(list, func(i, j int) bool { return boundingIntervalFunc(list[i]).min < boundingIntervalFunc(list[j]).min })
 }
 
-func (b bvh) hit(r ray, rayT interval) (bool, *hitRecord) {
-	if !b.bBox.hit(r, rayT) {
+func (b bvh) hit(r ray, rayLength interval) (bool, *hitRecord) {
+	if !b.bBox.hit(r, rayLength) {
 		return false, nil
 	}
 
-	hitLeft, rec := (*b.left).hit(r, rayT)
+	hitLeft, rec := (*b.left).hit(r, rayLength)
 	if hitLeft {
-		rayT = interval{rayT.min, rec.t}
+		rayLength = interval{rayLength.min, rec.rayLength}
 	}
 
-	hitRight, recRight := (*b.right).hit(r, rayT)
+	hitRight, recRight := (*b.right).hit(r, rayLength)
 	if hitRight {
 		rec = recRight
 	}

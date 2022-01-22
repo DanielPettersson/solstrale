@@ -31,17 +31,17 @@ func (a aabb) add(offset vec3) aabb {
 	}
 }
 
-func (aabb aabb) hit(r ray, rayT interval) bool {
+func (aabb aabb) hit(r ray, rayLength interval) bool {
 
 	tMin := (aabb.x.min - r.origin.x) / r.direction.x
 	tMax := (aabb.x.max - r.origin.x) / r.direction.x
 
 	t0 := math.Min(tMin, tMax)
 	t1 := math.Max(tMin, tMax)
-	rayTMin := math.Max(t0, rayT.min)
-	rayTMax := math.Min(t1, rayT.max)
+	rayLengthMin := math.Max(t0, rayLength.min)
+	rayLengthMax := math.Min(t1, rayLength.max)
 
-	if rayTMax <= rayTMin {
+	if rayLengthMax <= rayLengthMin {
 		return false
 	}
 
@@ -50,10 +50,10 @@ func (aabb aabb) hit(r ray, rayT interval) bool {
 
 	t0 = math.Min(tMin, tMax)
 	t1 = math.Max(tMin, tMax)
-	rayTMin = math.Max(t0, rayT.min)
-	rayTMax = math.Min(t1, rayT.max)
+	rayLengthMin = math.Max(t0, rayLength.min)
+	rayLengthMax = math.Min(t1, rayLength.max)
 
-	if rayTMax <= rayTMin {
+	if rayLengthMax <= rayLengthMin {
 		return false
 	}
 
@@ -62,8 +62,8 @@ func (aabb aabb) hit(r ray, rayT interval) bool {
 
 	t0 = math.Min(tMin, tMax)
 	t1 = math.Max(tMin, tMax)
-	rayTMin = math.Max(t0, rayT.min)
-	rayTMax = math.Min(t1, rayT.max)
+	rayLengthMin = math.Max(t0, rayLength.min)
+	rayLengthMax = math.Min(t1, rayLength.max)
 
-	return rayTMax > rayTMin
+	return rayLengthMax > rayLengthMin
 }

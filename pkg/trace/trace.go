@@ -36,7 +36,7 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 
 	world := emptyHittableList()
 
-	groundMaterial := lambertian{vec3{0.5, 0.5, 0.5}}
+	groundMaterial := lambertian{checkerTexture{0.32, solidColor{vec3{0.2, 0.3, 0.1}}, solidColor{vec3{0.9, 0.9, 0.9}}}}
 	world.add(createSphere(vec3{0, -1000, 0}, 1000, groundMaterial))
 
 	spheres := emptyHittableList()
@@ -48,15 +48,15 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 			if center.sub(vec3{4, 0.2, 0}).length() > 0.9 {
 
 				if chooseMat < 0.8 {
-					material := lambertian{randomVec3(0, 1).mul(randomVec3(0, 1))}
+					material := lambertian{solidColor{randomVec3(0, 1).mul(randomVec3(0, 1))}}
 					sphere := createSphere(center, 0.2, material)
 					blur := createMotionBlur(sphere, vec3{0, randomFloat(0, 0.5), 0})
 					spheres.add(blur)
 				} else if chooseMat < 0.95 {
-					material := metal{randomVec3(0.5, 1), randomFloat(0, 0.5)}
+					material := metal{solidColor{randomVec3(0.5, 1)}, randomFloat(0, 0.5)}
 					spheres.add(createSphere(center, 0.2, material))
 				} else {
-					material := dielectric{vec3{1, 1, 1}, 1.5}
+					material := dielectric{solidColor{vec3{1, 1, 1}}, 1.5}
 					spheres.add(createSphere(center, 0.2, material))
 				}
 
@@ -64,9 +64,9 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 		}
 	}
 
-	spheres.add(createSphere(vec3{0, 1, 0}, 1.0, dielectric{white, 1.5}))
-	spheres.add(createSphere(vec3{-4, 1, 0}, 1, lambertian{vec3{0.4, 0.2, 0.1}}))
-	spheres.add(createSphere(vec3{4, 1, 0}, 1.0, metal{vec3{0.7, 0.6, 0.5}, 0}))
+	spheres.add(createSphere(vec3{0, 1, 0}, 1.0, dielectric{solidColor{white}, 1.5}))
+	spheres.add(createSphere(vec3{-4, 1, 0}, 1, lambertian{solidColor{vec3{0.4, 0.2, 0.1}}}))
+	spheres.add(createSphere(vec3{4, 1, 0}, 1.0, metal{solidColor{vec3{0.7, 0.6, 0.5}}, 0}))
 	world.add(createBvh(spheres))
 
 	scene{

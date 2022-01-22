@@ -1,10 +1,12 @@
 package trace
 
 type hitRecord struct {
-	p         vec3
+	hitPoint  vec3
 	normal    vec3
-	mat       material
-	t         float64
+	material  material
+	rayLength float64
+	u         float64
+	v         float64
 	frontFace bool
 }
 
@@ -15,15 +17,15 @@ func createHitRecord(r ray, p vec3, normal vec3, t float64, mat material) hitRec
 		n = normal.neg()
 	}
 	return hitRecord{
-		p:         p,
+		hitPoint:  p,
 		normal:    n,
-		mat:       mat,
-		t:         t,
+		material:  mat,
+		rayLength: t,
 		frontFace: frontFace,
 	}
 }
 
 type hittable interface {
-	hit(r ray, rayT interval) (bool, *hitRecord)
+	hit(r ray, rayLength interval) (bool, *hitRecord)
 	boundingBox() aabb
 }

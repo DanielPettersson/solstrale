@@ -10,7 +10,7 @@ type material interface {
 }
 
 type lambertian struct {
-	albedo vec3
+	tex texture
 }
 
 func (m lambertian) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
@@ -19,25 +19,25 @@ func (m lambertian) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 		scatterDirection = rec.normal
 	}
 
-	scatterRay := ray{rec.p, scatterDirection, rayIn.time}
-	return true, m.albedo, scatterRay
+	scatterRay := ray{rec.hitPoint, scatterDirection, rayIn.time}
+	return true, m.tex.color(rec.u, rec.v, rec.hitPoint), scatterRay
 }
 
 type metal struct {
-	albedo vec3
-	fuzz   float64
+	tex  texture
+	fuzz float64
 }
 
 func (m metal) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 	reflected := rayIn.direction.unit().reflect(rec.normal)
-	scatterRay := ray{rec.p, reflected.add(randomInUnitSphere().mulS(m.fuzz)), rayIn.time}
+	scatterRay := ray{rec.hitPoint, reflected.add(randomInUnitSphere().mulS(m.fuzz)), rayIn.time}
 	scatter := scatterRay.direction.dot(rec.normal) > 0
 
-	return scatter, m.albedo, scatterRay
+	return scatter, m.tex.color(rec.u, rec.v, rec.hitPoint), scatterRay
 }
 
 type dielectric struct {
-	albedo            vec3
+	tex               texture
 	indexOfRefraction float64
 }
 
@@ -61,9 +61,9 @@ func (m dielectric) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 		direction = unitDirection.refract(rec.normal, refractionRatio)
 	}
 
-	scatter := ray{rec.p, direction, rayIn.time}
+	scatter := ray{rec.hitPoint, direction, rayIn.time}
 
-	return true, m.albedo, scatter
+	return true, m.tex.color(rec.u, rec.v, rec.hitPoint), scatter
 }
 
 // Calculate reflectance using Schlick's approximation

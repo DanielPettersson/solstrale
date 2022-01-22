@@ -24,7 +24,7 @@ func createMotionBlur(
 	}
 }
 
-func (m motionBlur) hit(r ray, rayT interval) (bool, *hitRecord) {
+func (m motionBlur) hit(r ray, rayLength interval) (bool, *hitRecord) {
 
 	offset := m.blurDirection.mulS(r.time)
 
@@ -34,9 +34,9 @@ func (m motionBlur) hit(r ray, rayT interval) (bool, *hitRecord) {
 		time:      r.time,
 	}
 
-	hit, record := m.blurredHittable.hit(offsetRay, rayT)
+	hit, record := m.blurredHittable.hit(offsetRay, rayLength)
 	if record != nil {
-		record.p = record.p.add(offset)
+		record.hitPoint = record.hitPoint.add(offset)
 	}
 
 	return hit, record
