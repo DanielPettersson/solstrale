@@ -50,11 +50,34 @@ func (s sphere) hit(r ray, rayLength interval) (bool, *hitRecord) {
 		}
 	}
 
-	p := r.at(root)
-	normal := p.sub(s.center).divS(s.radius)
-	hitRecord := createHitRecord(r, p, normal, root, s.mat)
-	return true, &hitRecord
+	hitPoint := r.at(root)
+	normal := hitPoint.sub(s.center).divS(s.radius)
+	u, v := calculateSphereUv(normal)
 
+	frontFace := r.direction.dot(normal) < 0
+	if !frontFace {
+		normal = normal.neg()
+	}
+	rec := hitRecord{
+		hitPoint:  hitPoint,
+		normal:    normal,
+		material:  s.mat,
+		rayLength: root,
+		u:         u,
+		v:         v,
+		frontFace: frontFace,
+	}
+
+	return true, &rec
+
+}
+
+func calculateSphereUv(pointOnSphere vec3) (float64, float64) {
+	theta := math.Acos(-pointOnSphere.y)
+	phi := math.Atan2(-pointOnSphere.z, pointOnSphere.x) + math.Pi
+	u := phi / (2 * math.Pi)
+	v := theta / math.Pi
+	return u, v
 }
 
 func (s sphere) boundingBox() aabb {

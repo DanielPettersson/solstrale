@@ -22,11 +22,10 @@ type checkerTexture struct {
 
 func (ct checkerTexture) color(u, v float64, point vec3) vec3 {
 	invScale := 1 / ct.scale
-	xInt := math.Floor(point.x * invScale)
-	yInt := math.Floor(point.y * invScale)
-	zInt := math.Floor(point.z * invScale)
+	uInt := math.Floor(u * invScale)
+	vInt := math.Floor(v * invScale)
 
-	if int(xInt+yInt+zInt)%2 == 0 {
+	if int(uInt+vInt)%2 == 0 {
 		return ct.even.color(u, v, point)
 	} else {
 		return ct.odd.color(u, v, point)

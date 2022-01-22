@@ -41,13 +41,13 @@ func twoSpheres(spec TraceSpecification) (hittableList, camera) {
 		spec,
 		20,
 		0,
-		10,
-		vec3{13, 2, 3},
+		20,
+		vec3{30, 3, 3},
 		vec3{0, 0, 0},
 		vec3{0, 1, 0},
 	)
 
-	checkerMaterial := lambertian{checkerTexture{0.32, solidColor{vec3{0.2, 0.3, 0.1}}, solidColor{vec3{0.9, 0.9, 0.9}}}}
+	checkerMaterial := lambertian{checkerTexture{0.05, solidColor{vec3{0.2, 0.3, 0.1}}, solidColor{vec3{0.9, 0.9, 0.9}}}}
 
 	world := emptyHittableList()
 	world.add(createSphere(vec3{0, -10, 0}, 10, checkerMaterial))
