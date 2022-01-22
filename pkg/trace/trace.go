@@ -24,6 +24,40 @@ type TraceProgress struct {
 func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	rand.Seed(int64(spec.RandomSeed))
 
+	//world, camera := randomSpheres(spec)
+	world, camera := twoSpheres(spec)
+
+	scene{
+		world:  world,
+		cam:    camera,
+		spec:   spec,
+		output: output,
+	}.render()
+
+}
+
+func twoSpheres(spec TraceSpecification) (hittableList, camera) {
+	camera := createCamera(
+		spec,
+		20,
+		0,
+		10,
+		vec3{13, 2, 3},
+		vec3{0, 0, 0},
+		vec3{0, 1, 0},
+	)
+
+	checkerMaterial := lambertian{checkerTexture{0.32, solidColor{vec3{0.2, 0.3, 0.1}}, solidColor{vec3{0.9, 0.9, 0.9}}}}
+
+	world := emptyHittableList()
+	world.add(createSphere(vec3{0, -10, 0}, 10, checkerMaterial))
+	world.add(createSphere(vec3{0, 10, 0}, 10, checkerMaterial))
+
+	return world, camera
+}
+
+func randomSpheres(spec TraceSpecification) (hittableList, camera) {
+
 	camera := createCamera(
 		spec,
 		20,
@@ -69,11 +103,5 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	spheres.add(createSphere(vec3{4, 1, 0}, 1.0, metal{solidColor{vec3{0.7, 0.6, 0.5}}, 0}))
 	world.add(createBvh(spheres))
 
-	scene{
-		world:  world,
-		cam:    camera,
-		spec:   spec,
-		output: output,
-	}.render()
-
+	return world, camera
 }
