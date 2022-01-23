@@ -62,10 +62,21 @@ func cornellBox(spec TraceSpecification) (hittableList, camera, vec3) {
 		vec3{0, 1, 0},
 	)
 
+	noiseTexture := noiseTexture{
+		opensimplex.NewNormalized(int64(spec.RandomSeed)),
+		vec3{1, 1, 1},
+		0.1,
+	}
+
 	red := lambertian{solidColor{vec3{.65, .05, .05}}}
 	white := lambertian{solidColor{vec3{.73, .73, .73}}}
 	green := lambertian{solidColor{vec3{.12, .45, .15}}}
 	light := diffuseLight{solidColor{vec3{15, 15, 15}}}
+	noise := lambertian{noiseTexture}
+
+	metal := metal{noiseTexture, 0.1}
+	glass := dielectric{solidColor{vec3{1, 1, 1}}, 1.5}
+	earth := lambertian{textureData["earth"]}
 
 	world := emptyHittableList()
 
@@ -76,7 +87,7 @@ func cornellBox(spec TraceSpecification) (hittableList, camera, vec3) {
 	world.add(createQuad(vec3{555, 555, 555}, vec3{-555, 0, 0}, vec3{0, 0, -555}, white))
 	world.add(createQuad(vec3{0, 0, 555}, vec3{555, 0, 0}, vec3{0, 555, 0}, white))
 
-	box1 := createBox(vec3{0, 0, 0}, vec3{165, 330, 165}, white)
+	box1 := createBox(vec3{0, 0, 0}, vec3{165, 330, 165}, noise)
 	box1 = createRotationY(box1, 15)
 	box1 = createTranslation(box1, vec3{265, 0, 295})
 	world.add(box1)
@@ -85,6 +96,10 @@ func cornellBox(spec TraceSpecification) (hittableList, camera, vec3) {
 	box2 = createRotationY(box2, -18)
 	box2 = createTranslation(box2, vec3{130, 0, 65})
 	world.add(box2)
+
+	world.add(createSphere(vec3{400, 50, 200}, 50, metal))
+	world.add(createSphere(vec3{190, 215, 147}, 50, glass))
+	world.add(createSphere(vec3{270, 70, 270}, 70, earth))
 
 	return world, camera, vec3{}
 }
