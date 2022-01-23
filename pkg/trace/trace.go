@@ -27,7 +27,7 @@ type TraceProgress struct {
 
 func AddTexture(name string, width, height int, bytes []byte) {
 	textureData[name] = imageTexture{
-		bytes:  &bytes,
+		bytes:  bytes,
 		width:  width,
 		height: height,
 	}

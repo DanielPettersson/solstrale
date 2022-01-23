@@ -34,7 +34,7 @@ func (ct checkerTexture) color(rec hitRecord) vec3 {
 }
 
 type imageTexture struct {
-	bytes  *[]byte
+	bytes  []byte
 	width  int
 	height int
 }
@@ -48,8 +48,8 @@ func (it imageTexture) color(rec hitRecord) vec3 {
 	i := (y*it.width + x) * 4
 
 	return rgbaColor{
-		r: (*it.bytes)[i],
-		g: (*it.bytes)[i+1],
-		b: (*it.bytes)[i+2],
+		r: it.bytes[i],
+		g: it.bytes[i+1],
+		b: it.bytes[i+2],
 	}.toVec3()
 }
