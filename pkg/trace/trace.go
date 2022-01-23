@@ -39,7 +39,7 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	rand.Seed(int64(spec.RandomSeed))
 
 	//world, camera := randomSpheres(spec)
-	world, camera, background := simpleLight(spec)
+	world, camera, background := cornellBox(spec)
 
 	scene{
 		world:           world,
@@ -49,6 +49,44 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 		output:          output,
 	}.render()
 
+}
+
+func cornellBox(spec TraceSpecification) (hittableList, camera, vec3) {
+	camera := createCamera(
+		spec,
+		40,
+		0,
+		20,
+		vec3{278, 278, -800},
+		vec3{278, 278, 0},
+		vec3{0, 1, 0},
+	)
+
+	red := lambertian{solidColor{vec3{.65, .05, .05}}}
+	white := lambertian{solidColor{vec3{.73, .73, .73}}}
+	green := lambertian{solidColor{vec3{.12, .45, .15}}}
+	light := diffuseLight{solidColor{vec3{15, 15, 15}}}
+
+	world := emptyHittableList()
+
+	world.add(createQuad(vec3{555, 0, 0}, vec3{0, 555, 0}, vec3{0, 0, 555}, green))
+	world.add(createQuad(vec3{0, 0, 0}, vec3{0, 555, 0}, vec3{0, 0, 555}, red))
+	world.add(createQuad(vec3{343, 554, 332}, vec3{-130, 0, 0}, vec3{0, 0, -105}, light))
+	world.add(createQuad(vec3{0, 0, 0}, vec3{555, 0, 0}, vec3{0, 0, 555}, white))
+	world.add(createQuad(vec3{555, 555, 555}, vec3{-555, 0, 0}, vec3{0, 0, -555}, white))
+	world.add(createQuad(vec3{0, 0, 555}, vec3{555, 0, 0}, vec3{0, 555, 0}, white))
+
+	box1 := createBox(vec3{0, 0, 0}, vec3{165, 330, 165}, white)
+	box1 = createRotationY(box1, 15)
+	box1 = createTranslation(box1, vec3{265, 0, 295})
+	world.add(box1)
+
+	box2 := createBox(vec3{0, 0, 0}, vec3{165, 165, 165}, white)
+	box2 = createRotationY(box2, -18)
+	box2 = createTranslation(box2, vec3{130, 0, 65})
+	world.add(box2)
+
+	return world, camera, vec3{}
 }
 
 func simpleLight(spec TraceSpecification) (hittableList, camera, vec3) {
