@@ -31,6 +31,30 @@ func (a aabb) add(offset vec3) aabb {
 	}
 }
 
+func (a aabb) padIfNeeded() aabb {
+	delta := 0.0001
+	var newX interval
+	if a.x.size() >= delta {
+		newX = a.x
+	} else {
+		newX = a.x.expand(delta)
+	}
+	var newY interval
+	if a.y.size() >= delta {
+		newY = a.y
+	} else {
+		newY = a.y.expand(delta)
+	}
+	var newZ interval
+	if a.z.size() >= delta {
+		newZ = a.z
+	} else {
+		newZ = a.z.expand(delta)
+	}
+
+	return aabb{newX, newY, newZ}
+}
+
 func (aabb aabb) hit(r ray, rayLength interval) bool {
 
 	tMin := (aabb.x.min - r.origin.x) / r.direction.x

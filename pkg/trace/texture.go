@@ -1,6 +1,10 @@
 package trace
 
-import "math"
+import (
+	"math"
+
+	"github.com/ojrac/opensimplex-go"
+)
 
 type texture interface {
 	color(rec hitRecord) vec3
@@ -52,4 +56,16 @@ func (it imageTexture) color(rec hitRecord) vec3 {
 		g: it.bytes[i+1],
 		b: it.bytes[i+2],
 	}.toVec3()
+}
+
+type noiseTexture struct {
+	noise      opensimplex.Noise
+	colorValue vec3
+	scale      float64
+}
+
+func (nt noiseTexture) color(rec hitRecord) vec3 {
+	p := rec.hitPoint.mulS(1 / nt.scale)
+	val := nt.noise.Eval3(p.x, p.y, p.z)
+	return nt.colorValue.mulS(val)
 }

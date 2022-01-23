@@ -2,6 +2,8 @@ package trace
 
 import (
 	"math/rand"
+
+	"github.com/ojrac/opensimplex-go"
 )
 
 var (
@@ -37,18 +39,74 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	rand.Seed(int64(spec.RandomSeed))
 
 	//world, camera := randomSpheres(spec)
-	world, camera := earth(spec)
+	world, camera, background := simpleLight(spec)
 
 	scene{
-		world:  world,
-		cam:    camera,
-		spec:   spec,
-		output: output,
+		world:           world,
+		cam:             camera,
+		backgroundColor: background,
+		spec:            spec,
+		output:          output,
 	}.render()
 
 }
 
-func earth(spec TraceSpecification) (hittableList, camera) {
+func simpleLight(spec TraceSpecification) (hittableList, camera, vec3) {
+	camera := createCamera(
+		spec,
+		20,
+		0,
+		20,
+		vec3{26, 3, 6},
+		vec3{0, 2, 0},
+		vec3{0, 1, 0},
+	)
+
+	noiseMaterial := lambertian{noiseTexture{
+		opensimplex.NewNormalized(int64(spec.RandomSeed)),
+		white,
+		0.1,
+	}}
+	lightMaterial := diffuseLight{solidColor{vec3{4, 4, 4}}}
+
+	world := emptyHittableList()
+	world.add(createSphere(vec3{0, -1000, 0}, 1000, noiseMaterial))
+	world.add(createSphere(vec3{0, 2, 0}, 2, noiseMaterial))
+
+	world.add(createSphere(vec3{0, 7, 0}, 2, lightMaterial))
+	world.add(createQuad(vec3{3, 1, -2}, vec3{2, 0, 0}, vec3{0, 2, 0}, lightMaterial))
+
+	return world, camera, vec3{}
+}
+
+func quads(spec TraceSpecification) (hittableList, camera, vec3) {
+	camera := createCamera(
+		spec,
+		80,
+		0,
+		20,
+		vec3{0, 0, 9},
+		vec3{0, 0, 0},
+		vec3{0, 1, 0},
+	)
+
+	leftRed := lambertian{solidColor{vec3{1, 0.2, 0.2}}}
+	backGreen := lambertian{solidColor{vec3{0.2, 1, 0.2}}}
+	rightBlue := lambertian{solidColor{vec3{0.2, 0.2, 1}}}
+	upperOrange := lambertian{solidColor{vec3{1, 0.5, 0}}}
+	lowerTeal := lambertian{solidColor{vec3{0.2, 0.8, 0.8}}}
+
+	world := emptyHittableList()
+	world.add(createQuad(vec3{-3, -2, 5}, vec3{0, 0, -4}, vec3{0, 4, 0}, leftRed))
+	world.add(createQuad(vec3{-2, -2, 0}, vec3{4, 0, 0}, vec3{0, 4, 0}, backGreen))
+	world.add(createQuad(vec3{3, -2, 1}, vec3{0, 0, 4}, vec3{0, 4, 0}, rightBlue))
+	world.add(createQuad(vec3{-2, 3, 1}, vec3{4, 0, 0}, vec3{0, 0, 4}, upperOrange))
+	world.add(createQuad(vec3{-2, -3, 5}, vec3{4, 0, 0}, vec3{0, 0, -4}, lowerTeal))
+
+	return world, camera, vec3{0.70, 0.80, 1.00}
+}
+
+func earth(spec TraceSpecification) (hittableList, camera, vec3) {
 	camera := createCamera(
 		spec,
 		20,
@@ -64,10 +122,10 @@ func earth(spec TraceSpecification) (hittableList, camera) {
 	world := emptyHittableList()
 	world.add(createSphere(vec3{0, 0, 0}, 2, earthMaterial))
 
-	return world, camera
+	return world, camera, vec3{0.70, 0.80, 1.00}
 }
 
-func twoSpheres(spec TraceSpecification) (hittableList, camera) {
+func twoSpheres(spec TraceSpecification) (hittableList, camera, vec3) {
 	camera := createCamera(
 		spec,
 		20,
@@ -84,10 +142,34 @@ func twoSpheres(spec TraceSpecification) (hittableList, camera) {
 	world.add(createSphere(vec3{0, -10, 0}, 10, checkerMaterial))
 	world.add(createSphere(vec3{0, 10, 0}, 10, checkerMaterial))
 
-	return world, camera
+	return world, camera, vec3{0.70, 0.80, 1.00}
 }
 
-func randomSpheres(spec TraceSpecification) (hittableList, camera) {
+func twoNoiseSpheres(spec TraceSpecification) (hittableList, camera, vec3) {
+	camera := createCamera(
+		spec,
+		20,
+		0,
+		20,
+		vec3{13, 2, 3},
+		vec3{0, 0, 0},
+		vec3{0, 1, 0},
+	)
+
+	noiseMaterial := lambertian{noiseTexture{
+		opensimplex.NewNormalized(int64(spec.RandomSeed)),
+		white,
+		0.1,
+	}}
+
+	world := emptyHittableList()
+	world.add(createSphere(vec3{0, -1000, 0}, 1000, noiseMaterial))
+	world.add(createSphere(vec3{0, 2, 0}, 2, noiseMaterial))
+
+	return world, camera, vec3{0.70, 0.80, 1.00}
+}
+
+func randomSpheres(spec TraceSpecification) (hittableList, camera, vec3) {
 
 	camera := createCamera(
 		spec,
@@ -134,5 +216,5 @@ func randomSpheres(spec TraceSpecification) (hittableList, camera) {
 	spheres.add(createSphere(vec3{4, 1, 0}, 1.0, metal{solidColor{vec3{0.7, 0.6, 0.5}}, 0}))
 	world.add(createBvh(spheres))
 
-	return world, camera
+	return world, camera, vec3{0.70, 0.80, 1.00}
 }

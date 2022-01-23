@@ -10,10 +10,11 @@ var (
 )
 
 type scene struct {
-	world  hittableList
-	cam    camera
-	spec   TraceSpecification
-	output chan TraceProgress
+	world           hittableList
+	cam             camera
+	backgroundColor vec3
+	spec            TraceSpecification
+	output          chan TraceProgress
 }
 
 func (s scene) rayColor(r ray, depth int) vec3 {
@@ -24,19 +25,15 @@ func (s scene) rayColor(r ray, depth int) vec3 {
 	hit, rec := s.world.hit(r, interval{0.001, infinity})
 	if hit {
 
+		emitted := rec.material.emitted(*rec)
 		scatter, attenuation, scatterRay := rec.material.scatter(r, *rec)
 		if scatter {
-			return attenuation.mul(s.rayColor(scatterRay, depth+1))
+			return emitted.add(attenuation.mul(s.rayColor(scatterRay, depth+1)))
 		}
-		return black
+		return emitted
 	}
 
-	t := 0.5 * (r.direction.unit().y + 1)
-
-	whiteness := white.mulS(1 - t)
-	blueness := lightBlue.mulS(t)
-
-	return whiteness.add(blueness)
+	return s.backgroundColor
 }
 
 func (s scene) render() {
