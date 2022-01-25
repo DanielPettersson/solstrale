@@ -97,3 +97,17 @@ func (m diffuseLight) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 func (m diffuseLight) emitted(rec hitRecord) vec3 {
 	return m.emit.color(rec)
 }
+
+type isotropic struct {
+	albedo texture
+}
+
+func (m isotropic) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
+	attenuation := m.albedo.color(rec)
+	scattered := ray{rec.hitPoint, randomUnitVector(), rayIn.time}
+	return false, attenuation, scattered
+}
+
+func (m isotropic) emitted(rec hitRecord) vec3 {
+	return black
+}

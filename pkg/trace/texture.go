@@ -41,10 +41,14 @@ type imageTexture struct {
 	bytes  []byte
 	width  int
 	height int
+	mirror bool
 }
 
 func (it imageTexture) color(rec hitRecord) vec3 {
 	u := interval{0, 1}.clamp(rec.u)
+	if it.mirror {
+		u = 1 - u
+	}
 	v := 1 - interval{0, 1}.clamp(rec.v)
 
 	x := int(u * float64(it.width))

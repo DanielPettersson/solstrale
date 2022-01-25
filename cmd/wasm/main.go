@@ -3,7 +3,7 @@ package main
 import (
 	"syscall/js"
 
-	"github.com/DanielPettersson/wasm-trace/pkg/trace"
+	"github.com/DanielPettersson/solstrale/pkg/trace"
 )
 
 func doTrace(spec trace.TraceSpecification, callback js.Value) {

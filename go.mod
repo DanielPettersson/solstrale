@@ -1,4 +1,4 @@
-module github.com/DanielPettersson/wasm-trace
+module github.com/DanielPettersson/solstrale
 
 go 1.16
 

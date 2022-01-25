@@ -2,6 +2,8 @@ package trace
 
 import (
 	"math/rand"
+
+	"github.com/ojrac/opensimplex-go"
 )
 
 var (
@@ -30,14 +32,14 @@ func AddTexture(name string, width, height int, bytes []byte) {
 		bytes:  bytes,
 		width:  width,
 		height: height,
+		mirror: false,
 	}
 }
 
 func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	rand.Seed(int64(spec.RandomSeed))
 
-	//world, camera := randomSpheres(spec)
-	world, camera, background := cornellBox(spec)
+	world, camera, background := finalScene(spec)
 
 	scene{
 		world:           world,
@@ -47,6 +49,70 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 		output:          output,
 	}.render()
 
+}
+
+func finalScene(spec TraceSpecification) (hittableList, camera, vec3) {
+	camera := createCamera(
+		spec,
+		40,
+		0,
+		100,
+		vec3{478, 278, -600},
+		vec3{278, 278, 0},
+		vec3{0, 1, 0},
+	)
+
+	boxes1 := emptyHittableList()
+	ground := lambertian{solidColor{vec3{0.48, 0.83, 0.53}}}
+
+	boxesPerSide := 20.
+	for i := .0; i < boxesPerSide; i++ {
+		for j := .0; j < boxesPerSide; j++ {
+			w := 100.0
+			x0 := -1000 + i*w
+			z0 := -1000 + j*w
+			y0 := .0
+			x1 := x0 + w
+			y1 := randomFloat(1, 101)
+			z1 := z0 + w
+
+			boxes1.add(createBox(vec3{x0, y0, z0}, vec3{x1, y1, z1}, ground))
+		}
+	}
+
+	world := emptyHittableList()
+	world.add(createBvh(boxes1))
+
+	light := diffuseLight{solidColor{vec3{7, 7, 7}}}
+	world.add(createQuad(vec3{123, 554, 147}, vec3{300, 0, 0}, vec3{0, 0, 265}, light))
+
+	movingSphereMaterial := lambertian{solidColor{vec3{0.7, 0.3, 0.1}}}
+	world.add(createMotionBlur(createSphere(vec3{400, 400, 200}, 50, movingSphereMaterial), vec3{30, 0, 0}))
+
+	glass := dielectric{solidColor{vec3{1, 1, 1}}, 1.5}
+
+	world.add(createSphere(vec3{260, 150, 45}, 50, glass))
+	world.add(createSphere(vec3{0, 150, 145}, 50, metal{solidColor{vec3{0.8, 0.8, 0.9}}, 1}))
+
+	boundary := createSphere(vec3{360, 150, 145}, 70, glass)
+	world.add(boundary)
+	world.add(createConstantMedium(boundary, 0.2, solidColor{vec3{0.2, 0.4, 0.9}}))
+	boundary = createSphere(vec3{0, 0, 0}, 5000, glass)
+	world.add(createConstantMedium(boundary, 0.0001, solidColor{vec3{1, 1, 1}}))
+
+	world.add(createSphere(vec3{400, 200, 400}, 100, lambertian{textureData["earth"]}))
+	noiseTexture := noiseTexture{opensimplex.NewNormalized(int64(spec.RandomSeed)), vec3{1, 1, 1}, .1}
+	world.add(createSphere(vec3{220, 280, 300}, 80, lambertian{noiseTexture}))
+
+	boxes2 := emptyHittableList()
+	white := lambertian{solidColor{vec3{0.73, 0.73, 0.73}}}
+	for j := 0; j < 1000; j++ {
+		boxes2.add(createSphere(randomVec3(0, 165), 10, white))
+	}
+
+	world.add(createTranslation(createRotationY(createBvh(boxes2), 15), vec3{-100, 270, 395}))
+
+	return world, camera, vec3{}
 }
 
 func cornellBox(spec TraceSpecification) (hittableList, camera, vec3) {
@@ -104,7 +170,7 @@ func randomSpheres(spec TraceSpecification) (hittableList, camera, vec3) {
 
 	world := emptyHittableList()
 
-	groundMaterial := lambertian{checkerTexture{0.32, solidColor{vec3{0.2, 0.3, 0.1}}, solidColor{vec3{0.9, 0.9, 0.9}}}}
+	groundMaterial := lambertian{solidColor{vec3{0.2, 0.3, 0.1}}}
 	world.add(createSphere(vec3{0, -1000, 0}, 1000, groundMaterial))
 
 	spheres := emptyHittableList()
