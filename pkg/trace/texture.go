@@ -7,14 +7,14 @@ import (
 )
 
 type texture interface {
-	color(rec hitRecord) vec3
+	color(rec *hitRecord) vec3
 }
 
 type solidColor struct {
 	colorValue vec3
 }
 
-func (sc solidColor) color(rec hitRecord) vec3 {
+func (sc solidColor) color(rec *hitRecord) vec3 {
 	return sc.colorValue
 }
 
@@ -24,7 +24,7 @@ type checkerTexture struct {
 	odd   texture
 }
 
-func (ct checkerTexture) color(rec hitRecord) vec3 {
+func (ct checkerTexture) color(rec *hitRecord) vec3 {
 	invScale := 1 / ct.scale
 	uInt := math.Floor(rec.u * invScale)
 	vInt := math.Floor(rec.v * invScale)
@@ -44,7 +44,7 @@ type imageTexture struct {
 	mirror bool
 }
 
-func (it imageTexture) color(rec hitRecord) vec3 {
+func (it imageTexture) color(rec *hitRecord) vec3 {
 	u := interval{0, 1}.clamp(rec.u)
 	if it.mirror {
 		u = 1 - u
@@ -68,7 +68,7 @@ type noiseTexture struct {
 	scale      float64
 }
 
-func (nt noiseTexture) color(rec hitRecord) vec3 {
+func (nt noiseTexture) color(rec *hitRecord) vec3 {
 	p := rec.hitPoint.mulS(1 / nt.scale)
 	val := nt.noise.Eval3(p.x, p.y, p.z)
 	return nt.colorValue.mulS(val)

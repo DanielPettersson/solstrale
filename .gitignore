@@ -15,4 +15,5 @@
 # vendor/
 web/trace.wasm
 cmd/server/server
-cmd/cmdline/cmdline
+cmd/profiling/profiling
+cmd/profiling/cpu.pprof

@@ -6,15 +6,15 @@ import (
 )
 
 type material interface {
-	scatter(rayIn ray, rec hitRecord) (bool, vec3, ray)
-	emitted(rec hitRecord) vec3
+	scatter(rayIn ray, rec *hitRecord) (bool, vec3, ray)
+	emitted(rec *hitRecord) vec3
 }
 
 type lambertian struct {
 	tex texture
 }
 
-func (m lambertian) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
+func (m lambertian) scatter(rayIn ray, rec *hitRecord) (bool, vec3, ray) {
 	scatterDirection := rec.normal.add(randomUnitVector())
 	if scatterDirection.nearZero() {
 		scatterDirection = rec.normal
@@ -24,7 +24,7 @@ func (m lambertian) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 	return true, m.tex.color(rec), scatterRay
 }
 
-func (m lambertian) emitted(rec hitRecord) vec3 {
+func (m lambertian) emitted(rec *hitRecord) vec3 {
 	return black
 }
 
@@ -33,7 +33,7 @@ type metal struct {
 	fuzz float64
 }
 
-func (m metal) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
+func (m metal) scatter(rayIn ray, rec *hitRecord) (bool, vec3, ray) {
 	reflected := rayIn.direction.unit().reflect(rec.normal)
 	scatterRay := ray{rec.hitPoint, reflected.add(randomInUnitSphere().mulS(m.fuzz)), rayIn.time}
 	scatter := scatterRay.direction.dot(rec.normal) > 0
@@ -41,7 +41,7 @@ func (m metal) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 	return scatter, m.tex.color(rec), scatterRay
 }
 
-func (m metal) emitted(rec hitRecord) vec3 {
+func (m metal) emitted(rec *hitRecord) vec3 {
 	return black
 }
 
@@ -50,7 +50,7 @@ type dielectric struct {
 	indexOfRefraction float64
 }
 
-func (m dielectric) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
+func (m dielectric) scatter(rayIn ray, rec *hitRecord) (bool, vec3, ray) {
 	var refractionRatio float64
 	if rec.frontFace {
 		refractionRatio = 1 / m.indexOfRefraction
@@ -75,7 +75,7 @@ func (m dielectric) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 	return true, m.tex.color(rec), scatter
 }
 
-func (m dielectric) emitted(rec hitRecord) vec3 {
+func (m dielectric) emitted(rec *hitRecord) vec3 {
 	return black
 }
 
@@ -90,11 +90,11 @@ type diffuseLight struct {
 	emit texture
 }
 
-func (m diffuseLight) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
+func (m diffuseLight) scatter(rayIn ray, rec *hitRecord) (bool, vec3, ray) {
 	return false, vec3{}, ray{}
 }
 
-func (m diffuseLight) emitted(rec hitRecord) vec3 {
+func (m diffuseLight) emitted(rec *hitRecord) vec3 {
 	return m.emit.color(rec)
 }
 
@@ -102,12 +102,12 @@ type isotropic struct {
 	albedo texture
 }
 
-func (m isotropic) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
+func (m isotropic) scatter(rayIn ray, rec *hitRecord) (bool, vec3, ray) {
 	attenuation := m.albedo.color(rec)
 	scattered := ray{rec.hitPoint, randomUnitVector(), rayIn.time}
 	return true, attenuation, scattered
 }
 
-func (m isotropic) emitted(rec hitRecord) vec3 {
+func (m isotropic) emitted(rec *hitRecord) vec3 {
 	return black
 }

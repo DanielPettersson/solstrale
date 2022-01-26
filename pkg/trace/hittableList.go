@@ -27,13 +27,15 @@ func (hl *hittableList) hit(r ray, rayLength interval) (bool, *hitRecord) {
 	var closestHitRecord *hitRecord
 	hitAnything := false
 	closestSoFar := rayLength.max
+	closestInterval := interval{rayLength.min, closestSoFar}
 
 	for _, h := range hl.list {
-		hit, hitRecord := h.hit(r, interval{rayLength.min, closestSoFar})
+		hit, hitRecord := h.hit(r, closestInterval)
 		if hit {
 			hitAnything = true
 			closestSoFar = hitRecord.rayLength
 			closestHitRecord = hitRecord
+			closestInterval = interval{rayLength.min, closestSoFar}
 		}
 	}
 

@@ -25,8 +25,8 @@ func (s scene) rayColor(r ray, depth int) vec3 {
 	hit, rec := s.world.hit(r, interval{0.001, infinity})
 	if hit {
 
-		emitted := rec.material.emitted(*rec)
-		scatter, attenuation, scatterRay := rec.material.scatter(r, *rec)
+		emitted := rec.material.emitted(rec)
+		scatter, attenuation, scatterRay := rec.material.scatter(r, rec)
 		if scatter {
 			return emitted.add(attenuation.mul(s.rayColor(scatterRay, depth+1)))
 		}
