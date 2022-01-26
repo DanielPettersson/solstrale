@@ -39,7 +39,7 @@ func AddTexture(name string, width, height int, bytes []byte) {
 func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 	rand.Seed(int64(spec.RandomSeed))
 
-	world, camera, background := finalScene(spec)
+	world, camera, background := cornellBox(spec)
 
 	scene{
 		world:           world,
@@ -130,7 +130,6 @@ func cornellBox(spec TraceSpecification) (hittableList, camera, vec3) {
 	white := lambertian{solidColor{vec3{.73, .73, .73}}}
 	green := lambertian{solidColor{vec3{.12, .45, .15}}}
 	light := diffuseLight{solidColor{vec3{15, 15, 15}}}
-	glass := dielectric{solidColor{vec3{1, 1, 1}}, 1.5}
 
 	world := emptyHittableList()
 
@@ -144,14 +143,12 @@ func cornellBox(spec TraceSpecification) (hittableList, camera, vec3) {
 	box1 := createBox(vec3{0, 0, 0}, vec3{165, 330, 165}, white)
 	box1 = createRotationY(box1, 15)
 	box1 = createTranslation(box1, vec3{265, 0, 295})
-	world.add(box1)
+	world.add(createConstantMedium(box1, 0.01, solidColor{vec3{0, 0, 0}}))
 
 	box2 := createBox(vec3{0, 0, 0}, vec3{165, 165, 165}, white)
 	box2 = createRotationY(box2, -18)
 	box2 = createTranslation(box2, vec3{130, 0, 65})
-	world.add(box2)
-
-	world.add(createSphere(vec3{190, 215, 147}, 50, glass))
+	world.add(createConstantMedium(box2, 0.01, solidColor{vec3{1, 1, 1}}))
 
 	return world, camera, vec3{}
 }

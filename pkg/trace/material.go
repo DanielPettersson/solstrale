@@ -105,7 +105,7 @@ type isotropic struct {
 func (m isotropic) scatter(rayIn ray, rec hitRecord) (bool, vec3, ray) {
 	attenuation := m.albedo.color(rec)
 	scattered := ray{rec.hitPoint, randomUnitVector(), rayIn.time}
-	return false, attenuation, scattered
+	return true, attenuation, scattered
 }
 
 func (m isotropic) emitted(rec hitRecord) vec3 {
