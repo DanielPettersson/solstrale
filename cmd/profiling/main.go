@@ -2,15 +2,14 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"time"
 
 	"github.com/DanielPettersson/solstrale/pkg/trace"
+	"github.com/pkg/profile"
 )
 
 func main() {
 
-	start := time.Now()
+	defer profile.Start(profile.ProfilePath(".")).Stop()
 
 	progress := make(chan trace.TraceProgress)
 	go trace.RayTrace(trace.TraceSpecification{
@@ -27,8 +26,4 @@ func main() {
 	for p := range progress {
 		fmt.Println(p.Progress)
 	}
-
-	elapsed := time.Since(start)
-	log.Printf("Raytracing took %s", elapsed)
-
 }

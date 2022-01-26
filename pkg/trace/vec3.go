@@ -5,6 +5,10 @@ import (
 	"math"
 )
 
+var (
+	almostZero float64 = 1e-8
+)
+
 type vec3 struct {
 	x float64
 	y float64
@@ -99,8 +103,7 @@ func (v vec3) unit() vec3 {
 }
 
 func (v vec3) nearZero() bool {
-	s := 1e-8
-	return math.Abs(v.x) < s && math.Abs(v.y) < s && math.Abs(v.z) < s
+	return math.Abs(v.x) < almostZero && math.Abs(v.y) < almostZero && math.Abs(v.z) < almostZero
 }
 
 func (v vec3) reflect(n vec3) vec3 {

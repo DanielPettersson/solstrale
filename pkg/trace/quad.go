@@ -60,7 +60,7 @@ func (q quad) hit(r ray, rayLength interval) (bool, *hitRecord) {
 	denom := q.normal.dot(r.direction)
 
 	// No hit if the ray is parallell to the plane
-	if math.Abs(denom) < 1e-8 {
+	if math.Abs(denom) < almostZero {
 		return false, nil
 	}
 

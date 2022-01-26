@@ -140,16 +140,6 @@ func cornellBox(spec TraceSpecification) (hittableList, camera, vec3) {
 	world.add(createQuad(vec3{555, 555, 555}, vec3{-555, 0, 0}, vec3{0, 0, -555}, white))
 	world.add(createQuad(vec3{0, 0, 555}, vec3{555, 0, 0}, vec3{0, 555, 0}, white))
 
-	box1 := createBox(vec3{0, 0, 0}, vec3{165, 330, 165}, white)
-	box1 = createRotationY(box1, 15)
-	box1 = createTranslation(box1, vec3{265, 0, 295})
-	world.add(createConstantMedium(box1, 0.01, solidColor{vec3{0, 0, 0}}))
-
-	box2 := createBox(vec3{0, 0, 0}, vec3{165, 165, 165}, white)
-	box2 = createRotationY(box2, -18)
-	box2 = createTranslation(box2, vec3{130, 0, 65})
-	world.add(createConstantMedium(box2, 0.01, solidColor{vec3{1, 1, 1}}))
-
 	return world, camera, vec3{}
 }
 
