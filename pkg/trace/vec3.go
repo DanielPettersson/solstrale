@@ -24,8 +24,13 @@ func randomVec3(min float64, max float64) vec3 {
 }
 
 func randomInUnitSphere() vec3 {
+
+	var p vec3
 	for {
-		p := randomVec3(-1, 1)
+		p.x = randomFloat(-1, 1)
+		p.y = randomFloat(-1, 1)
+		p.z = randomFloat(-1, 1)
+
 		if p.lengthSquared() < 1 {
 			return p
 		}
@@ -46,8 +51,11 @@ func randomInHemisphere(normal vec3) vec3 {
 }
 
 func randomInUnitDisc() vec3 {
+
+	var p vec3
 	for {
-		p := vec3{randomFloat(-1, 1), randomFloat(-1, 1), 0}
+		p.x = randomFloat(-1, 1)
+		p.y = randomFloat(-1, 1)
 		if p.lengthSquared() < 1 {
 			return p
 		}
