@@ -2,7 +2,6 @@ package trace
 
 import (
 	"math"
-	"math/rand"
 )
 
 type material interface {
@@ -64,7 +63,7 @@ func (m dielectric) scatter(rayIn ray, rec *hitRecord) (bool, vec3, ray) {
 	cannotRefract := refractionRatio*sinTheta > 1
 
 	var direction vec3
-	if cannotRefract || reflectance(cosTheta, refractionRatio) > rand.Float64() {
+	if cannotRefract || reflectance(cosTheta, refractionRatio) > randomNormalFloat() {
 		direction = unitDirection.reflect(rec.normal)
 	} else {
 		direction = unitDirection.refract(rec.normal, refractionRatio)

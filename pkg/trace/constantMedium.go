@@ -2,7 +2,6 @@ package trace
 
 import (
 	"math"
-	"math/rand"
 )
 
 type constantMedium struct {
@@ -42,7 +41,7 @@ func (cm constantMedium) hit(r ray, rayLength interval) (bool, *hitRecord) {
 
 	rLength := r.direction.length()
 	distanceInsideBoundary := (rec2.rayLength - rec1.rayLength) * rLength
-	hitDistance := cm.negativeInverseDensity * math.Log(rand.Float64())
+	hitDistance := cm.negativeInverseDensity * math.Log(randomNormalFloat())
 
 	if hitDistance > distanceInsideBoundary {
 		return false, nil

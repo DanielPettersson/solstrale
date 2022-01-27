@@ -1,8 +1,6 @@
 package trace
 
 import (
-	"math/rand"
-
 	"github.com/ojrac/opensimplex-go"
 )
 
@@ -37,7 +35,7 @@ func AddTexture(name string, width, height int, bytes []byte) {
 }
 
 func RayTrace(spec TraceSpecification, output chan TraceProgress) {
-	rand.Seed(int64(spec.RandomSeed))
+	setRandomSeed(uint32(spec.RandomSeed))
 
 	world, camera, background := cornellBox(spec)
 
@@ -163,8 +161,8 @@ func randomSpheres(spec TraceSpecification) (hittableList, camera, vec3) {
 	spheres := emptyHittableList()
 	for a := -7.0; a < 7; a++ {
 		for b := -5.0; b < 5; b++ {
-			chooseMat := rand.Float64()
-			center := vec3{a + 0.9*rand.Float64(), 0.2, b + 0.9*rand.Float64()}
+			chooseMat := randomNormalFloat()
+			center := vec3{a + 0.9*randomNormalFloat(), 0.2, b + 0.9*randomNormalFloat()}
 
 			if center.sub(vec3{4, 0.2, 0}).length() > 0.9 {
 

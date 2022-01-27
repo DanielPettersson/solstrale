@@ -1,7 +1,6 @@
 package trace
 
 import (
-	"math/rand"
 	"time"
 )
 
@@ -51,8 +50,8 @@ func (s scene) render() {
 				dy := y - yStart
 				i := (((spec.DrawHeight-1)-dy)*spec.DrawWidth + dx)
 
-				u := (float64(x) + rand.Float64()) / float64(spec.ImageWidth-1)
-				v := (float64(y) + rand.Float64()) / float64(spec.ImageHeight-1)
+				u := (float64(x) + randomNormalFloat()) / float64(spec.ImageWidth-1)
+				v := (float64(y) + randomNormalFloat()) / float64(spec.ImageHeight-1)
 				r := s.cam.getRay(u, v)
 				pixelColor := s.rayColor(r, 0)
 

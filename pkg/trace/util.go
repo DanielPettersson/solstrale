@@ -2,7 +2,8 @@ package trace
 
 import (
 	"math"
-	"math/rand"
+
+	"github.com/valyala/fastrand"
 )
 
 // colors
@@ -16,11 +17,20 @@ var (
 // math
 
 var (
-	infinity float64 = math.Inf(1)
+	infinity   float64 = math.Inf(1)
+	fastRandom fastrand.RNG
 )
 
+func setRandomSeed(seed uint32) {
+	fastRandom.Seed(seed)
+}
+
+func randomNormalFloat() float64 {
+	return float64(fastRandom.Uint32()) / float64(math.MaxUint32)
+}
+
 func randomFloat(min float64, max float64) float64 {
-	return rand.Float64()*(max-min) + min
+	return randomNormalFloat()*(max-min) + min
 }
 
 func degreesToRadians(degrees float64) float64 {
