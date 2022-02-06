@@ -29,6 +29,7 @@ func main() {
 		func(w, h int) image.Image {
 			return renderImage
 		})
+	progress := widget.NewProgressBar()
 
 	runButton := widget.Button{
 		Text: "Run",
@@ -58,6 +59,7 @@ func main() {
 		go func() {
 			for p := range renderProgress {
 				renderImage = p.RenderImage
+				progress.SetValue(p.Progress)
 				raster.Refresh()
 			}
 			runButton.Enable()
@@ -73,8 +75,8 @@ func main() {
 
 	topBar := container.New(layout.NewHBoxLayout(), &runButton, &stopButton)
 
-	container := container.New(layout.NewBorderLayout(topBar, nil, nil, nil),
-		topBar, raster)
+	container := container.New(layout.NewBorderLayout(topBar, progress, nil, nil),
+		topBar, progress, raster)
 
 	window.SetContent(container)
 	window.ShowAndRun()

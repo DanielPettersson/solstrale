@@ -21,7 +21,7 @@ func main() {
 		DrawHeight:      100,
 		SamplesPerPixel: 100,
 		RandomSeed:      123456,
-	}, progress)
+	}, progress, make(chan bool))
 
 	for p := range progress {
 		fmt.Println(p.Progress)
