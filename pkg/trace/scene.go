@@ -35,12 +35,19 @@ func (s scene) rayColor(r ray, depth int) vec3 {
 	return s.backgroundColor
 }
 
-func (s scene) render() {
+func (s scene) render(abort chan bool) {
 
 	spec := s.spec
 	pixels := make([]vec3, spec.DrawWidth*spec.DrawHeight)
 
 	for sample := 0; sample < spec.SamplesPerPixel; sample++ {
+
+		select {
+		case <-abort:
+			close(s.output)
+			return
+		default:
+		}
 
 		yStart := spec.ImageHeight - spec.DrawOffsetY - spec.DrawHeight
 		for y := yStart; y < yStart+spec.DrawHeight; y++ {

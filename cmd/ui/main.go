@@ -21,16 +21,28 @@ func main() {
 	})
 
 	var renderImage image.Image
-	renderImage = image.NewRGBA(image.Rect(0, 0, 400, 300))
+	renderImage = image.NewRGBA(image.Rect(0, 0, 1, 1))
+
+	abortRender := make(chan bool, 1)
 
 	raster := canvas.NewRaster(
 		func(w, h int) image.Image {
 			return renderImage
 		})
 
-	runButton := widget.NewButton("Run", func() {
+	runButton := widget.Button{
+		Text: "Run",
+	}
+	stopButton := widget.Button{
+		Text: "Stop",
+	}
+	stopButton.Disable()
 
-		renderProgress := make(chan trace.TraceProgress)
+	runButton.OnTapped = func() {
+		runButton.Disable()
+		stopButton.Enable()
+
+		renderProgress := make(chan trace.TraceProgress, 2)
 
 		go trace.RayTrace(trace.TraceSpecification{
 			ImageWidth:      int(raster.Size().Width),
@@ -39,22 +51,33 @@ func main() {
 			DrawOffsetY:     0,
 			DrawWidth:       int(raster.Size().Width),
 			DrawHeight:      int(raster.Size().Height),
-			SamplesPerPixel: 100,
+			SamplesPerPixel: 10,
 			RandomSeed:      123456,
-		}, renderProgress)
+		}, renderProgress, abortRender)
 
-		for p := range renderProgress {
-			renderImage = p.RenderImage
-			raster.Refresh()
-		}
+		go func() {
+			for p := range renderProgress {
+				renderImage = p.RenderImage
+				raster.Refresh()
+			}
+			runButton.Enable()
+			stopButton.Disable()
+		}()
+	}
 
-	})
+	stopButton.OnTapped = func() {
+		runButton.Enable()
+		stopButton.Disable()
+		abortRender <- true
+	}
 
-	topBar := container.New(layout.NewHBoxLayout(), runButton)
+	topBar := container.New(layout.NewHBoxLayout(), &runButton, &stopButton)
 
 	container := container.New(layout.NewBorderLayout(topBar, nil, nil, nil),
 		topBar, raster)
 
 	window.SetContent(container)
 	window.ShowAndRun()
+
+	abortRender <- true
 }

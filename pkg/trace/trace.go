@@ -35,7 +35,7 @@ func AddTexture(name string, width, height int, bytes []byte) {
 	}
 }
 
-func RayTrace(spec TraceSpecification, output chan TraceProgress) {
+func RayTrace(spec TraceSpecification, output chan TraceProgress, abort chan bool) {
 	setRandomSeed(uint32(spec.RandomSeed))
 
 	world, camera, background := cornellBox(spec)
@@ -46,7 +46,7 @@ func RayTrace(spec TraceSpecification, output chan TraceProgress) {
 		backgroundColor: background,
 		spec:            spec,
 		output:          output,
-	}.render()
+	}.render(abort)
 
 }
 
