@@ -15,10 +15,6 @@ func main() {
 	go trace.RayTrace(trace.TraceSpecification{
 		ImageWidth:      100,
 		ImageHeight:     100,
-		DrawOffsetX:     0,
-		DrawOffsetY:     0,
-		DrawWidth:       100,
-		DrawHeight:      100,
 		SamplesPerPixel: 100,
 		RandomSeed:      123456,
 	}, progress, make(chan bool))

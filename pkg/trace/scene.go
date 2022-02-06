@@ -2,6 +2,7 @@ package trace
 
 import (
 	"image/color"
+	"sync"
 )
 
 var (
@@ -38,7 +39,7 @@ func (s scene) rayColor(r ray, depth int) vec3 {
 func (s scene) render(abort chan bool) {
 
 	spec := s.spec
-	pixels := make([]vec3, spec.DrawWidth*spec.DrawHeight)
+	pixels := make([]vec3, spec.ImageWidth*spec.ImageHeight)
 
 	for sample := 0; sample < spec.SamplesPerPixel; sample++ {
 
@@ -49,30 +50,34 @@ func (s scene) render(abort chan bool) {
 		default:
 		}
 
-		yStart := spec.ImageHeight - spec.DrawOffsetY - spec.DrawHeight
-		for y := yStart; y < yStart+spec.DrawHeight; y++ {
+		var waitGroup sync.WaitGroup
+		for y := 0; y < spec.ImageHeight; y++ {
 
-			for x := spec.DrawOffsetX; x < spec.DrawOffsetX+spec.DrawWidth; x++ {
-				dx := x - spec.DrawOffsetX
-				dy := y - yStart
-				i := (((spec.DrawHeight-1)-dy)*spec.DrawWidth + dx)
+			waitGroup.Add(1)
+			go func(yy int, wg *sync.WaitGroup) {
+				defer wg.Done()
 
-				u := (float64(x) + randomNormalFloat()) / float64(spec.ImageWidth-1)
-				v := (float64(y) + randomNormalFloat()) / float64(spec.ImageHeight-1)
-				r := s.cam.getRay(u, v)
-				pixelColor := s.rayColor(r, 0)
+				for x := 0; x < spec.ImageWidth; x++ {
+					i := (((spec.ImageHeight-1)-yy)*spec.ImageWidth + x)
 
-				pixels[i] = pixels[i].add(pixelColor)
-			}
+					u := (float64(x) + randomNormalFloat()) / float64(spec.ImageWidth-1)
+					v := (float64(yy) + randomNormalFloat()) / float64(spec.ImageHeight-1)
+					r := s.cam.getRay(u, v)
+					pixelColor := s.rayColor(r, 0)
+
+					pixels[i] = pixels[i].add(pixelColor)
+				}
+			}(y, &waitGroup)
 
 		}
+		waitGroup.Wait()
 
 		ret := make([]color.RGBA, len(pixels))
 
-		for y := 0; y < spec.DrawHeight; y++ {
-			for x := 0; x < spec.DrawWidth; x++ {
+		for y := 0; y < spec.ImageHeight; y++ {
+			for x := 0; x < spec.ImageWidth; x++ {
 
-				i := (((spec.DrawHeight-1)-y)*spec.DrawWidth + x)
+				i := (((spec.ImageHeight-1)-y)*spec.ImageWidth + x)
 				ret[i] = pixels[i].toRgba(sample)
 			}
 		}

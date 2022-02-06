@@ -13,10 +13,6 @@ var (
 type TraceSpecification struct {
 	ImageWidth      int
 	ImageHeight     int
-	DrawOffsetX     int
-	DrawOffsetY     int
-	DrawWidth       int
-	DrawHeight      int
 	SamplesPerPixel int
 	RandomSeed      int
 }

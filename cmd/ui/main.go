@@ -2,6 +2,9 @@ package main
 
 import (
 	"image"
+	"math"
+	"math/rand"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -13,6 +16,8 @@ import (
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	app := app.New()
 	window := app.NewWindow("Solstråle")
 	window.Resize(fyne.Size{
@@ -29,6 +34,7 @@ func main() {
 		func(w, h int) image.Image {
 			return renderImage
 		})
+
 	progress := widget.NewProgressBar()
 
 	runButton := widget.Button{
@@ -43,17 +49,16 @@ func main() {
 		runButton.Disable()
 		stopButton.Enable()
 
-		renderProgress := make(chan trace.TraceProgress, 2)
+		renderProgress := make(chan trace.TraceProgress, 1)
+
+		height := int(math.Round(float64(raster.Size().Height)))
+		width := int(math.Round(float64(raster.Size().Width)))
 
 		go trace.RayTrace(trace.TraceSpecification{
-			ImageWidth:      int(raster.Size().Width),
-			ImageHeight:     int(raster.Size().Height),
-			DrawOffsetX:     0,
-			DrawOffsetY:     0,
-			DrawWidth:       int(raster.Size().Width),
-			DrawHeight:      int(raster.Size().Height),
-			SamplesPerPixel: 10,
-			RandomSeed:      123456,
+			ImageWidth:      width,
+			ImageHeight:     height,
+			SamplesPerPixel: 100,
+			RandomSeed:      rand.Int(),
 		}, renderProgress, abortRender)
 
 		go func() {
