@@ -1,6 +1,8 @@
 package trace
 
 import (
+	"image"
+
 	"github.com/ojrac/opensimplex-go"
 )
 
@@ -20,9 +22,8 @@ type TraceSpecification struct {
 }
 
 type TraceProgress struct {
-	Progress      float64
-	Specification TraceSpecification
-	ImageData     []byte
+	Progress    float64
+	RenderImage image.Image
 }
 
 func AddTexture(name string, width, height int, bytes []byte) {

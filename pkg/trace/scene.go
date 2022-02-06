@@ -1,7 +1,7 @@
 package trace
 
 import (
-	"time"
+	"image/color"
 )
 
 var (
@@ -60,31 +60,20 @@ func (s scene) render() {
 
 		}
 
-		ret := make([]byte, len(pixels)*4)
+		ret := make([]color.RGBA, len(pixels))
 
 		for y := 0; y < spec.DrawHeight; y++ {
 			for x := 0; x < spec.DrawWidth; x++ {
 
 				i := (((spec.DrawHeight-1)-y)*spec.DrawWidth + x)
-				ri := i * 4
-				col := pixels[i].toRgba(sample)
-
-				ret[ri] = col.r
-				ret[ri+1] = col.g
-				ret[ri+2] = col.b
-				ret[ri+3] = col.a
-
+				ret[i] = pixels[i].toRgba(sample)
 			}
 		}
 
 		s.output <- TraceProgress{
 			float64(sample+1) / float64(spec.SamplesPerPixel),
-			spec,
-			ret,
+			renderImage{spec, ret},
 		}
-
-		// A bit of a hack to let the running web worker context interrupt and do it's callback
-		time.Sleep(1 * time.Millisecond)
 	}
 
 	close(s.output)

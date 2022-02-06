@@ -55,11 +55,11 @@ func (it imageTexture) color(rec *hitRecord) vec3 {
 	y := int(v * float64(it.height))
 	i := (y*it.width + x) * 4
 
-	return rgbaColor{
-		r: it.bytes[i],
-		g: it.bytes[i+1],
-		b: it.bytes[i+2],
-	}.toVec3()
+	return rgbToVec3(
+		it.bytes[i],
+		it.bytes[i+1],
+		it.bytes[i+2],
+	)
 }
 
 type noiseTexture struct {
