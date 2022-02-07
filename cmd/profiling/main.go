@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/DanielPettersson/solstrale/pkg/trace"
+	"github.com/DanielPettersson/solstrale"
+	"github.com/DanielPettersson/solstrale/spec"
 	"github.com/pkg/profile"
 )
 
@@ -11,8 +12,8 @@ func main() {
 
 	defer profile.Start(profile.ProfilePath(".")).Stop()
 
-	progress := make(chan trace.TraceProgress)
-	go trace.RayTrace(trace.TraceSpecification{
+	progress := make(chan spec.TraceProgress)
+	go solstrale.RayTrace(spec.TraceSpecification{
 		ImageWidth:      100,
 		ImageHeight:     100,
 		SamplesPerPixel: 100,
