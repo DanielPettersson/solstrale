@@ -1,8 +1,6 @@
 package hittable
 
 import (
-	"fmt"
-
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
@@ -14,6 +12,7 @@ type translation struct {
 	bBox   aabb
 }
 
+// NewTranslation creates a hittable object that translates the given hittable by the givn offset vector
 func NewTranslation(
 	object Hittable,
 	offset geo.Vec3,
@@ -46,8 +45,4 @@ func (t translation) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hi
 
 func (t translation) BoundingBox() aabb {
 	return t.bBox
-}
-
-func (t translation) String() string {
-	return fmt.Sprintf("%v", t.object)
 }

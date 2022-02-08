@@ -1,3 +1,4 @@
+// Package solstrale is the main package for the ray tracer and contains the functions for starting the raytracing
 package solstrale
 
 import (
@@ -10,6 +11,8 @@ import (
 	"github.com/DanielPettersson/solstrale/spec"
 )
 
+// RayTrace executes the ray tracing with the given specification and reports progress on
+// the output channel. Listens to abort channel for aborting a started ray trace operation
 func RayTrace(spec spec.TraceSpecification, output chan spec.TraceProgress, abort chan bool) {
 	util.SetRandomSeed(uint32(spec.RandomSeed))
 
@@ -25,6 +28,7 @@ func RayTrace(spec spec.TraceSpecification, output chan spec.TraceProgress, abor
 
 }
 
+// FinalScene sets up a scene to ray trace
 func FinalScene(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera, geo.Vec3) {
 	camera := camera.New(
 		spec,
@@ -89,6 +93,7 @@ func FinalScene(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera,
 	return &world, camera, geo.NewVec3(0, 0, 0)
 }
 
+// CornellBox sets up a scene to ray trace
 func CornellBox(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera, geo.Vec3) {
 	camera := camera.New(
 		spec,
@@ -127,6 +132,7 @@ func CornellBox(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera,
 	return &world, camera, geo.NewVec3(0, 0, 0)
 }
 
+// RandomSpheres sets up a scene to ray trace
 func RandomSpheres(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera, geo.Vec3) {
 
 	camera := camera.New(

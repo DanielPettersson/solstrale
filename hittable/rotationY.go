@@ -1,7 +1,6 @@
 package hittable
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/DanielPettersson/solstrale/geo"
@@ -16,6 +15,7 @@ type rotationY struct {
 	bBox     aabb
 }
 
+// NewRotationY creates a hittable object that rotates the given hittable around the Y axis
 func NewRotationY(
 	object Hittable,
 	angle float64,
@@ -95,8 +95,4 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 func (r rotationY) BoundingBox() aabb {
 	return r.bBox
-}
-
-func (r rotationY) String() string {
-	return fmt.Sprintf("%v", r.object)
 }

@@ -1,7 +1,6 @@
 package hittable
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/DanielPettersson/solstrale/geo"
@@ -20,6 +19,7 @@ type quad struct {
 	bBox   aabb
 }
 
+// NewQuad creates a new rectangular flat hittable object
 func NewQuad(Q geo.Vec3, u geo.Vec3, v geo.Vec3, mat material.Material) Hittable {
 	bBox := createAabbFromPoints(Q, Q.Add(u).Add(v)).padIfNeeded()
 	n := u.Cross(v)
@@ -39,6 +39,7 @@ func NewQuad(Q geo.Vec3, u geo.Vec3, v geo.Vec3, mat material.Material) Hittable
 	}
 }
 
+// NewBox creates a new box shaped hittable object
 func NewBox(a geo.Vec3, b geo.Vec3, mat material.Material) Hittable {
 
 	sides := NewHittableList()
@@ -105,8 +106,4 @@ func (q quad) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord
 
 func (q quad) BoundingBox() aabb {
 	return q.bBox
-}
-
-func (q quad) String() string {
-	return fmt.Sprintf("Quad(c:%v, u:%v, v:%v)", q.q, q.u, q.v)
 }

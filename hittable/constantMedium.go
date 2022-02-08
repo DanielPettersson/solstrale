@@ -1,3 +1,6 @@
+// Package hittable provides objects that are hittable by rays shot by the ray tracer.
+// Some of these hittable objects are containers for other objects
+// Some others are used to translate or rotate other objects
 package hittable
 
 import (
@@ -14,6 +17,8 @@ type constantMedium struct {
 	PhaseFunction          material.Material
 }
 
+// NewConstantMedium creates a fog type hittable object where rays not only scatter
+// at the edge of the object, but at random points inside the object
 func NewConstantMedium(boundary Hittable, density float64, color material.Texture) Hittable {
 	return constantMedium{
 		Boundary:               boundary,

@@ -1,8 +1,6 @@
 package hittable
 
 import (
-	"fmt"
-
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
@@ -14,6 +12,8 @@ type motionBlur struct {
 	bBox            aabb
 }
 
+// NewMotionBlur creates a new hittable object that adds linear interpolated translation to
+// its hittable based on the time of the ray. This gives the appearence of the object moving.
 func NewMotionBlur(
 	blurredHittable Hittable,
 	blurDirection geo.Vec3,
@@ -50,8 +50,4 @@ func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 func (m motionBlur) BoundingBox() aabb {
 	return m.bBox
-}
-
-func (m motionBlur) String() string {
-	return fmt.Sprintf("%v", m.blurredHittable)
 }

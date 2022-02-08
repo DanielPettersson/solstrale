@@ -1,7 +1,6 @@
 package hittable
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/DanielPettersson/solstrale/geo"
@@ -16,6 +15,7 @@ type sphere struct {
 	bBox   aabb
 }
 
+// NewSphere creates a new sphere shaped hittable object
 func NewSphere(
 	center geo.Vec3,
 	radius float64,
@@ -86,8 +86,4 @@ func calculateSphereUv(pointOnSphere geo.Vec3) (float64, float64) {
 
 func (s sphere) BoundingBox() aabb {
 	return s.bBox
-}
-
-func (s sphere) String() string {
-	return fmt.Sprintf("Sphere(%v, r:%f)", s.center, s.radius)
 }

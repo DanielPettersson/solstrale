@@ -1,18 +1,20 @@
 package hittable
 
 import (
-	"fmt"
-
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
 )
 
+// HittableList is a special type of hittable that is a container
+// for a list of other hittable objects. Used to be able to have many
+// objects in a scene
 type HittableList struct {
 	list []Hittable
 	bBox aabb
 }
 
+// NewHittableList creates new empty HittableList
 func NewHittableList() HittableList {
 	return HittableList{
 		[]Hittable{},
@@ -20,15 +22,19 @@ func NewHittableList() HittableList {
 	}
 }
 
+// Clear removes all hittable objects from this HittableList
 func (hl *HittableList) Clear() {
 	hl = nil
 }
 
+// Add adds a new hittable object to this HittableList
 func (hl *HittableList) Add(h Hittable) {
 	hl.list = append(hl.list, h)
 	hl.bBox = combineAabbs(hl.bBox, h.BoundingBox())
 }
 
+// Hit Checks if the given ray hits any object in this list.
+// And if so, returns the properties of that ray hit
 func (hl *HittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
 	var closestHitRecord *material.HitRecord
 	hitAnything := false
@@ -48,10 +54,7 @@ func (hl *HittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material
 	return hitAnything, closestHitRecord
 }
 
+// BoundingBox returns the bounding box that encapsulates all hittables in the list
 func (hl *HittableList) BoundingBox() aabb {
 	return hl.bBox
-}
-
-func (hl HittableList) String() string {
-	return fmt.Sprintf("HittableList(%v)", hl.list)
 }

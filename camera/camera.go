@@ -1,3 +1,4 @@
+// Package camera provides a camera used by raytracer to shoot rays into the scene
 package camera
 
 import (
@@ -8,6 +9,8 @@ import (
 	"github.com/DanielPettersson/solstrale/spec"
 )
 
+// Camera contains all data needed to describe a cameras position, field of view and
+// where it is pointing
 type Camera struct {
 	origin          geo.Vec3
 	lowerLeftCorner geo.Vec3
@@ -18,6 +21,7 @@ type Camera struct {
 	lensRadius      float64
 }
 
+// New creates a new camera with more easy to understand parameters
 func New(
 	spec spec.TraceSpecification,
 	verticalFovDegrees float64,
@@ -53,6 +57,7 @@ func New(
 	}
 }
 
+// GetRay is a function for generating a ray for a certain u/v for the raytraced image
 func (c Camera) GetRay(u float64, v float64) geo.Ray {
 	rd := geo.RandomInUnitDisc().MulS(c.lensRadius)
 	offset := c.u.MulS(rd.X).Add(c.v.MulS(rd.Y))

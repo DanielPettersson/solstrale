@@ -1,3 +1,5 @@
+// solstrale-profiler is a debug cmd for generating profiling information.
+// This Profiling info cna be inspected using pprof
 package main
 
 import (
