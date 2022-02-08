@@ -1,5 +1,5 @@
 # Solstråle
-A ray tracer implemented in Golang with a Fyne based desktop UI to start and view the render as it progresses.
+A basic ray tracer implemented in Golang. Nothing fancy.
 
 Examples of output from renderer:
 ![nedladdning](https://user-images.githubusercontent.com/3603911/150698759-52881c0d-1ae0-4e6d-8a2a-1f0723102bff.png)
