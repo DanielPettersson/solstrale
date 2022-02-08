@@ -17,7 +17,7 @@ type translation struct {
 func NewTranslation(
 	object Hittable,
 	offset geo.Vec3,
-) translation {
+) Hittable {
 
 	boundingBox := object.BoundingBox().add(offset)
 

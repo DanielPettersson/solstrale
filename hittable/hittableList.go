@@ -8,28 +8,28 @@ import (
 	"github.com/DanielPettersson/solstrale/material"
 )
 
-type hittableList struct {
+type HittableList struct {
 	list []Hittable
 	bBox aabb
 }
 
-func NewHittableList() hittableList {
-	return hittableList{
+func NewHittableList() HittableList {
+	return HittableList{
 		[]Hittable{},
 		aabb{util.EmptyInterval, util.EmptyInterval, util.EmptyInterval},
 	}
 }
 
-func (hl *hittableList) Clear() {
+func (hl *HittableList) Clear() {
 	hl = nil
 }
 
-func (hl *hittableList) Add(h Hittable) {
+func (hl *HittableList) Add(h Hittable) {
 	hl.list = append(hl.list, h)
 	hl.bBox = combineAabbs(hl.bBox, h.BoundingBox())
 }
 
-func (hl *hittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (hl *HittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
 	var closestHitRecord *material.HitRecord
 	hitAnything := false
 	closestSoFar := rayLength.Max
@@ -48,10 +48,10 @@ func (hl *hittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material
 	return hitAnything, closestHitRecord
 }
 
-func (hl *hittableList) BoundingBox() aabb {
+func (hl *HittableList) BoundingBox() aabb {
 	return hl.bBox
 }
 
-func (hl hittableList) String() string {
+func (hl HittableList) String() string {
 	return fmt.Sprintf("HittableList(%v)", hl.list)
 }

@@ -10,17 +10,17 @@ import (
 )
 
 type quad struct {
-	Q      geo.Vec3
+	q      geo.Vec3
 	u      geo.Vec3
 	v      geo.Vec3
 	normal geo.Vec3
-	D      float64
+	d      float64
 	w      geo.Vec3
 	mat    material.Material
 	bBox   aabb
 }
 
-func NewQuad(Q geo.Vec3, u geo.Vec3, v geo.Vec3, mat material.Material) quad {
+func NewQuad(Q geo.Vec3, u geo.Vec3, v geo.Vec3, mat material.Material) Hittable {
 	bBox := createAabbFromPoints(Q, Q.Add(u).Add(v)).padIfNeeded()
 	n := u.Cross(v)
 	normal := n.Unit()
@@ -64,19 +64,19 @@ func (q quad) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord
 	denom := q.normal.Dot(r.Direction)
 
 	// No hit if the ray is parallell to the plane
-	if math.Abs(denom) < geo.AlmostZero {
+	if math.Abs(denom) < util.AlmostZero {
 		return false, nil
 	}
 
 	// Return false if the hit point parameter t is outside the ray length interval.
-	t := (q.D - q.normal.Dot(r.Origin)) / denom
+	t := (q.d - q.normal.Dot(r.Origin)) / denom
 	if !rayLength.Contains(t) {
 		return false, nil
 	}
 
 	// Determine the hit point lies within the planar shape using its plane coordinates.
 	intersection := r.At(t)
-	planarHitPointVector := intersection.Sub(q.Q)
+	planarHitPointVector := intersection.Sub(q.q)
 	alpha := q.w.Dot(planarHitPointVector.Cross(q.v))
 	beta := q.w.Dot(q.u.Cross(planarHitPointVector))
 
@@ -108,5 +108,5 @@ func (q quad) BoundingBox() aabb {
 }
 
 func (q quad) String() string {
-	return fmt.Sprintf("Quad(c:%v, u:%v, v:%v)", q.Q, q.u, q.v)
+	return fmt.Sprintf("Quad(c:%v, u:%v, v:%v)", q.q, q.u, q.v)
 }

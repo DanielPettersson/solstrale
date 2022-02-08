@@ -17,7 +17,7 @@ type bvh struct {
 	bBox  aabb
 }
 
-func NewBoundingVolumeHierarchy(hl hittableList) bvh {
+func NewBoundingVolumeHierarchy(hl HittableList) Hittable {
 	return _createBvh(hl.list, 0, len(hl.list))
 }
 

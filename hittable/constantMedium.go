@@ -14,7 +14,7 @@ type constantMedium struct {
 	PhaseFunction          material.Material
 }
 
-func NewConstantMedium(boundary Hittable, density float64, color material.Texture) constantMedium {
+func NewConstantMedium(boundary Hittable, density float64, color material.Texture) Hittable {
 	return constantMedium{
 		Boundary:               boundary,
 		NegativeInverseDensity: -1 / density,

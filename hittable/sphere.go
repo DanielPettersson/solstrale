@@ -20,7 +20,7 @@ func NewSphere(
 	center geo.Vec3,
 	radius float64,
 	mat material.Material,
-) sphere {
+) Hittable {
 
 	rVec := geo.Vec3{X: radius, Y: radius, Z: radius}
 	boundingBox := createAabbFromPoints(center.Sub(rVec), center.Add(rVec))

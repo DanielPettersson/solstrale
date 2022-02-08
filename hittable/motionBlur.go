@@ -17,7 +17,7 @@ type motionBlur struct {
 func NewMotionBlur(
 	blurredHittable Hittable,
 	blurDirection geo.Vec3,
-) motionBlur {
+) Hittable {
 
 	boundingBox1 := blurredHittable.BoundingBox()
 	boundingBox2 := blurredHittable.BoundingBox().add(blurDirection)

@@ -10,6 +10,7 @@ import (
 
 var (
 	Infinity   float64 = math.Inf(1)
+	AlmostZero float64 = 1e-8
 	fastRandom fastrand.RNG
 )
 

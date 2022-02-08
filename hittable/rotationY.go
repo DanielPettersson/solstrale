@@ -19,7 +19,7 @@ type rotationY struct {
 func NewRotationY(
 	object Hittable,
 	angle float64,
-) rotationY {
+) Hittable {
 	radians := util.DegreesToRadians(angle)
 	sinTheta := math.Sin(radians)
 	cosTheta := math.Cos(radians)

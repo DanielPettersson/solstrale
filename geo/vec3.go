@@ -8,8 +8,7 @@ import (
 )
 
 var (
-	AlmostZero float64 = 1e-8
-	ZeroVector         = Vec3{}
+	ZeroVector = Vec3{}
 )
 
 type Vec3 struct {
@@ -122,7 +121,7 @@ func (v Vec3) Unit() Vec3 {
 }
 
 func (v Vec3) NearZero() bool {
-	return math.Abs(v.X) < AlmostZero && math.Abs(v.Y) < AlmostZero && math.Abs(v.Z) < AlmostZero
+	return math.Abs(v.X) < util.AlmostZero && math.Abs(v.Y) < util.AlmostZero && math.Abs(v.Z) < util.AlmostZero
 }
 
 func (v Vec3) Reflect(n Vec3) Vec3 {
