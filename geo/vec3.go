@@ -62,9 +62,8 @@ func RandomInHemisphere(normal Vec3) Vec3 {
 	inUnitSphere := RandomInUnitSphere()
 	if inUnitSphere.Dot(normal) > 0 {
 		return inUnitSphere
-	} else {
-		return inUnitSphere.Neg()
 	}
+	return inUnitSphere.Neg()
 }
 
 // RandomInUnitDisc creates a random Vec3 that is shorter than 1

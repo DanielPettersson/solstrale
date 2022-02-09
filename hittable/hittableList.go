@@ -22,11 +22,6 @@ func NewHittableList() HittableList {
 	}
 }
 
-// Clear removes all hittable objects from this HittableList
-func (hl *HittableList) Clear() {
-	hl = nil
-}
-
 // Add adds a new hittable object to this HittableList
 func (hl *HittableList) Add(h Hittable) {
 	hl.list = append(hl.list, h)

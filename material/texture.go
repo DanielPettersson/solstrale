@@ -45,10 +45,8 @@ func (ct CheckerTexture) Color(rec *HitRecord) geo.Vec3 {
 
 	if int(uInt+vInt)%2 == 0 {
 		return ct.Even.Color(rec)
-	} else {
-		return ct.Odd.Color(rec)
 	}
-
+	return ct.Odd.Color(rec)
 }
 
 // ImageTexture is a texture that uses image data for color

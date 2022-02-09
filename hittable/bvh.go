@@ -16,6 +16,10 @@ type bvh struct {
 	bBox  aabb
 }
 
+// NewBoundingVolumeHierarchy creates a new hittable object from the given hittable list
+// The bounding Volume Hierarchy sorts the hittables in a binary tree
+// where each node has a bounding box.
+// This is to optimize the ray interection search when having many hittable objects.
 func NewBoundingVolumeHierarchy(hl HittableList) Hittable {
 	return _createBvh(hl.list, 0, len(hl.list))
 }

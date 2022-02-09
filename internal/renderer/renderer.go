@@ -16,6 +16,8 @@ var (
 	maxDepth int = 50
 )
 
+// Renderer is the engine of the ray tracer and uses the world, camera
+// background color, specification to write to the output channel
 type Renderer struct {
 	World           hittable.Hittable
 	Cam             camera.Camera
@@ -43,6 +45,7 @@ func (s Renderer) rayColor(r geo.Ray, depth int) geo.Vec3 {
 	return s.BackgroundColor
 }
 
+// Render executes the rendering of the image
 func (s Renderer) Render(abort chan bool) {
 
 	pixels := make([]geo.Vec3, s.Spec.ImageWidth*s.Spec.ImageHeight)

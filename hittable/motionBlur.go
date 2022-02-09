@@ -13,7 +13,7 @@ type motionBlur struct {
 }
 
 // NewMotionBlur creates a new hittable object that adds linear interpolated translation to
-// its hittable based on the time of the ray. This gives the appearence of the object moving.
+// its hittable based on the time of the ray. This gives the appearance of the object moving.
 func NewMotionBlur(
 	blurredHittable Hittable,
 	blurDirection geo.Vec3,

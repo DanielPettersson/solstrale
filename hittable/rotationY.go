@@ -93,6 +93,6 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 	return hit, rec
 }
 
-func (r rotationY) BoundingBox() aabb {
-	return r.bBox
+func (ry rotationY) BoundingBox() aabb {
+	return ry.bBox
 }
