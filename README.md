@@ -1,3 +1,4 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/DanielPettersson/solstrale.svg)](https://pkg.go.dev/github.com/DanielPettersson/solstrale)
 [![Coverage](https://codecov.io/gh/DanielPettersson/solstrale/branch/main/graphs/badge.svg?branch=main)](https://codecov.io/gh/DanielPettersson/solstrale)
 [![license](https://img.shields.io/github/license/DanielPettersson/solstrale.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
 [![CI](https://github.com/DanielPettersson/solstrale/workflows/Go/badge.svg)](https://github.com/DanielPettersson/solstrale/actions?query=workflow%3CI)
