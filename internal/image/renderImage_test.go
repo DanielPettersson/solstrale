@@ -5,7 +5,6 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/DanielPettersson/solstrale/spec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,13 +23,9 @@ func TestBounds(t *testing.T) {
 			Y: 2,
 		},
 	}, RenderImage{
-		Spec: spec.TraceSpecification{
-			ImageWidth:      1,
-			ImageHeight:     2,
-			SamplesPerPixel: 0,
-			RandomSeed:      0,
-		},
-		Data: []color.RGBA{},
+		ImageWidth:  1,
+		ImageHeight: 2,
+		Data:        []color.RGBA{},
 	}.Bounds())
 }
 
@@ -51,13 +46,9 @@ func TestAt(t *testing.T) {
 	}
 
 	image := RenderImage{
-		Spec: spec.TraceSpecification{
-			ImageWidth:      2,
-			ImageHeight:     1,
-			SamplesPerPixel: 0,
-			RandomSeed:      0,
-		},
-		Data: []color.RGBA{color1, color2},
+		ImageWidth:  2,
+		ImageHeight: 1,
+		Data:        []color.RGBA{color1, color2},
 	}
 
 	assert.Equal(t, color1, image.At(0, 0))

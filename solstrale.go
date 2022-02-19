@@ -13,25 +13,28 @@ import (
 
 // RayTrace executes the ray tracing with the given specification and reports progress on
 // the output channel. Listens to abort channel for aborting a started ray trace operation
-func RayTrace(spec spec.TraceSpecification, output chan spec.TraceProgress, abort chan bool) {
-	util.SetRandomSeed(uint32(spec.RandomSeed))
+func RayTrace(tradeSpec spec.TraceSpecification, output chan spec.TraceProgress, abort chan bool) {
+	util.SetRandomSeed(uint32(tradeSpec.RandomSeed))
 
-	world, camera, background := CornellBox(spec)
+	world, camera, background := CornellBox(tradeSpec)
 
-	renderer.Renderer{
+	scene := spec.Scene{
 		World:           world,
 		Cam:             camera,
 		BackgroundColor: background,
-		Spec:            spec,
+		Spec:            tradeSpec,
 		Output:          output,
-	}.Render(abort)
+	}
+
+	renderer.Render(&scene, abort)
 
 }
 
 // FinalScene sets up a scene to ray trace
 func FinalScene(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera, geo.Vec3) {
 	camera := camera.New(
-		spec,
+		spec.ImageWidth,
+		spec.ImageHeight,
 		40,
 		0,
 		100,
@@ -96,7 +99,8 @@ func FinalScene(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera,
 // CornellBox sets up a scene to ray trace
 func CornellBox(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera, geo.Vec3) {
 	camera := camera.New(
-		spec,
+		spec.ImageWidth,
+		spec.ImageHeight,
 		40,
 		20,
 		1070,
@@ -136,7 +140,8 @@ func CornellBox(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera,
 func RandomSpheres(spec spec.TraceSpecification) (hittable.Hittable, camera.Camera, geo.Vec3) {
 
 	camera := camera.New(
-		spec,
+		spec.ImageWidth,
+		spec.ImageHeight,
 		20,
 		0.1,
 		10,

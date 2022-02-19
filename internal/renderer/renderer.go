@@ -4,30 +4,14 @@ import (
 	"image/color"
 	"sync"
 
-	"github.com/DanielPettersson/solstrale/camera"
 	"github.com/DanielPettersson/solstrale/geo"
-	"github.com/DanielPettersson/solstrale/hittable"
 	"github.com/DanielPettersson/solstrale/internal/image"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/spec"
 )
 
-var (
-	maxDepth int = 50
-)
-
-// Renderer is the engine of the ray tracer and uses the world, camera
-// background color, specification to write to the output channel
-type Renderer struct {
-	World           hittable.Hittable
-	Cam             camera.Camera
-	BackgroundColor geo.Vec3
-	Spec            spec.TraceSpecification
-	Output          chan spec.TraceProgress
-}
-
-func (s Renderer) rayColor(r geo.Ray, depth int) geo.Vec3 {
-	if depth >= maxDepth {
+func rayColor(s *spec.Scene, r geo.Ray, depth int) geo.Vec3 {
+	if depth >= s.Spec.MaxDepth {
 		return geo.ZeroVector
 	}
 
@@ -37,7 +21,7 @@ func (s Renderer) rayColor(r geo.Ray, depth int) geo.Vec3 {
 		emitted := rec.Material.Emitted(rec)
 		scatter, attenuation, scatterRay := rec.Material.Scatter(r, rec)
 		if scatter {
-			return emitted.Add(attenuation.Mul(s.rayColor(scatterRay, depth+1)))
+			return emitted.Add(attenuation.Mul(rayColor(s, scatterRay, depth+1)))
 		}
 		return emitted
 	}
@@ -46,7 +30,7 @@ func (s Renderer) rayColor(r geo.Ray, depth int) geo.Vec3 {
 }
 
 // Render executes the rendering of the image
-func (s Renderer) Render(abort chan bool) {
+func Render(s *spec.Scene, abort chan bool) {
 
 	pixels := make([]geo.Vec3, s.Spec.ImageWidth*s.Spec.ImageHeight)
 
@@ -72,7 +56,7 @@ func (s Renderer) Render(abort chan bool) {
 					u := (float64(x) + util.RandomNormalFloat()) / float64(s.Spec.ImageWidth-1)
 					v := (float64(yy) + util.RandomNormalFloat()) / float64(s.Spec.ImageHeight-1)
 					r := s.Cam.GetRay(u, v)
-					pixelColor := s.rayColor(r, 0)
+					pixelColor := rayColor(s, r, 0)
 
 					pixels[i] = pixels[i].Add(pixelColor)
 				}
@@ -94,8 +78,9 @@ func (s Renderer) Render(abort chan bool) {
 		s.Output <- spec.TraceProgress{
 			Progress: float64(sample+1) / float64(s.Spec.SamplesPerPixel),
 			RenderImage: image.RenderImage{
-				Spec: s.Spec,
-				Data: ret,
+				ImageWidth:  s.Spec.ImageWidth,
+				ImageHeight: s.Spec.ImageHeight,
+				Data:        ret,
 			},
 		}
 	}

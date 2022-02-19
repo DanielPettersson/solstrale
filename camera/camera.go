@@ -6,7 +6,6 @@ import (
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
-	"github.com/DanielPettersson/solstrale/spec"
 )
 
 // Camera contains all data needed to describe a cameras position, field of view and
@@ -23,7 +22,8 @@ type Camera struct {
 
 // New creates a new camera with more easy to understand parameters
 func New(
-	spec spec.TraceSpecification,
+	imageWidth int,
+	imageHeight int,
 	verticalFovDegrees float64,
 	aperture float64,
 	focusDistance float64,
@@ -31,7 +31,7 @@ func New(
 	lookAt geo.Vec3,
 	vup geo.Vec3,
 ) Camera {
-	aspectRatio := float64(spec.ImageWidth) / float64(spec.ImageHeight)
+	aspectRatio := float64(imageWidth) / float64(imageHeight)
 	theta := util.DegreesToRadians(verticalFovDegrees)
 	h := math.Tan(theta / 2)
 	viewPortHeight := 2.0 * h
