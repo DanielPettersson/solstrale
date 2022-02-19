@@ -30,7 +30,7 @@ func rayColor(s *spec.Scene, r geo.Ray, depth int) geo.Vec3 {
 }
 
 // Render executes the rendering of the image
-func Render(s *spec.Scene, abort chan bool) {
+func Render(s *spec.Scene, output chan spec.TraceProgress, abort chan bool) {
 
 	pixels := make([]geo.Vec3, s.Spec.ImageWidth*s.Spec.ImageHeight)
 
@@ -38,7 +38,7 @@ func Render(s *spec.Scene, abort chan bool) {
 
 		select {
 		case <-abort:
-			close(s.Output)
+			close(output)
 			return
 		default:
 		}
@@ -75,7 +75,7 @@ func Render(s *spec.Scene, abort chan bool) {
 			}
 		}
 
-		s.Output <- spec.TraceProgress{
+		output <- spec.TraceProgress{
 			Progress: float64(sample+1) / float64(s.Spec.SamplesPerPixel),
 			RenderImage: image.RenderImage{
 				ImageWidth:  s.Spec.ImageWidth,
@@ -85,5 +85,5 @@ func Render(s *spec.Scene, abort chan bool) {
 		}
 	}
 
-	close(s.Output)
+	close(output)
 }

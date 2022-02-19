@@ -15,7 +15,6 @@ type Scene struct {
 	Cam             camera.Camera
 	BackgroundColor geo.Vec3
 	Spec            TraceSpecification
-	Output          chan TraceProgress
 }
 
 // TraceSpecification is input to the ray tracer for how the image should be rendered
