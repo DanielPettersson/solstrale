@@ -9,7 +9,7 @@ import (
 )
 
 func TestRgbToVec3(t *testing.T) {
-	assert.Equal(t, geo.NewVec3(0, 0.39215686274509803, 1), RgbToVec3(0, 100, 255))
+	assert.Equal(t, geo.NewVec3(0, 0.39215686274509803, 1), RgbToVec3(0, 25600, 65535))
 }
 
 func TestToRgba(t *testing.T) {

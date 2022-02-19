@@ -37,10 +37,10 @@ func ToRgba(col geo.Vec3, samplesPerPixel int) color.RGBA {
 }
 
 // RgbToVec3 converts rgb bytes to a Vec3 color
-func RgbToVec3(r, g, b byte) geo.Vec3 {
+func RgbToVec3(r, g, b uint32) geo.Vec3 {
 	return geo.Vec3{
-		X: float64(r) * colorScale,
-		Y: float64(g) * colorScale,
-		Z: float64(b) * colorScale,
+		X: float64(r>>8) * colorScale,
+		Y: float64(g>>8) * colorScale,
+		Z: float64(b>>8) * colorScale,
 	}
 }

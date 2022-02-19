@@ -43,27 +43,45 @@ func Render(s *spec.Scene, output chan spec.TraceProgress, abort chan bool) {
 		default:
 		}
 
-		var waitGroup sync.WaitGroup
-		for y := 0; y < s.Spec.ImageHeight; y++ {
+		if s.Spec.SerialRenderering {
 
-			waitGroup.Add(1)
-			go func(yy int, wg *sync.WaitGroup) {
-				defer wg.Done()
-
+			for y := 0; y < s.Spec.ImageHeight; y++ {
 				for x := 0; x < s.Spec.ImageWidth; x++ {
-					i := (((s.Spec.ImageHeight-1)-yy)*s.Spec.ImageWidth + x)
+					i := (((s.Spec.ImageHeight-1)-y)*s.Spec.ImageWidth + x)
 
 					u := (float64(x) + util.RandomNormalFloat()) / float64(s.Spec.ImageWidth-1)
-					v := (float64(yy) + util.RandomNormalFloat()) / float64(s.Spec.ImageHeight-1)
+					v := (float64(y) + util.RandomNormalFloat()) / float64(s.Spec.ImageHeight-1)
 					r := s.Cam.GetRay(u, v)
 					pixelColor := rayColor(s, r, 0)
 
 					pixels[i] = pixels[i].Add(pixelColor)
 				}
-			}(y, &waitGroup)
+			}
 
+		} else {
+
+			var waitGroup sync.WaitGroup
+			for y := 0; y < s.Spec.ImageHeight; y++ {
+
+				waitGroup.Add(1)
+				go func(yy int, wg *sync.WaitGroup) {
+					defer wg.Done()
+
+					for x := 0; x < s.Spec.ImageWidth; x++ {
+						i := (((s.Spec.ImageHeight-1)-yy)*s.Spec.ImageWidth + x)
+
+						u := (float64(x) + util.RandomNormalFloat()) / float64(s.Spec.ImageWidth-1)
+						v := (float64(yy) + util.RandomNormalFloat()) / float64(s.Spec.ImageHeight-1)
+						r := s.Cam.GetRay(u, v)
+						pixelColor := rayColor(s, r, 0)
+
+						pixels[i] = pixels[i].Add(pixelColor)
+					}
+				}(y, &waitGroup)
+
+			}
+			waitGroup.Wait()
 		}
-		waitGroup.Wait()
 
 		ret := make([]color.RGBA, len(pixels))
 

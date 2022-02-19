@@ -1,8 +1,8 @@
 package material
 
 import (
+	im "image"
 	"math"
-	"math/rand"
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/image"
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	noise opensimplex.Noise = opensimplex.NewNormalized(rand.Int63())
+	noise opensimplex.Noise = opensimplex.NewNormalized(123456)
 )
 
 // Texture describes the color of a material.
@@ -51,9 +51,7 @@ func (ct CheckerTexture) Color(rec *HitRecord) geo.Vec3 {
 
 // ImageTexture is a texture that uses image data for color
 type ImageTexture struct {
-	Bytes  []byte
-	Width  int
-	Height int
+	Image  im.Image
 	Mirror bool
 }
 
@@ -65,15 +63,12 @@ func (it ImageTexture) Color(rec *HitRecord) geo.Vec3 {
 	}
 	v := 1 - util.Interval{Min: 0, Max: 1}.Clamp(rec.V)
 
-	x := int(u * float64(it.Width))
-	y := int(v * float64(it.Height))
-	i := (y*it.Width + x) * 4
+	size := it.Image.Bounds().Max
+	x := int(u * float64(size.X))
+	y := int(v * float64(size.Y))
 
-	return image.RgbToVec3(
-		it.Bytes[i],
-		it.Bytes[i+1],
-		it.Bytes[i+2],
-	)
+	r, g, b, _ := it.Image.At(x, y).RGBA()
+	return image.RgbToVec3(r, g, b)
 }
 
 // NoiseTexture is a "random" noise texture
