@@ -134,15 +134,15 @@ func TestRenderScene(t *testing.T) {
 
 	actualFile, _ = os.Open("out_actual.png")
 	defer actualFile.Close()
-	expected_im, _, _ := image.Decode(expectedFile)
-	actual_im, _, _ := image.Decode(actualFile)
+	expectedIm, _, _ := image.Decode(expectedFile)
+	actualIm, _, _ := image.Decode(actualFile)
 
-	assert.Equal(t, expected_im.Bounds(), im.Bounds())
+	assert.Equal(t, expectedIm.Bounds(), im.Bounds())
 
 	for x := 0; x < im.Bounds().Max.X; x++ {
 		for y := 0; y < im.Bounds().Max.Y; y++ {
-			er, eg, eb, ea := expected_im.At(x, y).RGBA()
-			r, g, b, a := actual_im.At(x, y).RGBA()
+			er, eg, eb, ea := expectedIm.At(x, y).RGBA()
+			r, g, b, a := actualIm.At(x, y).RGBA()
 			assert.Equal(t, er, r)
 			assert.Equal(t, eg, g)
 			assert.Equal(t, eb, b)

@@ -9,7 +9,7 @@ import (
 	"github.com/DanielPettersson/solstrale/hittable"
 )
 
-// Contains all information needed to render an image
+// Scene contains all information needed to render an image
 type Scene struct {
 	World           hittable.Hittable
 	Cam             camera.Camera
