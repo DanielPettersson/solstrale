@@ -1,3 +1,5 @@
+// Package random provides a random number generator to be used by ray tracer.
+// Currently depends on fastrand implementation, for a good enough random the is really fast.
 package random
 
 import (
