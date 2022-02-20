@@ -1,15 +1,16 @@
-package image
+package tests
 
 import (
 	"image"
 	"image/color"
 	"testing"
 
+	im "github.com/DanielPettersson/solstrale/internal/image"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestColorModel(t *testing.T) {
-	assert.Equal(t, color.RGBAModel, RenderImage{}.ColorModel())
+	assert.Equal(t, color.RGBAModel, im.RenderImage{}.ColorModel())
 }
 
 func TestBounds(t *testing.T) {
@@ -22,7 +23,7 @@ func TestBounds(t *testing.T) {
 			X: 1,
 			Y: 2,
 		},
-	}, RenderImage{
+	}, im.RenderImage{
 		ImageWidth:  1,
 		ImageHeight: 2,
 		Data:        []color.RGBA{},
@@ -45,7 +46,7 @@ func TestAt(t *testing.T) {
 		A: 255,
 	}
 
-	image := RenderImage{
+	image := im.RenderImage{
 		ImageWidth:  2,
 		ImageHeight: 1,
 		Data:        []color.RGBA{color1, color2},

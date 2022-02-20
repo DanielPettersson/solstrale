@@ -61,7 +61,7 @@ func NewBox(a geo.Vec3, b geo.Vec3, mat material.Material) Hittable {
 	return &sides
 }
 
-func (q quad) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (q quad) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
 	denom := q.normal.Dot(r.Direction)
 
 	// No hit if the ray is parallell to the plane

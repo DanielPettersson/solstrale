@@ -33,7 +33,7 @@ func NewSphere(
 	}
 }
 
-func (s sphere) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (s sphere) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
 
 	oc := r.Origin.Sub(s.center)
 	a := r.Direction.LengthSquared()

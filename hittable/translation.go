@@ -27,7 +27,7 @@ func NewTranslation(
 	}
 }
 
-func (t translation) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (t translation) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
 
 	offsetRay := geo.Ray{
 		Origin:    r.Origin.Sub(t.offset),
@@ -35,7 +35,7 @@ func (t translation) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hi
 		Time:      r.Time,
 	}
 
-	hit, record := t.object.Hit(offsetRay, rayLength)
+	hit, record := t.object.Hit(offsetRay, rayLength, rand)
 	if record != nil {
 		record.HitPoint = record.HitPoint.Add(t.offset)
 	}

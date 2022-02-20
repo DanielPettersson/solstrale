@@ -61,7 +61,7 @@ func NewRotationY(
 	}
 }
 
-func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
 
 	origin := r.Origin
 	direction := r.Direction
@@ -74,7 +74,7 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 	rotatedR := geo.Ray{Origin: origin, Direction: direction, Time: r.Time}
 
-	hit, rec := ry.object.Hit(rotatedR, rayLength)
+	hit, rec := ry.object.Hit(rotatedR, rayLength, rand)
 	if !hit {
 		return hit, rec
 	}

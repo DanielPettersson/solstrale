@@ -1,13 +1,13 @@
-package solstrale
+package tests
 
 import (
 	"image"
 	"image/jpeg"
 	"log"
-	"math"
 	"os"
 	"testing"
 
+	"github.com/DanielPettersson/solstrale"
 	"github.com/DanielPettersson/solstrale/camera"
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/hittable"
@@ -104,17 +104,16 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 func TestRenderScene(t *testing.T) {
 
 	traceSpec := spec.TraceSpecification{
-		ImageWidth:        100,
-		ImageHeight:       50,
-		SamplesPerPixel:   100,
-		MaxDepth:          50,
-		RandomSeed:        123,
-		SerialRenderering: true,
+		ImageWidth:      100,
+		ImageHeight:     50,
+		SamplesPerPixel: 100,
+		MaxDepth:        50,
+		RandomSeed:      123,
 	}
 	scene := createTestScene(traceSpec)
 
-	renderProgress := make(chan spec.TraceProgress)
-	go RayTrace(scene, renderProgress, make(chan bool))
+	renderProgress := make(chan spec.TraceProgress, 1)
+	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
 
 	var im image.Image
 	for p := range renderProgress {
@@ -144,8 +143,7 @@ func TestRenderScene(t *testing.T) {
 		for y := 0; y < im.Bounds().Max.Y; y++ {
 			er, eg, eb, ea := expected_im.At(x, y).RGBA()
 			r, g, b, a := actual_im.At(x, y).RGBA()
-			rDiff := math.Abs(float64(er) - float64(r))
-			assert.Truef(t, rDiff < 1, "diff is %v", rDiff)
+			assert.Equal(t, er, r)
 			assert.Equal(t, eg, g)
 			assert.Equal(t, eb, b)
 			assert.Equal(t, ea, a)

@@ -30,14 +30,14 @@ func (hl *HittableList) Add(h Hittable) {
 
 // Hit Checks if the given ray hits any object in this list.
 // And if so, returns the properties of that ray hit
-func (hl *HittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (hl *HittableList) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
 	var closestHitRecord *material.HitRecord
 	hitAnything := false
 	closestSoFar := rayLength.Max
 	closestInterval := util.Interval{Min: rayLength.Min, Max: closestSoFar}
 
 	for _, h := range hl.list {
-		hit, hitRecord := h.Hit(r, closestInterval)
+		hit, hitRecord := h.Hit(r, closestInterval, rand)
 		if hit {
 			hitAnything = true
 			closestSoFar = hitRecord.RayLength

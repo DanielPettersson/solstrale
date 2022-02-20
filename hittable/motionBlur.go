@@ -30,7 +30,7 @@ func NewMotionBlur(
 	}
 }
 
-func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
 
 	offset := m.blurDirection.MulS(r.Time)
 
@@ -40,7 +40,7 @@ func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 		Time:      r.Time,
 	}
 
-	hit, record := m.blurredHittable.Hit(offsetRay, rayLength)
+	hit, record := m.blurredHittable.Hit(offsetRay, rayLength, rand)
 	if record != nil {
 		record.HitPoint = record.HitPoint.Add(offset)
 	}

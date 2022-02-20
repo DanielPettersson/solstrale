@@ -27,14 +27,18 @@ func NewConstantMedium(boundary Hittable, density float64, color material.Textur
 	}
 }
 
-func (cm constantMedium) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (cm constantMedium) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
 
-	hit1, rec1 := cm.Boundary.Hit(r, util.UniverseInterval)
+	hit1, rec1 := cm.Boundary.Hit(r, util.UniverseInterval, rand)
 	if !hit1 {
 		return false, nil
 	}
 
-	hit2, rec2 := cm.Boundary.Hit(r, util.Interval{Min: rec1.RayLength + 0.0001, Max: util.Infinity})
+	hit2, rec2 := cm.Boundary.Hit(
+		r,
+		util.Interval{Min: rec1.RayLength + 0.0001, Max: util.Infinity},
+		rand,
+	)
 	if !hit2 {
 		return false, nil
 	}
@@ -50,7 +54,7 @@ func (cm constantMedium) Hit(r geo.Ray, rayLength util.Interval) (bool, *materia
 
 	rLength := r.Direction.Length()
 	distanceInsideBoundary := (rec2.RayLength - rec1.RayLength) * rLength
-	hitDistance := cm.NegativeInverseDensity * math.Log(util.RandomNormalFloat())
+	hitDistance := cm.NegativeInverseDensity * math.Log(rand.RandomNormalFloat())
 
 	if hitDistance > distanceInsideBoundary {
 		return false, nil

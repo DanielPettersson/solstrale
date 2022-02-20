@@ -58,8 +58,8 @@ func New(
 }
 
 // GetRay is a function for generating a ray for a certain u/v for the raytraced image
-func (c Camera) GetRay(u float64, v float64) geo.Ray {
-	rd := geo.RandomInUnitDisc().MulS(c.lensRadius)
+func (c Camera) GetRay(u float64, v float64, rand util.Random) geo.Ray {
+	rd := geo.RandomInUnitDisc(rand).MulS(c.lensRadius)
 	offset := c.u.MulS(rd.X).Add(c.v.MulS(rd.Y))
 
 	rDir := c.lowerLeftCorner.Add(c.horizontal.MulS(u))
@@ -68,6 +68,6 @@ func (c Camera) GetRay(u float64, v float64) geo.Ray {
 	return geo.Ray{
 		Origin:    c.origin.Add(offset),
 		Direction: rDir,
-		Time:      util.RandomNormalFloat(),
+		Time:      rand.RandomNormalFloat(),
 	}
 }
