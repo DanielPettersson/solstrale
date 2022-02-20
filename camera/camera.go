@@ -6,6 +6,7 @@ import (
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 // Camera contains all data needed to describe a cameras position, field of view and
@@ -58,7 +59,7 @@ func New(
 }
 
 // GetRay is a function for generating a ray for a certain u/v for the raytraced image
-func (c Camera) GetRay(u float64, v float64, rand util.Random) geo.Ray {
+func (c Camera) GetRay(u float64, v float64, rand random.Random) geo.Ray {
 	rd := geo.RandomInUnitDisc(rand).MulS(c.lensRadius)
 	offset := c.u.MulS(rd.X).Add(c.v.MulS(rd.Y))
 

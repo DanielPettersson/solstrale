@@ -4,13 +4,13 @@ import (
 	"math"
 
 	"github.com/DanielPettersson/solstrale/geo"
-	"github.com/DanielPettersson/solstrale/internal/util"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 // Material is the interface for types that describe how
 // a ray behaves when hitting an object.
 type Material interface {
-	Scatter(rayIn geo.Ray, rec *HitRecord, rand util.Random) (bool, geo.Vec3, geo.Ray)
+	Scatter(rayIn geo.Ray, rec *HitRecord, rand random.Random) (bool, geo.Vec3, geo.Ray)
 	Emitted(rec *HitRecord) geo.Vec3
 }
 
@@ -20,7 +20,7 @@ type Lambertian struct {
 }
 
 // Scatter returns a randomish scatter of the ray for the matte material
-func (m Lambertian) Scatter(rayIn geo.Ray, rec *HitRecord, rand util.Random) (bool, geo.Vec3, geo.Ray) {
+func (m Lambertian) Scatter(rayIn geo.Ray, rec *HitRecord, rand random.Random) (bool, geo.Vec3, geo.Ray) {
 	scatterDirection := rec.Normal.Add(geo.RandomUnitVector(rand))
 	if scatterDirection.NearZero() {
 		scatterDirection = rec.Normal
@@ -47,7 +47,7 @@ type Metal struct {
 
 // Scatter returns a reflected scattered ray for the metal material
 // The Fuzz property of the metal defines the randomness applied to the reflection
-func (m Metal) Scatter(rayIn geo.Ray, rec *HitRecord, rand util.Random) (bool, geo.Vec3, geo.Ray) {
+func (m Metal) Scatter(rayIn geo.Ray, rec *HitRecord, rand random.Random) (bool, geo.Vec3, geo.Ray) {
 	reflected := rayIn.Direction.Unit().Reflect(rec.Normal)
 	scatterRay := geo.Ray{
 		Origin:    rec.HitPoint,
@@ -71,7 +71,7 @@ type Dielectric struct {
 }
 
 // Scatter returns a refracted ray for the dielectric material
-func (m Dielectric) Scatter(rayIn geo.Ray, rec *HitRecord, rand util.Random) (bool, geo.Vec3, geo.Ray) {
+func (m Dielectric) Scatter(rayIn geo.Ray, rec *HitRecord, rand random.Random) (bool, geo.Vec3, geo.Ray) {
 	var refractionRatio float64
 	if rec.FrontFace {
 		refractionRatio = 1 / m.IndexOfRefraction
@@ -118,7 +118,7 @@ type DiffuseLight struct {
 }
 
 // Scatter a light never scatters a ray
-func (m DiffuseLight) Scatter(rayIn geo.Ray, rec *HitRecord, rand util.Random) (bool, geo.Vec3, geo.Ray) {
+func (m DiffuseLight) Scatter(rayIn geo.Ray, rec *HitRecord, rand random.Random) (bool, geo.Vec3, geo.Ray) {
 	return false, geo.Vec3{}, geo.Ray{}
 }
 
@@ -133,7 +133,7 @@ type Isotropic struct {
 }
 
 // Scatter returns a randomly scattered ray in any direction
-func (m Isotropic) Scatter(rayIn geo.Ray, rec *HitRecord, rand util.Random) (bool, geo.Vec3, geo.Ray) {
+func (m Isotropic) Scatter(rayIn geo.Ray, rec *HitRecord, rand random.Random) (bool, geo.Vec3, geo.Ray) {
 	attenuation := m.Albedo.Color(rec)
 	scattered := geo.Ray{
 		Origin:    rec.HitPoint,

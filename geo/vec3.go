@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/DanielPettersson/solstrale/internal/util"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 var (
@@ -28,7 +29,7 @@ func NewVec3(x, y, z float64) Vec3 {
 }
 
 // RandomVec3 creates a random Vec3 within the given interval
-func RandomVec3(rand util.Random, min float64, max float64) Vec3 {
+func RandomVec3(rand random.Random, min float64, max float64) Vec3 {
 	return Vec3{
 		rand.RandomFloat(min, max),
 		rand.RandomFloat(min, max),
@@ -37,7 +38,7 @@ func RandomVec3(rand util.Random, min float64, max float64) Vec3 {
 }
 
 // RandomInUnitSphere creates a random Vec3 that is shorter than 1
-func RandomInUnitSphere(rand util.Random) Vec3 {
+func RandomInUnitSphere(rand random.Random) Vec3 {
 
 	var p Vec3
 	for {
@@ -52,13 +53,13 @@ func RandomInUnitSphere(rand util.Random) Vec3 {
 }
 
 // RandomUnitVector creates a random Vec3 that has the length of 1
-func RandomUnitVector(rand util.Random) Vec3 {
+func RandomUnitVector(rand random.Random) Vec3 {
 	return RandomInUnitSphere(rand).Unit()
 }
 
 // RandomInHemisphere creates a random Vec3 that is shorter than 1.
 // And in the same general direction as given normal.
-func RandomInHemisphere(rand util.Random, normal Vec3) Vec3 {
+func RandomInHemisphere(rand random.Random, normal Vec3) Vec3 {
 	inUnitSphere := RandomInUnitSphere(rand)
 	if inUnitSphere.Dot(normal) > 0 {
 		return inUnitSphere
@@ -68,7 +69,7 @@ func RandomInHemisphere(rand util.Random, normal Vec3) Vec3 {
 
 // RandomInUnitDisc creates a random Vec3 that is shorter than 1
 // And that has a Z value of 0
-func RandomInUnitDisc(rand util.Random) Vec3 {
+func RandomInUnitDisc(rand random.Random) Vec3 {
 
 	var p Vec3
 	for {

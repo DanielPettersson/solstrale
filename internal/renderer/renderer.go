@@ -7,10 +7,11 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/image"
 	"github.com/DanielPettersson/solstrale/internal/util"
+	"github.com/DanielPettersson/solstrale/random"
 	"github.com/DanielPettersson/solstrale/spec"
 )
 
-func rayColor(s *spec.Scene, r geo.Ray, depth int, rand util.Random) geo.Vec3 {
+func rayColor(s *spec.Scene, r geo.Ray, depth int, rand random.Random) geo.Vec3 {
 	if depth >= s.Spec.MaxDepth {
 		return geo.ZeroVector
 	}
@@ -29,19 +30,19 @@ func rayColor(s *spec.Scene, r geo.Ray, depth int, rand util.Random) geo.Vec3 {
 	return s.BackgroundColor
 }
 
-func getRandom(seed uint32, sample, y int) util.Random {
+func getRandom(seed uint32, sample, y int) random.Random {
 	if seed == 0 {
 
 		// If seed is 0, we will get random
-		return util.NewRandom(0)
+		return random.NewRandom(0)
 
 	} else {
 
 		// Otherwise we want a fixed random, but with
 		// non uniform values
-		r := util.NewRandom(uint32(sample*y + 1))
+		r := random.NewRandom(uint32(sample*y + 1))
 		seedRandomizer := r.RandomUint32()
-		return util.NewRandom(seed + seedRandomizer)
+		return random.NewRandom(seed + seedRandomizer)
 	}
 }
 

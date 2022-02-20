@@ -4,6 +4,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 type motionBlur struct {
@@ -30,7 +31,7 @@ func NewMotionBlur(
 	}
 }
 
-func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
+func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval, rand random.Random) (bool, *material.HitRecord) {
 
 	offset := m.blurDirection.MulS(r.Time)
 

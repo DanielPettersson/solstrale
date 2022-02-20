@@ -6,6 +6,7 @@ import (
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
+	"github.com/DanielPettersson/solstrale/random"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +25,7 @@ func TestNewVec3(t *testing.T) {
 
 func TestRandomVec3(t *testing.T) {
 	interval := util.Interval{Min: -2, Max: 2}
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 
 	for i := 0; i < 100; i++ {
 		vec := geo.RandomVec3(rand, interval.Min, interval.Max)
@@ -36,7 +37,7 @@ func TestRandomVec3(t *testing.T) {
 }
 
 func TestRandomInUnitSphere(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 
 	for i := 0; i < 100; i++ {
 		vec := geo.RandomInUnitSphere(rand)
@@ -46,7 +47,7 @@ func TestRandomInUnitSphere(t *testing.T) {
 }
 
 func TestRandomUnitVector(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 
 	for i := 0; i < 100; i++ {
 		vec := geo.RandomUnitVector(rand)
@@ -56,7 +57,7 @@ func TestRandomUnitVector(t *testing.T) {
 }
 
 func TestRandomInHemisphere(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 
 	for i := 0; i < 100; i++ {
 		normal := geo.RandomUnitVector(rand)
@@ -74,7 +75,7 @@ func TestRandomInHemisphere(t *testing.T) {
 }
 
 func TestRandomInUnitDisc(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 
 	for i := 0; i < 100; i++ {
 		vec := geo.RandomInUnitDisc(rand)
@@ -89,7 +90,7 @@ func TestRandomInUnitDisc(t *testing.T) {
 }
 
 func TestNeg(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	vec := geo.RandomInUnitSphere(rand)
 	negVec := vec.Neg()
 
@@ -99,7 +100,7 @@ func TestNeg(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	vec := geo.RandomInUnitSphere(rand)
 	addVec := geo.RandomInUnitSphere(rand)
 	resVec := vec.Add(addVec)
@@ -110,7 +111,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestSub(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	vec := geo.RandomInUnitSphere(rand)
 	subVec := geo.RandomInUnitSphere(rand)
 	resVec := vec.Sub(subVec)
@@ -121,7 +122,7 @@ func TestSub(t *testing.T) {
 }
 
 func TestMul(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	vec := geo.RandomInUnitSphere(rand)
 	mulVec := geo.RandomInUnitSphere(rand)
 	resVec := vec.Mul(mulVec)
@@ -132,7 +133,7 @@ func TestMul(t *testing.T) {
 }
 
 func TestMulS(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	vec := geo.RandomInUnitSphere(rand)
 	mul := rand.RandomFloat(-1, 1)
 	resVec := vec.MulS(mul)
@@ -143,7 +144,7 @@ func TestMulS(t *testing.T) {
 }
 
 func TestDivS(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	vec := geo.RandomInUnitSphere(rand)
 	div := rand.RandomFloat(0.5, 1)
 	resVec := vec.DivS(div)
@@ -170,7 +171,7 @@ func TestCross(t *testing.T) {
 }
 
 func TestLengthSquared(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	vec := geo.RandomInUnitSphere(rand)
 	assert.True(t, math.Abs(vec.LengthSquared()-math.Pow(vec.Length(), 2)) < util.AlmostZero)
 }
@@ -181,7 +182,7 @@ func TestLength(t *testing.T) {
 }
 
 func TestUnit(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	vec := geo.RandomVec3(rand, -10, 10)
 	unitVec := vec.Unit()
 
@@ -190,7 +191,7 @@ func TestUnit(t *testing.T) {
 }
 
 func TestNearZero(t *testing.T) {
-	rand := util.NewRandom(0)
+	rand := random.NewRandom(0)
 	assert.True(t, geo.ZeroVector.NearZero())
 	assert.False(t, geo.RandomVec3(rand, 1, 2).NearZero())
 }

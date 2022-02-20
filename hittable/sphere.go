@@ -6,6 +6,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 type sphere struct {
@@ -33,7 +34,7 @@ func NewSphere(
 	}
 }
 
-func (s sphere) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
+func (s sphere) Hit(r geo.Ray, rayLength util.Interval, rand random.Random) (bool, *material.HitRecord) {
 
 	oc := r.Origin.Sub(s.center)
 	a := r.Direction.LengthSquared()

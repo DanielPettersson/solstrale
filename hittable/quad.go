@@ -6,6 +6,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 type quad struct {
@@ -61,7 +62,7 @@ func NewBox(a geo.Vec3, b geo.Vec3, mat material.Material) Hittable {
 	return &sides
 }
 
-func (q quad) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
+func (q quad) Hit(r geo.Ray, rayLength util.Interval, rand random.Random) (bool, *material.HitRecord) {
 	denom := q.normal.Dot(r.Direction)
 
 	// No hit if the ray is parallell to the plane

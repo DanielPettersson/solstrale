@@ -9,6 +9,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 type constantMedium struct {
@@ -27,7 +28,7 @@ func NewConstantMedium(boundary Hittable, density float64, color material.Textur
 	}
 }
 
-func (cm constantMedium) Hit(r geo.Ray, rayLength util.Interval, rand util.Random) (bool, *material.HitRecord) {
+func (cm constantMedium) Hit(r geo.Ray, rayLength util.Interval, rand random.Random) (bool, *material.HitRecord) {
 
 	hit1, rec1 := cm.Boundary.Hit(r, util.UniverseInterval, rand)
 	if !hit1 {
