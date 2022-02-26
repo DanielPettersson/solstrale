@@ -90,7 +90,7 @@ func Render(s *spec.Scene, output chan spec.TraceProgress, abort chan bool) {
 			for x := 0; x < s.Spec.ImageWidth; x++ {
 
 				i := (((s.Spec.ImageHeight-1)-y)*s.Spec.ImageWidth + x)
-				ret[i] = image.ToRgba(pixels[i], sample)
+				ret[i] = image.ToRgba(pixels[i], sample+1)
 			}
 		}
 
