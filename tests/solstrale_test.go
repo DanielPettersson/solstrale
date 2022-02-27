@@ -14,6 +14,7 @@ import (
 	"github.com/DanielPettersson/solstrale/material"
 	"github.com/DanielPettersson/solstrale/spec"
 	"github.com/stretchr/testify/assert"
+	"github.com/vitali-fedulov/images3"
 )
 
 func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
@@ -108,7 +109,6 @@ func TestRenderScene(t *testing.T) {
 		ImageHeight:     50,
 		SamplesPerPixel: 100,
 		MaxDepth:        50,
-		RandomSeed:      123,
 	}
 	scene := createTestScene(traceSpec)
 
@@ -129,25 +129,11 @@ func TestRenderScene(t *testing.T) {
 	}
 	actualFile.Close()
 
-	expectedFile, _ := os.Open("out_expected.png")
-	defer expectedFile.Close()
+	actualImage, _ := images3.Open("out_actual.png")
+	expectedImage, _ := images3.Open("out_expected.png")
+	actualIcon := images3.Icon(actualImage, "out_actual.png")
+	expectedIcon := images3.Icon(expectedImage, "out_expected.png")
 
-	actualFile, _ = os.Open("out_actual.png")
-	defer actualFile.Close()
-	expectedIm, _, _ := image.Decode(expectedFile)
-	actualIm, _, _ := image.Decode(actualFile)
-
-	assert.Equal(t, expectedIm.Bounds(), im.Bounds())
-
-	for x := 0; x < im.Bounds().Max.X; x++ {
-		for y := 0; y < im.Bounds().Max.Y; y++ {
-			er, eg, eb, ea := expectedIm.At(x, y).RGBA()
-			r, g, b, a := actualIm.At(x, y).RGBA()
-			assert.Equal(t, er, r)
-			assert.Equal(t, eg, g)
-			assert.Equal(t, eb, b)
-			assert.Equal(t, ea, a)
-		}
-	}
-
+	// Image comparison.
+	assert.True(t, images3.Similar(actualIcon, expectedIcon))
 }

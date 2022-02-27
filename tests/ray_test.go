@@ -9,15 +9,13 @@ import (
 )
 
 func TestRayAt(t *testing.T) {
-
-	rand := random.NewRandom(0)
 	origin := geo.NewVec3(1, 2, 3)
 	direction := geo.NewVec3(4, 5, 6)
 
 	r := geo.Ray{
 		Origin:    origin,
 		Direction: direction,
-		Time:      rand.RandomNormalFloat(),
+		Time:      random.RandomNormalFloat(),
 	}
 
 	assert.Equal(t, r.At(0), origin)

@@ -29,22 +29,22 @@ func NewVec3(x, y, z float64) Vec3 {
 }
 
 // RandomVec3 creates a random Vec3 within the given interval
-func RandomVec3(rand random.Random, min float64, max float64) Vec3 {
+func RandomVec3(min float64, max float64) Vec3 {
 	return Vec3{
-		rand.RandomFloat(min, max),
-		rand.RandomFloat(min, max),
-		rand.RandomFloat(min, max),
+		random.RandomFloat(min, max),
+		random.RandomFloat(min, max),
+		random.RandomFloat(min, max),
 	}
 }
 
 // RandomInUnitSphere creates a random Vec3 that is shorter than 1
-func RandomInUnitSphere(rand random.Random) Vec3 {
+func RandomInUnitSphere() Vec3 {
 
 	var p Vec3
 	for {
-		p.X = rand.RandomFloat(-1, 1)
-		p.Y = rand.RandomFloat(-1, 1)
-		p.Z = rand.RandomFloat(-1, 1)
+		p.X = random.RandomFloat(-1, 1)
+		p.Y = random.RandomFloat(-1, 1)
+		p.Z = random.RandomFloat(-1, 1)
 
 		if p.LengthSquared() < 1 {
 			return p
@@ -53,14 +53,14 @@ func RandomInUnitSphere(rand random.Random) Vec3 {
 }
 
 // RandomUnitVector creates a random Vec3 that has the length of 1
-func RandomUnitVector(rand random.Random) Vec3 {
-	return RandomInUnitSphere(rand).Unit()
+func RandomUnitVector() Vec3 {
+	return RandomInUnitSphere().Unit()
 }
 
 // RandomInHemisphere creates a random Vec3 that is shorter than 1.
 // And in the same general direction as given normal.
-func RandomInHemisphere(rand random.Random, normal Vec3) Vec3 {
-	inUnitSphere := RandomInUnitSphere(rand)
+func RandomInHemisphere(normal Vec3) Vec3 {
+	inUnitSphere := RandomInUnitSphere()
 	if inUnitSphere.Dot(normal) > 0 {
 		return inUnitSphere
 	}
@@ -69,12 +69,12 @@ func RandomInHemisphere(rand random.Random, normal Vec3) Vec3 {
 
 // RandomInUnitDisc creates a random Vec3 that is shorter than 1
 // And that has a Z value of 0
-func RandomInUnitDisc(rand random.Random) Vec3 {
+func RandomInUnitDisc() Vec3 {
 
 	var p Vec3
 	for {
-		p.X = rand.RandomFloat(-1, 1)
-		p.Y = rand.RandomFloat(-1, 1)
+		p.X = random.RandomFloat(-1, 1)
+		p.Y = random.RandomFloat(-1, 1)
 		if p.LengthSquared() < 1 {
 			return p
 		}

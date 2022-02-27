@@ -6,7 +6,6 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
-	"github.com/DanielPettersson/solstrale/random"
 )
 
 type rotationY struct {
@@ -62,7 +61,7 @@ func NewRotationY(
 	}
 }
 
-func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval, rand random.Random) (bool, *material.HitRecord) {
+func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
 
 	origin := r.Origin
 	direction := r.Direction
@@ -75,7 +74,7 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval, rand random.Random) 
 
 	rotatedR := geo.Ray{Origin: origin, Direction: direction, Time: r.Time}
 
-	hit, rec := ry.object.Hit(rotatedR, rayLength, rand)
+	hit, rec := ry.object.Hit(rotatedR, rayLength)
 	if !hit {
 		return hit, rec
 	}

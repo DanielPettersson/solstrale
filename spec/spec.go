@@ -23,7 +23,6 @@ type TraceSpecification struct {
 	ImageHeight     int
 	SamplesPerPixel int
 	MaxDepth        int
-	RandomSeed      uint32
 }
 
 // TraceProgress is progress reported back to the caller of the raytrace function

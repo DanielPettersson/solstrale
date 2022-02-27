@@ -7,7 +7,6 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
-	"github.com/DanielPettersson/solstrale/random"
 )
 
 // Bounding Volume Hierarchy
@@ -84,17 +83,17 @@ func sortHittablesByBoundingBox(list []Hittable, boundingIntervalFunc func(h Hit
 	sort.Slice(list, func(i, j int) bool { return boundingIntervalFunc(list[i]).Min < boundingIntervalFunc(list[j]).Min })
 }
 
-func (b bvh) Hit(r geo.Ray, rayLength util.Interval, rand random.Random) (bool, *material.HitRecord) {
+func (b bvh) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
 	if !b.bBox.hit(r, rayLength) {
 		return false, nil
 	}
 
-	hitLeft, rec := (*b.left).Hit(r, rayLength, rand)
+	hitLeft, rec := (*b.left).Hit(r, rayLength)
 	if hitLeft {
 		rayLength = util.Interval{Min: rayLength.Min, Max: rec.RayLength}
 	}
 
-	hitRight, recRight := (*b.right).Hit(r, rayLength, rand)
+	hitRight, recRight := (*b.right).Hit(r, rayLength)
 	if hitRight {
 		rec = recRight
 	}

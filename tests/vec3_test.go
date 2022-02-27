@@ -25,10 +25,9 @@ func TestNewVec3(t *testing.T) {
 
 func TestRandomVec3(t *testing.T) {
 	interval := util.Interval{Min: -2, Max: 2}
-	rand := random.NewRandom(0)
 
 	for i := 0; i < 100; i++ {
-		vec := geo.RandomVec3(rand, interval.Min, interval.Max)
+		vec := geo.RandomVec3(interval.Min, interval.Max)
 
 		assert.True(t, interval.Contains(vec.X))
 		assert.True(t, interval.Contains(vec.Y))
@@ -37,31 +36,25 @@ func TestRandomVec3(t *testing.T) {
 }
 
 func TestRandomInUnitSphere(t *testing.T) {
-	rand := random.NewRandom(0)
-
 	for i := 0; i < 100; i++ {
-		vec := geo.RandomInUnitSphere(rand)
+		vec := geo.RandomInUnitSphere()
 
 		assert.True(t, vec.Length() <= 1)
 	}
 }
 
 func TestRandomUnitVector(t *testing.T) {
-	rand := random.NewRandom(0)
-
 	for i := 0; i < 100; i++ {
-		vec := geo.RandomUnitVector(rand)
+		vec := geo.RandomUnitVector()
 
 		assert.True(t, math.Abs(vec.Length()-1) < util.AlmostZero)
 	}
 }
 
 func TestRandomInHemisphere(t *testing.T) {
-	rand := random.NewRandom(0)
-
 	for i := 0; i < 100; i++ {
-		normal := geo.RandomUnitVector(rand)
-		vec := geo.RandomInHemisphere(rand, normal)
+		normal := geo.RandomUnitVector()
+		vec := geo.RandomInHemisphere(normal)
 
 		assert.True(
 			t, vec.Length() <= 1,
@@ -75,10 +68,9 @@ func TestRandomInHemisphere(t *testing.T) {
 }
 
 func TestRandomInUnitDisc(t *testing.T) {
-	rand := random.NewRandom(0)
 
 	for i := 0; i < 100; i++ {
-		vec := geo.RandomInUnitDisc(rand)
+		vec := geo.RandomInUnitDisc()
 
 		assert.True(
 			t, vec.Length() <= 1,
@@ -90,8 +82,7 @@ func TestRandomInUnitDisc(t *testing.T) {
 }
 
 func TestNeg(t *testing.T) {
-	rand := random.NewRandom(0)
-	vec := geo.RandomInUnitSphere(rand)
+	vec := geo.RandomInUnitSphere()
 	negVec := vec.Neg()
 
 	assert.Equal(t, -vec.X, negVec.X)
@@ -100,9 +91,8 @@ func TestNeg(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	rand := random.NewRandom(0)
-	vec := geo.RandomInUnitSphere(rand)
-	addVec := geo.RandomInUnitSphere(rand)
+	vec := geo.RandomInUnitSphere()
+	addVec := geo.RandomInUnitSphere()
 	resVec := vec.Add(addVec)
 
 	assert.Equal(t, vec.X+addVec.X, resVec.X)
@@ -111,9 +101,8 @@ func TestAdd(t *testing.T) {
 }
 
 func TestSub(t *testing.T) {
-	rand := random.NewRandom(0)
-	vec := geo.RandomInUnitSphere(rand)
-	subVec := geo.RandomInUnitSphere(rand)
+	vec := geo.RandomInUnitSphere()
+	subVec := geo.RandomInUnitSphere()
 	resVec := vec.Sub(subVec)
 
 	assert.Equal(t, vec.X-subVec.X, resVec.X)
@@ -122,9 +111,8 @@ func TestSub(t *testing.T) {
 }
 
 func TestMul(t *testing.T) {
-	rand := random.NewRandom(0)
-	vec := geo.RandomInUnitSphere(rand)
-	mulVec := geo.RandomInUnitSphere(rand)
+	vec := geo.RandomInUnitSphere()
+	mulVec := geo.RandomInUnitSphere()
 	resVec := vec.Mul(mulVec)
 
 	assert.Equal(t, vec.X*mulVec.X, resVec.X)
@@ -133,9 +121,8 @@ func TestMul(t *testing.T) {
 }
 
 func TestMulS(t *testing.T) {
-	rand := random.NewRandom(0)
-	vec := geo.RandomInUnitSphere(rand)
-	mul := rand.RandomFloat(-1, 1)
+	vec := geo.RandomInUnitSphere()
+	mul := random.RandomFloat(-1, 1)
 	resVec := vec.MulS(mul)
 
 	assert.Equal(t, vec.X*mul, resVec.X)
@@ -144,9 +131,8 @@ func TestMulS(t *testing.T) {
 }
 
 func TestDivS(t *testing.T) {
-	rand := random.NewRandom(0)
-	vec := geo.RandomInUnitSphere(rand)
-	div := rand.RandomFloat(0.5, 1)
+	vec := geo.RandomInUnitSphere()
+	div := random.RandomFloat(0.5, 1)
 	resVec := vec.DivS(div)
 
 	assert.Equal(t, vec.X/div, resVec.X)
@@ -171,8 +157,7 @@ func TestCross(t *testing.T) {
 }
 
 func TestLengthSquared(t *testing.T) {
-	rand := random.NewRandom(0)
-	vec := geo.RandomInUnitSphere(rand)
+	vec := geo.RandomInUnitSphere()
 	assert.True(t, math.Abs(vec.LengthSquared()-math.Pow(vec.Length(), 2)) < util.AlmostZero)
 }
 
@@ -182,8 +167,7 @@ func TestLength(t *testing.T) {
 }
 
 func TestUnit(t *testing.T) {
-	rand := random.NewRandom(0)
-	vec := geo.RandomVec3(rand, -10, 10)
+	vec := geo.RandomVec3(-10, 10)
 	unitVec := vec.Unit()
 
 	assert.True(t, math.Abs(unitVec.Length()-1) < util.AlmostZero)
@@ -191,9 +175,8 @@ func TestUnit(t *testing.T) {
 }
 
 func TestNearZero(t *testing.T) {
-	rand := random.NewRandom(0)
 	assert.True(t, geo.ZeroVector.NearZero())
-	assert.False(t, geo.RandomVec3(rand, 1, 2).NearZero())
+	assert.False(t, geo.RandomVec3(1, 2).NearZero())
 }
 
 func TestReflect(t *testing.T) {
