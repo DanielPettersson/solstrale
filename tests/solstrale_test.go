@@ -93,8 +93,12 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 
 	world.Add(hittable.NewBoundingVolumeHierarchy(balls))
 
+	lights := hittable.NewHittableList()
+	lights.Add(hittable.NewSphere(geo.NewVec3(10, 5, 10), 10, lightMat))
+
 	return &spec.Scene{
 		World:           &world,
+		Lights:          lights,
 		Cam:             camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		Spec:            traceSpec,
@@ -105,8 +109,8 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 func TestRenderScene(t *testing.T) {
 
 	traceSpec := spec.TraceSpecification{
-		ImageWidth:      100,
-		ImageHeight:     50,
+		ImageWidth:      200,
+		ImageHeight:     100,
 		SamplesPerPixel: 100,
 		MaxDepth:        50,
 	}
