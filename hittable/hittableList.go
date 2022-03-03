@@ -4,6 +4,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 // HittableList is a special type of hittable that is a container
@@ -52,4 +53,20 @@ func (hl *HittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material
 // BoundingBox returns the bounding box that encapsulates all hittables in the list
 func (hl *HittableList) BoundingBox() aabb {
 	return hl.bBox
+}
+
+func (hl *HittableList) PdfValue(o, v geo.Vec3) float64 {
+	weight := 1. / float64(len(hl.list))
+	sum := 0.
+
+	for _, item := range hl.list {
+		sum += weight * item.PdfValue(o, v)
+	}
+
+	return sum
+}
+
+func (hl *HittableList) Random(o geo.Vec3) geo.Vec3 {
+	idx := random.RandomUint32(uint32(len(hl.list)))
+	return hl.list[idx].Random(o)
 }

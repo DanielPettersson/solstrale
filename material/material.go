@@ -4,13 +4,22 @@ import (
 	"math"
 
 	"github.com/DanielPettersson/solstrale/geo"
+	"github.com/DanielPettersson/solstrale/pdf"
 	"github.com/DanielPettersson/solstrale/random"
 )
+
+type ScatterRecord struct {
+	Attenuation geo.Vec3
+	PdfPtr      *pdf.Pdf
+	SkipPdf     bool
+	SkipPdfRay  geo.Ray
+}
 
 // Material is the interface for types that describe how
 // a ray behaves when hitting an object.
 type Material interface {
-	Scatter(rayIn geo.Ray, rec *HitRecord) (bool, geo.Vec3, geo.Ray)
+	Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord)
+	ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64
 	Emitted(rec *HitRecord) geo.Vec3
 }
 
@@ -20,18 +29,24 @@ type Lambertian struct {
 }
 
 // Scatter returns a randomish scatter of the ray for the matte material
-func (m Lambertian) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, geo.Vec3, geo.Ray) {
-	scatterDirection := rec.Normal.Add(geo.RandomUnitVector())
-	if scatterDirection.NearZero() {
-		scatterDirection = rec.Normal
-	}
+func (m Lambertian) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
+	attenuation := m.Tex.Color(rec)
+	pdfPtr := pdf.NewCosinePdf(rec.Normal)
 
-	scatterRay := geo.Ray{
-		Origin:    rec.HitPoint,
-		Direction: scatterDirection,
-		Time:      rayIn.Time,
+	return true, ScatterRecord{
+		Attenuation: attenuation,
+		PdfPtr:      &pdfPtr,
+		SkipPdf:     false,
 	}
-	return true, m.Tex.Color(rec), scatterRay
+}
+
+func (m Lambertian) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
+	cosTheta := rec.Normal.Dot(scattered.Direction.Unit())
+	if cosTheta < 0 {
+		return 0
+	} else {
+		return cosTheta / math.Pi
+	}
 }
 
 // Emitted a lambertian material emits no light
@@ -47,16 +62,24 @@ type Metal struct {
 
 // Scatter returns a reflected scattered ray for the metal material
 // The Fuzz property of the metal defines the randomness applied to the reflection
-func (m Metal) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, geo.Vec3, geo.Ray) {
+func (m Metal) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 	reflected := rayIn.Direction.Unit().Reflect(rec.Normal)
 	scatterRay := geo.Ray{
 		Origin:    rec.HitPoint,
 		Direction: reflected.Add(geo.RandomInUnitSphere().MulS(m.Fuzz)),
 		Time:      rayIn.Time,
 	}
-	scatter := scatterRay.Direction.Dot(rec.Normal) > 0
 
-	return scatter, m.Tex.Color(rec), scatterRay
+	return true, ScatterRecord{
+		Attenuation: m.Tex.Color(rec),
+		PdfPtr:      nil,
+		SkipPdf:     true,
+		SkipPdfRay:  scatterRay,
+	}
+}
+
+func (m Metal) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
+	return 0
 }
 
 // Emitted a metal material emits no light
@@ -71,7 +94,7 @@ type Dielectric struct {
 }
 
 // Scatter returns a refracted ray for the dielectric material
-func (m Dielectric) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, geo.Vec3, geo.Ray) {
+func (m Dielectric) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 	var refractionRatio float64
 	if rec.FrontFace {
 		refractionRatio = 1 / m.IndexOfRefraction
@@ -91,13 +114,22 @@ func (m Dielectric) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, geo.Vec3, geo.
 		direction = unitDirection.Refract(rec.Normal, refractionRatio)
 	}
 
-	scatter := geo.Ray{
+	scatterRay := geo.Ray{
 		Origin:    rec.HitPoint,
 		Direction: direction,
 		Time:      rayIn.Time,
 	}
 
-	return true, m.Tex.Color(rec), scatter
+	return true, ScatterRecord{
+		Attenuation: m.Tex.Color(rec),
+		PdfPtr:      nil,
+		SkipPdf:     true,
+		SkipPdfRay:  scatterRay,
+	}
+}
+
+func (m Dielectric) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
+	return 0
 }
 
 // Emitted a dielectric material emits no light
@@ -118,12 +150,19 @@ type DiffuseLight struct {
 }
 
 // Scatter a light never scatters a ray
-func (m DiffuseLight) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, geo.Vec3, geo.Ray) {
-	return false, geo.Vec3{}, geo.Ray{}
+func (m DiffuseLight) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
+	return false, ScatterRecord{}
+}
+
+func (m DiffuseLight) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
+	return 0
 }
 
 // Emitted a light emits it's given color
 func (m DiffuseLight) Emitted(rec *HitRecord) geo.Vec3 {
+	if !rec.FrontFace {
+		return geo.ZeroVector
+	}
 	return m.Emit.Color(rec)
 }
 
@@ -133,14 +172,19 @@ type Isotropic struct {
 }
 
 // Scatter returns a randomly scattered ray in any direction
-func (m Isotropic) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, geo.Vec3, geo.Ray) {
+func (m Isotropic) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 	attenuation := m.Albedo.Color(rec)
-	scattered := geo.Ray{
-		Origin:    rec.HitPoint,
-		Direction: geo.RandomUnitVector(),
-		Time:      rayIn.Time,
+	pdfPtr := pdf.NewSpherePdf()
+
+	return true, ScatterRecord{
+		Attenuation: attenuation,
+		PdfPtr:      &pdfPtr,
+		SkipPdf:     false,
 	}
-	return true, attenuation, scattered
+}
+
+func (m Isotropic) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
+	return 1 / (4 * math.Pi)
 }
 
 // Emitted a isotropic material emits no light

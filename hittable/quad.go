@@ -6,6 +6,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 type quad struct {
@@ -17,6 +18,7 @@ type quad struct {
 	w      geo.Vec3
 	mat    material.Material
 	bBox   aabb
+	area   float64
 }
 
 // NewQuad creates a new rectangular flat hittable object
@@ -26,6 +28,7 @@ func NewQuad(Q geo.Vec3, u geo.Vec3, v geo.Vec3, mat material.Material) Hittable
 	normal := n.Unit()
 	D := normal.Dot(Q)
 	w := n.DivS(n.Dot(n))
+	area := n.Length()
 
 	return quad{
 		Q,
@@ -36,6 +39,7 @@ func NewQuad(Q geo.Vec3, u geo.Vec3, v geo.Vec3, mat material.Material) Hittable
 		w,
 		mat,
 		bBox,
+		area,
 	}
 }
 
@@ -106,4 +110,27 @@ func (q quad) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord
 
 func (q quad) BoundingBox() aabb {
 	return q.bBox
+}
+
+func (q quad) PdfValue(origin, v geo.Vec3) float64 {
+	ray := geo.Ray{
+		Origin:    origin,
+		Direction: v,
+	}
+
+	hit, rec := q.Hit(ray, util.Interval{Min: 0.001, Max: util.Infinity})
+
+	if !hit {
+		return 0
+	}
+
+	distanceSquared := rec.RayLength * rec.RayLength * v.LengthSquared()
+	cosine := math.Abs(v.Dot(rec.Normal) / v.Length())
+
+	return distanceSquared / (cosine * q.area)
+}
+
+func (q quad) Random(o geo.Vec3) geo.Vec3 {
+	p := q.q.Add(q.u.MulS(random.RandomNormalFloat())).Add(q.v.MulS(random.RandomNormalFloat()))
+	return p.Sub(o)
 }

@@ -11,4 +11,6 @@ import (
 type Hittable interface {
 	Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord)
 	BoundingBox() aabb
+	PdfValue(o, v geo.Vec3) float64
+	Random(o geo.Vec3) geo.Vec3
 }

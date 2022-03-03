@@ -12,6 +12,7 @@ import (
 // Scene contains all information needed to render an image
 type Scene struct {
 	World           hittable.Hittable
+	Lights          hittable.HittableList
 	Cam             camera.Camera
 	BackgroundColor geo.Vec3
 	Spec            TraceSpecification

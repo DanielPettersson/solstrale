@@ -81,6 +81,22 @@ func RandomInUnitDisc() Vec3 {
 	}
 }
 
+func RandomCosineDirection() Vec3 {
+	r1 := random.RandomNormalFloat()
+	r2 := random.RandomNormalFloat()
+
+	phi := 2 * math.Pi * r1
+	x := math.Cos(phi) * math.Sqrt(r2)
+	y := math.Sin(phi) * math.Sqrt(r2)
+	z := math.Sqrt(1 - r2)
+
+	return Vec3{
+		X: x,
+		Y: y,
+		Z: z,
+	}
+}
+
 // Neg returns a Vec3 that has all values negated
 func (v Vec3) Neg() Vec3 {
 	return Vec3{-v.X, -v.Y, -v.Z}

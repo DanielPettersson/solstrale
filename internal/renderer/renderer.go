@@ -2,11 +2,14 @@ package renderer
 
 import (
 	"image/color"
+	"math"
 	"sync"
 
 	"github.com/DanielPettersson/solstrale/geo"
+	"github.com/DanielPettersson/solstrale/hittable"
 	"github.com/DanielPettersson/solstrale/internal/image"
 	"github.com/DanielPettersson/solstrale/internal/util"
+	"github.com/DanielPettersson/solstrale/pdf"
 	"github.com/DanielPettersson/solstrale/random"
 	"github.com/DanielPettersson/solstrale/spec"
 )
@@ -19,15 +22,53 @@ func rayColor(s *spec.Scene, r geo.Ray, depth int) geo.Vec3 {
 	hit, rec := s.World.Hit(r, util.Interval{Min: 0.001, Max: util.Infinity})
 	if hit {
 
-		emitted := rec.Material.Emitted(rec)
-		scatter, attenuation, scatterRay := rec.Material.Scatter(r, rec)
-		if scatter {
-			return emitted.Add(attenuation.Mul(rayColor(s, scatterRay, depth+1)))
+		emittedColor := rec.Material.Emitted(rec)
+		scatter, scatterRecord := rec.Material.Scatter(r, rec)
+		if !scatter {
+			return emittedColor
 		}
-		return emitted
+
+		if scatterRecord.SkipPdf {
+			return scatterRecord.Attenuation.Mul(rayColor(s, scatterRecord.SkipPdfRay, depth+1))
+		}
+
+		lightPtr := hittable.NewHittablePdf(&s.Lights, rec.HitPoint)
+		mixturePdf := pdf.NewMixturePdf(&lightPtr, scatterRecord.PdfPtr)
+
+		scattered := geo.Ray{
+			Origin:    rec.HitPoint,
+			Direction: mixturePdf.Generate(),
+			Time:      r.Time,
+		}
+		pdfVal := mixturePdf.Value(scattered.Direction)
+		scatteringPdf := rec.Material.ScatteringPdf(r, rec, scattered)
+		scatterColor := scatterRecord.Attenuation.MulS(scatteringPdf).Mul(rayColor(s, scattered, depth+1)).DivS(pdfVal)
+
+		return filterInvalidColorValues(emittedColor.Add(scatterColor))
 	}
 
 	return s.BackgroundColor
+}
+
+func filterInvalidColorValues(col geo.Vec3) geo.Vec3 {
+	return geo.NewVec3(
+		filterColorValue(col.X),
+		filterColorValue(col.Y),
+		filterColorValue(col.Z),
+	)
+}
+
+func filterColorValue(val float64) float64 {
+	if math.IsNaN(val) {
+		return 0
+	}
+	if val > 1 {
+		return 1
+	}
+	if val < 0 {
+		return 0
+	}
+	return val
 }
 
 // Render executes the rendering of the image

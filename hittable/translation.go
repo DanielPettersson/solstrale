@@ -46,3 +46,11 @@ func (t translation) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hi
 func (t translation) BoundingBox() aabb {
 	return t.bBox
 }
+
+func (t translation) PdfValue(o, v geo.Vec3) float64 {
+	return 0.0
+}
+
+func (t translation) Random(o geo.Vec3) geo.Vec3 {
+	return geo.NewVec3(1, 0, 0)
+}
