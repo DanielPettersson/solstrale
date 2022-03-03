@@ -8,7 +8,7 @@
 A basic ray tracer implemented in Golang. Nothing fancy.
 
 Examples of output from renderer:
-![nedladdning](https://user-images.githubusercontent.com/3603911/150698759-52881c0d-1ae0-4e6d-8a2a-1f0723102bff.png)
+![example](https://user-images.githubusercontent.com/3603911/156641766-bc3ad13f-3395-4b63-831d-577c7538fae1.jpg)
 
 ![nedladdning (3)](https://user-images.githubusercontent.com/3603911/151518004-ccfa67f9-44cd-4a83-86ff-8f55df6d583a.png)
 
@@ -18,3 +18,4 @@ Examples of output from renderer:
 
 ## Credits
 The ray tracing is based on the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html) and [_Ray Tracing: The Next Week_](https://raytracing.github.io/books/RayTracingTheNextWeek.html) by Peter Shirley
+
