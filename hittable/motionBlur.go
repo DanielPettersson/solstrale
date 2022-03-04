@@ -7,6 +7,7 @@ import (
 )
 
 type motionBlur struct {
+	NonPdfUsingHittable
 	blurredHittable Hittable
 	blurDirection   geo.Vec3
 	bBox            aabb
@@ -24,9 +25,9 @@ func NewMotionBlur(
 	boundingBox := combineAabbs(boundingBox1, boundingBox2)
 
 	return motionBlur{
-		blurredHittable,
-		blurDirection,
-		boundingBox,
+		blurredHittable: blurredHittable,
+		blurDirection:   blurDirection,
+		bBox:            boundingBox,
 	}
 }
 
@@ -50,4 +51,8 @@ func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 func (m motionBlur) BoundingBox() aabb {
 	return m.bBox
+}
+
+func (m motionBlur) IsLight() bool {
+	return m.blurredHittable.IsLight()
 }

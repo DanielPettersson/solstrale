@@ -13,6 +13,7 @@ import (
 )
 
 type constantMedium struct {
+	NonPdfUsingHittable
 	Boundary               Hittable
 	NegativeInverseDensity float64
 	PhaseFunction          material.Material
@@ -73,4 +74,8 @@ func (cm constantMedium) Hit(r geo.Ray, rayLength util.Interval) (bool, *materia
 
 func (cm constantMedium) BoundingBox() aabb {
 	return cm.Boundary.BoundingBox()
+}
+
+func (cm constantMedium) IsLight() bool {
+	return false
 }

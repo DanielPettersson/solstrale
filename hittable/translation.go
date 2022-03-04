@@ -21,9 +21,9 @@ func NewTranslation(
 	boundingBox := object.BoundingBox().add(offset)
 
 	return translation{
-		object,
-		offset,
-		boundingBox,
+		object: object,
+		offset: offset,
+		bBox:   boundingBox,
 	}
 }
 
@@ -45,4 +45,16 @@ func (t translation) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hi
 
 func (t translation) BoundingBox() aabb {
 	return t.bBox
+}
+
+func (t translation) PdfValue(origin, direction geo.Vec3) float64 {
+	return t.object.PdfValue(origin, direction)
+}
+
+func (t translation) RandomDirection(origin geo.Vec3) geo.Vec3 {
+	return t.object.RandomDirection(origin)
+}
+
+func (t translation) IsLight() bool {
+	return t.object.IsLight()
 }

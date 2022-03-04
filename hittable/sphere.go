@@ -6,6 +6,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 type sphere struct {
@@ -84,6 +85,52 @@ func calculateSphereUv(pointOnSphere geo.Vec3) (float64, float64) {
 	return u, v
 }
 
+func randomToSphere(radius, distanceSquared float64) geo.Vec3 {
+	r1 := random.RandomNormalFloat()
+	r2 := random.RandomNormalFloat()
+	z := 1 + r2*(math.Sqrt(1-radius*radius/distanceSquared)-1)
+
+	phi := 2 * math.Pi * r1
+	zz := math.Sqrt(1 - z*z)
+	x := math.Cos(phi) * zz
+	y := math.Sin(phi) * zz
+
+	return geo.NewVec3(x, y, z)
+}
+
 func (s sphere) BoundingBox() aabb {
 	return s.bBox
+}
+
+func (s sphere) PdfValue(origin, direction geo.Vec3) float64 {
+	ray := geo.Ray{
+		Origin:    origin,
+		Direction: direction,
+	}
+
+	hit, _ := s.Hit(ray, util.Interval{Min: 0.001, Max: util.Infinity})
+
+	if !hit {
+		return 0
+	}
+
+	cosThetaMax := math.Sqrt(1 - s.radius*s.radius/s.center.Sub(origin).LengthSquared())
+	solidAngle := 2 * math.Pi * (1 - cosThetaMax)
+
+	return 1 / solidAngle
+}
+
+func (s sphere) RandomDirection(origin geo.Vec3) geo.Vec3 {
+	direction := s.center.Sub(origin)
+	uvw := geo.BuildOnbFromVec3(direction)
+	return uvw.Local(randomToSphere(s.radius, direction.LengthSquared()))
+}
+
+func (s sphere) IsLight() bool {
+	switch s.mat.(type) {
+	case material.DiffuseLight:
+		return true
+	default:
+		return false
+	}
 }

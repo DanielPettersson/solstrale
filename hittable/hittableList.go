@@ -4,6 +4,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/random"
 )
 
 // HittableList is a special type of hittable that is a container
@@ -26,6 +27,11 @@ func NewHittableList() HittableList {
 func (hl *HittableList) Add(h Hittable) {
 	hl.list = append(hl.list, h)
 	hl.bBox = combineAabbs(hl.bBox, h.BoundingBox())
+}
+
+// List returns the current slice of hittables
+func (hl *HittableList) List() []Hittable {
+	return hl.list
 }
 
 // Hit Checks if the given ray hits any object in this list.
@@ -52,4 +58,26 @@ func (hl *HittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material
 // BoundingBox returns the bounding box that encapsulates all hittables in the list
 func (hl *HittableList) BoundingBox() aabb {
 	return hl.bBox
+}
+
+// PdfValue generates a medium pdf value for all hittables in list given an origin and a direction
+func (hl *HittableList) PdfValue(origin, direction geo.Vec3) float64 {
+	weight := 1. / float64(len(hl.list))
+	sum := 0.
+
+	for _, item := range hl.list {
+		sum += weight * item.PdfValue(origin, direction)
+	}
+
+	return sum
+}
+
+// RandomDirection generates a random direction for a random hittable in the list
+func (hl *HittableList) RandomDirection(origin geo.Vec3) geo.Vec3 {
+	idx := random.RandomUint32(uint32(len(hl.list)))
+	return hl.list[idx].RandomDirection(origin)
+}
+
+func (hl *HittableList) IsLight() bool {
+	return false
 }

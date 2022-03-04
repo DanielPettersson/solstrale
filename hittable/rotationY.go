@@ -54,10 +54,10 @@ func NewRotationY(
 	boundingBox := createAabbFromPoints(min, max)
 
 	return rotationY{
-		object,
-		sinTheta,
-		cosTheta,
-		boundingBox,
+		object:   object,
+		sinTheta: sinTheta,
+		cosTheta: cosTheta,
+		bBox:     boundingBox,
 	}
 }
 
@@ -95,4 +95,16 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 func (ry rotationY) BoundingBox() aabb {
 	return ry.bBox
+}
+
+func (ry rotationY) PdfValue(origin, direction geo.Vec3) float64 {
+	return ry.object.PdfValue(origin, direction)
+}
+
+func (ry rotationY) RandomDirection(origin geo.Vec3) geo.Vec3 {
+	return ry.object.RandomDirection(origin)
+}
+
+func (ry rotationY) IsLight() bool {
+	return ry.object.IsLight()
 }
