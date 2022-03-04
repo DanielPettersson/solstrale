@@ -18,5 +18,5 @@ Examples of output from renderer:
 
 
 ## Credits
-The ray tracing is based on the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html) and [_Ray Tracing: The Next Week_](https://raytracing.github.io/books/RayTracingTheNextWeek.html) by Peter Shirley
+The ray tracing is based on the excellent [_Ray Tracing in One Weekend Book Series_](https://github.com/RayTracing/raytracing.github.io) by Peter Shirley
 
