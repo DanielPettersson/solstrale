@@ -8,6 +8,7 @@ import (
 	"github.com/DanielPettersson/solstrale/random"
 )
 
+// ScatterRecord is a collection of attributes from the scattering of a ray with a material
 type ScatterRecord struct {
 	Attenuation geo.Vec3
 	PdfPtr      *pdf.Pdf
@@ -23,20 +24,24 @@ type Material interface {
 	Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord)
 }
 
+// PdfGeneratingMaterial is a material that can use pdfs for scattering of rays
 type PdfGeneratingMaterial interface {
 	ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64
 }
 
+// NonPdfGeneratingMaterial is to be used by materials that do not use pdfs
 type NonPdfGeneratingMaterial struct{}
 
 func (m NonPdfGeneratingMaterial) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
 	return 0
 }
 
+// LightEmittingMaterial is a material that can emit light
 type LightEmittingMaterial interface {
 	Emitted(rec *HitRecord) geo.Vec3
 }
 
+// NonLightEmittingMaterial is to be used by materials that do not emit light
 type NonLightEmittingMaterial struct{}
 
 func (m NonLightEmittingMaterial) Emitted(rec *HitRecord) geo.Vec3 {

@@ -14,17 +14,21 @@ type Hittable interface {
 	BoundingBox() aabb
 }
 
+// PdfUsingHittable has methods used by hittables that can use pdf for scattering
 type PdfUsingHittable interface {
 	PdfValue(origin, direction geo.Vec3) float64
 	RandomDirection(origin geo.Vec3) geo.Vec3
 }
 
+// NonPdfUsingHittable is used by hittables that never uses pdfs directly
 type NonPdfUsingHittable struct{}
 
+// PdfValue panics if invoked
 func (h NonPdfUsingHittable) PdfValue(o, v geo.Vec3) float64 {
 	panic("Should not be used")
 }
 
+// RandomDirection panics if invoked
 func (h NonPdfUsingHittable) RandomDirection(o geo.Vec3) geo.Vec3 {
 	panic("Should not be used")
 }

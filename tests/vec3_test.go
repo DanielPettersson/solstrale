@@ -51,6 +51,14 @@ func TestRandomUnitVector(t *testing.T) {
 	}
 }
 
+func TestRandomCosineDirection(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		vec := geo.RandomCosineDirection()
+
+		assert.True(t, math.Abs(vec.Length()-1) < util.AlmostZero)
+	}
+}
+
 func TestRandomInHemisphere(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		normal := geo.RandomUnitVector()

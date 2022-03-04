@@ -9,6 +9,7 @@ type Onb struct {
 	W Vec3
 }
 
+// BuildOnbFromVec3 creates an Orthonormal Basis from the given vector
 func BuildOnbFromVec3(w Vec3) Onb {
 	unitW := w.Unit()
 
@@ -28,6 +29,7 @@ func BuildOnbFromVec3(w Vec3) Onb {
 	}
 }
 
+// Local translates the given vector to the Orthonormal Basis
 func (o Onb) Local(a Vec3) Vec3 {
 	return o.U.MulS(a.X).Add(o.V.MulS(a.Y)).Add(o.W.MulS(a.Z))
 }

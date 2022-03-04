@@ -18,6 +18,7 @@ func RandomFloat(min float64, max float64) float64 {
 	return RandomNormalFloat()*(max-min) + min
 }
 
+// RandomUint32 returns a random uint32 0 to <max
 func RandomUint32(max uint32) uint32 {
 	return fastrand.Uint32n(max)
 }

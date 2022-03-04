@@ -5,11 +5,13 @@ import (
 	"github.com/DanielPettersson/solstrale/pdf"
 )
 
+// HittablePdf is a wrapper for generating pdfs for a list of hittables
 type HittablePdf struct {
 	objects *HittableList
 	origin  geo.Vec3
 }
 
+// NewHittablePdf creates a new instance of HittablePdf
 func NewHittablePdf(objects *HittableList, origin geo.Vec3) pdf.Pdf {
 	return HittablePdf{
 		objects: objects,

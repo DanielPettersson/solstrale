@@ -44,13 +44,13 @@ func rayColor(s *spec.Scene, r geo.Ray, depth int) geo.Vec3 {
 		scatteringPdf := rec.Material.ScatteringPdf(r, rec, scattered)
 		scatterColor := scatterRecord.Attenuation.MulS(scatteringPdf).Mul(rayColor(s, scattered, depth+1)).DivS(pdfVal)
 
-		return filterInvalidColorValues(emittedColor.Add(scatterColor))
+		return FilterInvalidColorValues(emittedColor.Add(scatterColor))
 	}
 
 	return s.BackgroundColor
 }
 
-func filterInvalidColorValues(col geo.Vec3) geo.Vec3 {
+func FilterInvalidColorValues(col geo.Vec3) geo.Vec3 {
 	return geo.NewVec3(
 		filterColorValue(col.X),
 		filterColorValue(col.Y),

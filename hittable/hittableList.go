@@ -55,6 +55,7 @@ func (hl *HittableList) BoundingBox() aabb {
 	return hl.bBox
 }
 
+// PdfValue generates a medium pdf value for all hittables in list given an origin and a direction
 func (hl *HittableList) PdfValue(origin, direction geo.Vec3) float64 {
 	weight := 1. / float64(len(hl.list))
 	sum := 0.
@@ -66,6 +67,7 @@ func (hl *HittableList) PdfValue(origin, direction geo.Vec3) float64 {
 	return sum
 }
 
+// RandomDirection generates a random direction for a random hittable in the list
 func (hl *HittableList) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	idx := random.RandomUint32(uint32(len(hl.list)))
 	return hl.list[idx].RandomDirection(origin)
