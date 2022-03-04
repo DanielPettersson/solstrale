@@ -62,11 +62,8 @@ func filterColorValue(val float64) float64 {
 	if math.IsNaN(val) {
 		return 0
 	}
-	if val > 1 {
-		return 1
-	}
-	if val < 0 {
-		return 0
+	if val > 100 {
+		return 100
 	}
 	return val
 }

@@ -55,18 +55,18 @@ func (hl *HittableList) BoundingBox() aabb {
 	return hl.bBox
 }
 
-func (hl *HittableList) PdfValue(o, v geo.Vec3) float64 {
+func (hl *HittableList) PdfValue(origin, direction geo.Vec3) float64 {
 	weight := 1. / float64(len(hl.list))
 	sum := 0.
 
 	for _, item := range hl.list {
-		sum += weight * item.PdfValue(o, v)
+		sum += weight * item.PdfValue(origin, direction)
 	}
 
 	return sum
 }
 
-func (hl *HittableList) Random(o geo.Vec3) geo.Vec3 {
+func (hl *HittableList) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	idx := random.RandomUint32(uint32(len(hl.list)))
-	return hl.list[idx].Random(o)
+	return hl.list[idx].RandomDirection(origin)
 }

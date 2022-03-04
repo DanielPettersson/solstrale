@@ -18,13 +18,34 @@ type ScatterRecord struct {
 // Material is the interface for types that describe how
 // a ray behaves when hitting an object.
 type Material interface {
+	PdfGeneratingMaterial
+	LightEmittingMaterial
 	Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord)
+}
+
+type PdfGeneratingMaterial interface {
 	ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64
+}
+
+type NonPdfGeneratingMaterial struct{}
+
+func (m NonPdfGeneratingMaterial) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
+	return 0
+}
+
+type LightEmittingMaterial interface {
 	Emitted(rec *HitRecord) geo.Vec3
+}
+
+type NonLightEmittingMaterial struct{}
+
+func (m NonLightEmittingMaterial) Emitted(rec *HitRecord) geo.Vec3 {
+	return geo.ZeroVector
 }
 
 // Lambertian is a typical matte material
 type Lambertian struct {
+	NonLightEmittingMaterial
 	Tex Texture
 }
 
@@ -49,13 +70,10 @@ func (m Lambertian) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.R
 	}
 }
 
-// Emitted a lambertian material emits no light
-func (m Lambertian) Emitted(rec *HitRecord) geo.Vec3 {
-	return geo.ZeroVector
-}
-
 // Metal is a material that is reflective
 type Metal struct {
+	NonLightEmittingMaterial
+	NonPdfGeneratingMaterial
 	Tex  Texture
 	Fuzz float64
 }
@@ -78,17 +96,10 @@ func (m Metal) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 	}
 }
 
-func (m Metal) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
-	return 0
-}
-
-// Emitted a metal material emits no light
-func (m Metal) Emitted(rec *HitRecord) geo.Vec3 {
-	return geo.ZeroVector
-}
-
 // Dielectric is a glass type material with an index of refraction
 type Dielectric struct {
+	NonLightEmittingMaterial
+	NonPdfGeneratingMaterial
 	Tex               Texture
 	IndexOfRefraction float64
 }
@@ -128,15 +139,6 @@ func (m Dielectric) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord)
 	}
 }
 
-func (m Dielectric) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
-	return 0
-}
-
-// Emitted a dielectric material emits no light
-func (m Dielectric) Emitted(rec *HitRecord) geo.Vec3 {
-	return geo.ZeroVector
-}
-
 // Calculate reflectance using Schlick's approximation
 func reflectance(cosine, indexOfRefraction float64) float64 {
 	r0 := (1 - indexOfRefraction) / (1 + indexOfRefraction)
@@ -146,16 +148,13 @@ func reflectance(cosine, indexOfRefraction float64) float64 {
 
 // DiffuseLight is a material used for emitting light
 type DiffuseLight struct {
+	NonPdfGeneratingMaterial
 	Emit Texture
 }
 
 // Scatter a light never scatters a ray
 func (m DiffuseLight) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 	return false, ScatterRecord{}
-}
-
-func (m DiffuseLight) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
-	return 0
 }
 
 // Emitted a light emits it's given color
@@ -168,6 +167,7 @@ func (m DiffuseLight) Emitted(rec *HitRecord) geo.Vec3 {
 
 // Isotropic is a fog type material
 type Isotropic struct {
+	NonLightEmittingMaterial
 	Albedo Texture
 }
 
@@ -185,9 +185,4 @@ func (m Isotropic) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) 
 
 func (m Isotropic) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
 	return 1 / (4 * math.Pi)
-}
-
-// Emitted a isotropic material emits no light
-func (m Isotropic) Emitted(rec *HitRecord) geo.Vec3 {
-	return geo.ZeroVector
 }

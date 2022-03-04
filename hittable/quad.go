@@ -112,10 +112,10 @@ func (q quad) BoundingBox() aabb {
 	return q.bBox
 }
 
-func (q quad) PdfValue(origin, v geo.Vec3) float64 {
+func (q quad) PdfValue(origin, direction geo.Vec3) float64 {
 	ray := geo.Ray{
 		Origin:    origin,
-		Direction: v,
+		Direction: direction,
 	}
 
 	hit, rec := q.Hit(ray, util.Interval{Min: 0.001, Max: util.Infinity})
@@ -124,13 +124,13 @@ func (q quad) PdfValue(origin, v geo.Vec3) float64 {
 		return 0
 	}
 
-	distanceSquared := rec.RayLength * rec.RayLength * v.LengthSquared()
-	cosine := math.Abs(v.Dot(rec.Normal) / v.Length())
+	distanceSquared := rec.RayLength * rec.RayLength * direction.LengthSquared()
+	cosine := math.Abs(direction.Dot(rec.Normal) / direction.Length())
 
 	return distanceSquared / (cosine * q.area)
 }
 
-func (q quad) Random(o geo.Vec3) geo.Vec3 {
+func (q quad) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	p := q.q.Add(q.u.MulS(random.RandomNormalFloat())).Add(q.v.MulS(random.RandomNormalFloat()))
-	return p.Sub(o)
+	return p.Sub(origin)
 }

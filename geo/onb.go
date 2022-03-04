@@ -28,10 +28,6 @@ func BuildOnbFromVec3(w Vec3) Onb {
 	}
 }
 
-func (o Onb) Local(a, b, c float64) Vec3 {
-	return o.U.MulS(a).Add(o.V.MulS(b)).Add(o.W.MulS(c))
-}
-
-func (o Onb) LocalV(a Vec3) Vec3 {
+func (o Onb) Local(a Vec3) Vec3 {
 	return o.U.MulS(a.X).Add(o.V.MulS(a.Y)).Add(o.W.MulS(a.Z))
 }

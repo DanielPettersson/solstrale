@@ -7,6 +7,7 @@ import (
 )
 
 type motionBlur struct {
+	NonPdfUsingHittable
 	blurredHittable Hittable
 	blurDirection   geo.Vec3
 	bBox            aabb
@@ -24,9 +25,9 @@ func NewMotionBlur(
 	boundingBox := combineAabbs(boundingBox1, boundingBox2)
 
 	return motionBlur{
-		blurredHittable,
-		blurDirection,
-		boundingBox,
+		blurredHittable: blurredHittable,
+		blurDirection:   blurDirection,
+		bBox:            boundingBox,
 	}
 }
 
@@ -50,12 +51,4 @@ func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 func (m motionBlur) BoundingBox() aabb {
 	return m.bBox
-}
-
-func (m motionBlur) PdfValue(o, v geo.Vec3) float64 {
-	return 0.0
-}
-
-func (m motionBlur) Random(o geo.Vec3) geo.Vec3 {
-	return geo.NewVec3(1, 0, 0)
 }

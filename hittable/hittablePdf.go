@@ -24,5 +24,5 @@ func (p HittablePdf) Value(direction geo.Vec3) float64 {
 
 // Generate implements pdf.Pdf
 func (p HittablePdf) Generate() geo.Vec3 {
-	return p.objects.Random(p.origin)
+	return p.objects.RandomDirection(p.origin)
 }

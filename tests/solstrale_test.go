@@ -75,7 +75,6 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 		material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)},
 	))
 	world.Add(hittable.NewSphere(geo.NewVec3(2, 1, 0), 1, goldMat))
-	world.Add(hittable.NewSphere(geo.NewVec3(10, 5, 10), 10, lightMat))
 
 	world.Add(hittable.NewMotionBlur(
 		hittable.NewBox(geo.NewVec3(-1, 2, 0), geo.NewVec3(-.5, 2.5, .5), redMat),
@@ -93,8 +92,14 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 
 	world.Add(hittable.NewBoundingVolumeHierarchy(balls))
 
+	light1 := hittable.NewSphere(geo.NewVec3(10, 5, 10), 10, lightMat)
+	light2 := hittable.NewQuad(geo.NewVec3(-1, 10, -1), geo.NewVec3(2, 0, 0), geo.NewVec3(0, 0, 2), lightMat)
+	world.Add(light1)
+	world.Add(light2)
+
 	lights := hittable.NewHittableList()
-	lights.Add(hittable.NewSphere(geo.NewVec3(10, 5, 10), 10, lightMat))
+	lights.Add(light1)
+	lights.Add(light2)
 
 	return &spec.Scene{
 		World:           &world,

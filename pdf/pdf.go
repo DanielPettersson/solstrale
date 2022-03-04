@@ -28,7 +28,7 @@ func (p CosinePdf) Value(direction geo.Vec3) float64 {
 }
 
 func (p CosinePdf) Generate() geo.Vec3 {
-	return p.uvw.LocalV(geo.RandomCosineDirection())
+	return p.uvw.Local(geo.RandomCosineDirection())
 }
 
 type SpherePdf struct{}

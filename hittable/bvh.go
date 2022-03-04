@@ -11,6 +11,7 @@ import (
 
 // Bounding Volume Hierarchy
 type bvh struct {
+	NonPdfUsingHittable
 	left  *Hittable
 	right *Hittable
 	bBox  aabb
@@ -50,7 +51,7 @@ func _createBvh(list []Hittable, start, end int) bvh {
 		bBox = combineAabbs(left.BoundingBox(), right.BoundingBox())
 	}
 
-	return bvh{&left, &right, bBox}
+	return bvh{left: &left, right: &right, bBox: bBox}
 }
 
 func sortHittablesSliceByMostSpreadAxis(list []Hittable, start, end int) {
@@ -103,12 +104,4 @@ func (b bvh) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord)
 
 func (b bvh) BoundingBox() aabb {
 	return b.bBox
-}
-
-func (b bvh) PdfValue(o, v geo.Vec3) float64 {
-	return 0.0
-}
-
-func (b bvh) Random(o geo.Vec3) geo.Vec3 {
-	return geo.NewVec3(1, 0, 0)
 }

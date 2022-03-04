@@ -102,10 +102,10 @@ func (s sphere) BoundingBox() aabb {
 	return s.bBox
 }
 
-func (s sphere) PdfValue(origin, v geo.Vec3) float64 {
+func (s sphere) PdfValue(origin, direction geo.Vec3) float64 {
 	ray := geo.Ray{
 		Origin:    origin,
-		Direction: v,
+		Direction: direction,
 	}
 
 	hit, _ := s.Hit(ray, util.Interval{Min: 0.001, Max: util.Infinity})
@@ -120,8 +120,8 @@ func (s sphere) PdfValue(origin, v geo.Vec3) float64 {
 	return 1 / solidAngle
 }
 
-func (s sphere) Random(o geo.Vec3) geo.Vec3 {
-	direction := s.center.Sub(o)
+func (s sphere) RandomDirection(origin geo.Vec3) geo.Vec3 {
+	direction := s.center.Sub(origin)
 	uvw := geo.BuildOnbFromVec3(direction)
-	return uvw.LocalV(randomToSphere(s.radius, direction.LengthSquared()))
+	return uvw.Local(randomToSphere(s.radius, direction.LengthSquared()))
 }

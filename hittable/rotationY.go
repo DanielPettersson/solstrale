@@ -9,6 +9,7 @@ import (
 )
 
 type rotationY struct {
+	NonPdfUsingHittable
 	object   Hittable
 	sinTheta float64
 	cosTheta float64
@@ -54,10 +55,10 @@ func NewRotationY(
 	boundingBox := createAabbFromPoints(min, max)
 
 	return rotationY{
-		object,
-		sinTheta,
-		cosTheta,
-		boundingBox,
+		object:   object,
+		sinTheta: sinTheta,
+		cosTheta: cosTheta,
+		bBox:     boundingBox,
 	}
 }
 
@@ -95,12 +96,4 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 func (ry rotationY) BoundingBox() aabb {
 	return ry.bBox
-}
-
-func (ry rotationY) PdfValue(o, v geo.Vec3) float64 {
-	return 0.0
-}
-
-func (ry rotationY) Random(o geo.Vec3) geo.Vec3 {
-	return geo.NewVec3(1, 0, 0)
 }
