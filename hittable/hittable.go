@@ -25,11 +25,11 @@ type PdfUsingHittable interface {
 type NonPdfUsingHittable struct{}
 
 // PdfValue panics if invoked
-func (h NonPdfUsingHittable) PdfValue(o, v geo.Vec3) float64 {
+func (h NonPdfUsingHittable) PdfValue(origin, direction geo.Vec3) float64 {
 	panic("Should not be used")
 }
 
 // RandomDirection panics if invoked
-func (h NonPdfUsingHittable) RandomDirection(o geo.Vec3) geo.Vec3 {
+func (h NonPdfUsingHittable) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	panic("Should not be used")
 }

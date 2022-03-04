@@ -79,10 +79,5 @@ func (hl *HittableList) RandomDirection(origin geo.Vec3) geo.Vec3 {
 }
 
 func (hl *HittableList) IsLight() bool {
-	for _, o := range hl.list {
-		if o.IsLight() {
-			return true
-		}
-	}
 	return false
 }

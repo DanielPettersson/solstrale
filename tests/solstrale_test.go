@@ -93,7 +93,15 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 	world.Add(hittable.NewBoundingVolumeHierarchy(balls))
 
 	world.Add(hittable.NewSphere(geo.NewVec3(10, 5, 10), 10, lightMat))
-	world.Add(hittable.NewQuad(geo.NewVec3(-1, 10, -1), geo.NewVec3(2, 0, 0), geo.NewVec3(0, 0, 2), lightMat))
+	world.Add(
+		hittable.NewTranslation(
+			hittable.NewRotationY(
+				hittable.NewQuad(geo.NewVec3(0, 0, 0), geo.NewVec3(2, 0, 0), geo.NewVec3(0, 0, 2), lightMat),
+				45,
+			),
+			geo.NewVec3(-1, 10, -1),
+		),
+	)
 
 	return &spec.Scene{
 		World:           &world,
@@ -138,4 +146,27 @@ func TestRenderScene(t *testing.T) {
 
 	// Image comparison.
 	assert.True(t, images3.Similar(actualIcon, expectedIcon))
+}
+
+func TestAbortRenderScene(t *testing.T) {
+
+	traceSpec := spec.TraceSpecification{
+		ImageWidth:      10,
+		ImageHeight:     10,
+		SamplesPerPixel: 100,
+		MaxDepth:        50,
+	}
+	scene := createTestScene(traceSpec)
+
+	renderProgress := make(chan spec.TraceProgress, 1)
+	abort := make(chan bool, 1)
+	go solstrale.RayTrace(scene, renderProgress, abort)
+
+	progressCount := 0
+	for range renderProgress {
+		progressCount++
+		abort <- true
+	}
+
+	assert.Equal(t, 2, progressCount)
 }

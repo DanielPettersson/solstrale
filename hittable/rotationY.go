@@ -9,7 +9,6 @@ import (
 )
 
 type rotationY struct {
-	NonPdfUsingHittable
 	object   Hittable
 	sinTheta float64
 	cosTheta float64
@@ -96,6 +95,14 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 func (ry rotationY) BoundingBox() aabb {
 	return ry.bBox
+}
+
+func (ry rotationY) PdfValue(origin, direction geo.Vec3) float64 {
+	return ry.object.PdfValue(origin, direction)
+}
+
+func (ry rotationY) RandomDirection(origin geo.Vec3) geo.Vec3 {
+	return ry.object.RandomDirection(origin)
 }
 
 func (ry rotationY) IsLight() bool {
