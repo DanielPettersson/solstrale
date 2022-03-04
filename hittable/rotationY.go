@@ -97,3 +97,7 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 func (ry rotationY) BoundingBox() aabb {
 	return ry.bBox
 }
+
+func (ry rotationY) IsLight() bool {
+	return ry.object.IsLight()
+}

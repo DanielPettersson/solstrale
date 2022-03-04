@@ -125,3 +125,12 @@ func (s sphere) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	uvw := geo.BuildOnbFromVec3(direction)
 	return uvw.Local(randomToSphere(s.radius, direction.LengthSquared()))
 }
+
+func (s sphere) IsLight() bool {
+	switch s.mat.(type) {
+	case material.DiffuseLight:
+		return true
+	default:
+		return false
+	}
+}

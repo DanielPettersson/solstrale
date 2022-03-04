@@ -105,3 +105,7 @@ func (b bvh) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord)
 func (b bvh) BoundingBox() aabb {
 	return b.bBox
 }
+
+func (b bvh) IsLight() bool {
+	return false
+}

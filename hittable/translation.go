@@ -47,3 +47,7 @@ func (t translation) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hi
 func (t translation) BoundingBox() aabb {
 	return t.bBox
 }
+
+func (t translation) IsLight() bool {
+	return t.object.IsLight()
+}

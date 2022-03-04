@@ -52,3 +52,7 @@ func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 func (m motionBlur) BoundingBox() aabb {
 	return m.bBox
 }
+
+func (m motionBlur) IsLight() bool {
+	return m.blurredHittable.IsLight()
+}

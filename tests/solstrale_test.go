@@ -92,18 +92,11 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 
 	world.Add(hittable.NewBoundingVolumeHierarchy(balls))
 
-	light1 := hittable.NewSphere(geo.NewVec3(10, 5, 10), 10, lightMat)
-	light2 := hittable.NewQuad(geo.NewVec3(-1, 10, -1), geo.NewVec3(2, 0, 0), geo.NewVec3(0, 0, 2), lightMat)
-	world.Add(light1)
-	world.Add(light2)
-
-	lights := hittable.NewHittableList()
-	lights.Add(light1)
-	lights.Add(light2)
+	world.Add(hittable.NewSphere(geo.NewVec3(10, 5, 10), 10, lightMat))
+	world.Add(hittable.NewQuad(geo.NewVec3(-1, 10, -1), geo.NewVec3(2, 0, 0), geo.NewVec3(0, 0, 2), lightMat))
 
 	return &spec.Scene{
 		World:           &world,
-		Lights:          lights,
 		Cam:             camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		Spec:            traceSpec,

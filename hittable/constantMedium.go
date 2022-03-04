@@ -75,3 +75,7 @@ func (cm constantMedium) Hit(r geo.Ray, rayLength util.Interval) (bool, *materia
 func (cm constantMedium) BoundingBox() aabb {
 	return cm.Boundary.BoundingBox()
 }
+
+func (cm constantMedium) IsLight() bool {
+	return false
+}

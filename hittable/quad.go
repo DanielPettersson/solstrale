@@ -134,3 +134,12 @@ func (q quad) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	p := q.q.Add(q.u.MulS(random.RandomNormalFloat())).Add(q.v.MulS(random.RandomNormalFloat()))
 	return p.Sub(origin)
 }
+
+func (q quad) IsLight() bool {
+	switch q.mat.(type) {
+	case material.DiffuseLight:
+		return true
+	default:
+		return false
+	}
+}

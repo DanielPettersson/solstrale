@@ -12,6 +12,7 @@ type Hittable interface {
 	PdfUsingHittable
 	Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord)
 	BoundingBox() aabb
+	IsLight() bool
 }
 
 // PdfUsingHittable has methods used by hittables that can use pdf for scattering

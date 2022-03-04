@@ -29,6 +29,11 @@ func (hl *HittableList) Add(h Hittable) {
 	hl.bBox = combineAabbs(hl.bBox, h.BoundingBox())
 }
 
+// List returns the current slice of hittables
+func (hl *HittableList) List() []Hittable {
+	return hl.list
+}
+
 // Hit Checks if the given ray hits any object in this list.
 // And if so, returns the properties of that ray hit
 func (hl *HittableList) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
@@ -71,4 +76,13 @@ func (hl *HittableList) PdfValue(origin, direction geo.Vec3) float64 {
 func (hl *HittableList) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	idx := random.RandomUint32(uint32(len(hl.list)))
 	return hl.list[idx].RandomDirection(origin)
+}
+
+func (hl *HittableList) IsLight() bool {
+	for _, o := range hl.list {
+		if o.IsLight() {
+			return true
+		}
+	}
+	return false
 }
