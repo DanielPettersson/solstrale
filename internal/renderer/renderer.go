@@ -146,8 +146,10 @@ func filterColorValue(val float64) float64 {
 	if math.IsNaN(val) {
 		return 0
 	}
-	if val > 100 {
-		return 100
+	// A subjectively chosen value that is a trade off between
+	// color acne and suppressing intensity
+	if val > 2 {
+		return 2
 	}
 	return val
 }
