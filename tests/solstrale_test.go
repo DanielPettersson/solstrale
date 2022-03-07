@@ -112,6 +112,51 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 
 }
 
+func createBvhTestScene(traceSpec spec.TraceSpecification, useBvh bool) *spec.Scene {
+	camera := camera.New(
+		traceSpec.ImageWidth,
+		traceSpec.ImageHeight,
+		20,
+		0.1,
+		10,
+		geo.NewVec3(5.5, 2.5, 20),
+		geo.NewVec3(5.5, 2.5, 2.5),
+		geo.NewVec3(0, 1, 0),
+	)
+
+	world := hittable.NewHittableList()
+	yellow := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 0)}}
+	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
+	world.Add(hittable.NewSphere(geo.NewVec3(0, 100, 0), 20, light))
+
+	balls := hittable.NewHittableList()
+	for x := 0.; x < 120; x += 1 {
+		for y := 0.; y < 6; y += 1 {
+			for z := 0.; z < 5; z += 1 {
+				s := hittable.NewSphere(geo.NewVec3(x, y, z), .3, yellow)
+				if useBvh {
+					balls.Add(s)
+				} else {
+					world.Add(s)
+				}
+
+			}
+		}
+	}
+
+	if useBvh {
+		world.Add(hittable.NewBoundingVolumeHierarchy(balls))
+	}
+
+	return &spec.Scene{
+		World:           &world,
+		Cam:             camera,
+		BackgroundColor: geo.NewVec3(.2, .3, .5),
+		Spec:            traceSpec,
+	}
+
+}
+
 func TestRenderScene(t *testing.T) {
 
 	traceSpec := spec.TraceSpecification{
@@ -169,4 +214,31 @@ func TestAbortRenderScene(t *testing.T) {
 	}
 
 	assert.Equal(t, 2, progressCount)
+}
+
+func BenchmarkBvh(b *testing.B) {
+	benchData := map[string]bool{
+		"with bvh":    true,
+		"without bvh": false,
+	}
+
+	for benchName, useBvh := range benchData {
+
+		b.Run(benchName, func(b *testing.B) {
+			b.StopTimer()
+			traceSpec := spec.TraceSpecification{
+				ImageWidth:      20,
+				ImageHeight:     10,
+				SamplesPerPixel: b.N,
+				MaxDepth:        50,
+			}
+			scene := createBvhTestScene(traceSpec, useBvh)
+			b.StartTimer()
+
+			renderProgress := make(chan spec.TraceProgress)
+			go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+			for range renderProgress {
+			}
+		})
+	}
 }
