@@ -61,9 +61,9 @@ func sortHittablesSliceByMostSpreadAxis(list []Hittable, start, end int) {
 	ySpread := boundingBoxSpread(slice, func(h Hittable) util.Interval { return h.BoundingBox().y })
 	zSpread := boundingBoxSpread(slice, func(h Hittable) util.Interval { return h.BoundingBox().z })
 
-	if xSpread > ySpread && xSpread > zSpread {
+	if xSpread >= ySpread && xSpread >= zSpread {
 		sortHittablesByBoundingBox(slice, func(h Hittable) util.Interval { return h.BoundingBox().x })
-	} else if ySpread > xSpread && ySpread > zSpread {
+	} else if ySpread >= xSpread && ySpread >= zSpread {
 		sortHittablesByBoundingBox(slice, func(h Hittable) util.Interval { return h.BoundingBox().y })
 	} else {
 		sortHittablesByBoundingBox(slice, func(h Hittable) util.Interval { return h.BoundingBox().z })
