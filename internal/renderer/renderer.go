@@ -148,8 +148,8 @@ func filterColorValue(val float64) float64 {
 	}
 	// A subjectively chosen value that is a trade off between
 	// color acne and suppressing intensity
-	if val > 2 {
-		return 2
+	if val > 3 {
+		return 3
 	}
 	return val
 }
