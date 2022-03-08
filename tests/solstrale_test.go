@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"image"
 	"image/jpeg"
 	"log"
@@ -112,15 +113,15 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 
 }
 
-func createBvhTestScene(traceSpec spec.TraceSpecification, useBvh bool) *spec.Scene {
+func createBvhTestScene(traceSpec spec.TraceSpecification, useBvh bool, numSpheres int) *spec.Scene {
 	camera := camera.New(
 		traceSpec.ImageWidth,
 		traceSpec.ImageHeight,
 		20,
 		0.1,
 		10,
-		geo.NewVec3(5.5, 2.5, 20),
-		geo.NewVec3(5.5, 2.5, 2.5),
+		geo.NewVec3(-.5, 0, 4),
+		geo.NewVec3(-.5, 0, 0),
 		geo.NewVec3(0, 1, 0),
 	)
 
@@ -130,17 +131,12 @@ func createBvhTestScene(traceSpec spec.TraceSpecification, useBvh bool) *spec.Sc
 	world.Add(hittable.NewSphere(geo.NewVec3(0, 100, 0), 20, light))
 
 	balls := hittable.NewHittableList()
-	for x := 0.; x < 120; x += 1 {
-		for y := 0.; y < 6; y += 1 {
-			for z := 0.; z < 5; z += 1 {
-				s := hittable.NewSphere(geo.NewVec3(x, y, z), .3, yellow)
-				if useBvh {
-					balls.Add(s)
-				} else {
-					world.Add(s)
-				}
-
-			}
+	for x := 0.; x < float64(numSpheres); x += 1 {
+		s := hittable.NewSphere(geo.NewVec3(x-float64(numSpheres)/2, 0, 0), .5, yellow)
+		if useBvh {
+			balls.Add(s)
+		} else {
+			world.Add(s)
 		}
 	}
 
@@ -217,28 +213,32 @@ func TestAbortRenderScene(t *testing.T) {
 }
 
 func BenchmarkBvh(b *testing.B) {
-	benchData := map[string]bool{
+	bvh := map[string]bool{
 		"with bvh":    true,
 		"without bvh": false,
 	}
 
-	for benchName, useBvh := range benchData {
+	spheres := []int{10, 100, 1000, 10000}
 
-		b.Run(benchName, func(b *testing.B) {
-			b.StopTimer()
-			traceSpec := spec.TraceSpecification{
-				ImageWidth:      20,
-				ImageHeight:     10,
-				SamplesPerPixel: b.N,
-				MaxDepth:        50,
-			}
-			scene := createBvhTestScene(traceSpec, useBvh)
-			b.StartTimer()
+	for bhvLabel, useBvh := range bvh {
+		for _, numSpheres := range spheres {
 
-			renderProgress := make(chan spec.TraceProgress)
-			go solstrale.RayTrace(scene, renderProgress, make(chan bool))
-			for range renderProgress {
-			}
-		})
+			b.Run(fmt.Sprintf("%v spheres %v", numSpheres, bhvLabel), func(b *testing.B) {
+				b.StopTimer()
+				traceSpec := spec.TraceSpecification{
+					ImageWidth:      20,
+					ImageHeight:     10,
+					SamplesPerPixel: b.N,
+					MaxDepth:        50,
+				}
+				scene := createBvhTestScene(traceSpec, useBvh, numSpheres)
+				b.StartTimer()
+
+				renderProgress := make(chan spec.TraceProgress)
+				go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+				for range renderProgress {
+				}
+			})
+		}
 	}
 }

@@ -14,7 +14,7 @@ type bvh struct {
 	NonPdfUsingHittable
 	left  *Hittable
 	right *Hittable
-	bBox  aabb
+	bBox  *aabb
 }
 
 // NewBoundingVolumeHierarchy creates a new hittable object from the given hittable list
@@ -22,10 +22,15 @@ type bvh struct {
 // where each node has a bounding box.
 // This is to optimize the ray intersection search when having many hittable objects.
 func NewBoundingVolumeHierarchy(hl HittableList) Hittable {
+
+	if len(hl.list) == 0 {
+		panic("Cannot create a Bvh with empty list of objects")
+	}
+
 	return _createBvh(hl.list, 0, len(hl.list))
 }
 
-func _createBvh(list []Hittable, start, end int) bvh {
+func _createBvh(list []Hittable, start, end int) *bvh {
 
 	numObjects := end - start
 	var left Hittable
@@ -51,7 +56,7 @@ func _createBvh(list []Hittable, start, end int) bvh {
 		bBox = combineAabbs(left.BoundingBox(), right.BoundingBox())
 	}
 
-	return bvh{left: &left, right: &right, bBox: bBox}
+	return &bvh{left: &left, right: &right, bBox: &bBox}
 }
 
 func sortHittablesSliceByMostSpreadAxis(list []Hittable, start, end int) {
@@ -84,7 +89,7 @@ func sortHittablesByBoundingBox(list []Hittable, boundingIntervalFunc func(h Hit
 	sort.Slice(list, func(i, j int) bool { return boundingIntervalFunc(list[i]).Min < boundingIntervalFunc(list[j]).Min })
 }
 
-func (b bvh) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (b *bvh) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
 	if !b.bBox.hit(r, rayLength) {
 		return false, nil
 	}
@@ -102,10 +107,10 @@ func (b bvh) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord)
 	return hitLeft || hitRight, rec
 }
 
-func (b bvh) BoundingBox() aabb {
-	return b.bBox
+func (b *bvh) BoundingBox() aabb {
+	return *b.bBox
 }
 
-func (b bvh) IsLight() bool {
+func (b *bvh) IsLight() bool {
 	return false
 }

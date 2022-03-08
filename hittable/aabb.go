@@ -1,8 +1,6 @@
 package hittable
 
 import (
-	"math"
-
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
 )
@@ -14,9 +12,9 @@ type aabb struct {
 
 func createAabbFromPoints(a geo.Vec3, b geo.Vec3) aabb {
 	return aabb{
-		util.Interval{Min: math.Min(a.X, b.X), Max: math.Max(a.X, b.X)},
-		util.Interval{Min: math.Min(a.Y, b.Y), Max: math.Max(a.Y, b.Y)},
-		util.Interval{Min: math.Min(a.Z, b.Z), Max: math.Max(a.Z, b.Z)},
+		util.Interval{Min: min(a.X, b.X), Max: max(a.X, b.X)},
+		util.Interval{Min: min(a.Y, b.Y), Max: max(a.Y, b.Y)},
+		util.Interval{Min: min(a.Z, b.Z), Max: max(a.Z, b.Z)},
 	}
 }
 
@@ -65,10 +63,10 @@ func (a aabb) hit(r geo.Ray, rayLength util.Interval) bool {
 	tMin := (a.x.Min - r.Origin.X) / r.Direction.X
 	tMax := (a.x.Max - r.Origin.X) / r.Direction.X
 
-	t0 := math.Min(tMin, tMax)
-	t1 := math.Max(tMin, tMax)
-	rayLengthMin := math.Max(t0, rayLength.Min)
-	rayLengthMax := math.Min(t1, rayLength.Max)
+	t0 := min(tMin, tMax)
+	t1 := max(tMin, tMax)
+	rayLengthMin := max(t0, rayLength.Min)
+	rayLengthMax := min(t1, rayLength.Max)
 
 	if rayLengthMax <= rayLengthMin {
 		return false
@@ -77,10 +75,10 @@ func (a aabb) hit(r geo.Ray, rayLength util.Interval) bool {
 	tMin = (a.y.Min - r.Origin.Y) / r.Direction.Y
 	tMax = (a.y.Max - r.Origin.Y) / r.Direction.Y
 
-	t0 = math.Min(tMin, tMax)
-	t1 = math.Max(tMin, tMax)
-	rayLengthMin = math.Max(t0, rayLength.Min)
-	rayLengthMax = math.Min(t1, rayLength.Max)
+	t0 = min(tMin, tMax)
+	t1 = max(tMin, tMax)
+	rayLengthMin = max(t0, rayLength.Min)
+	rayLengthMax = min(t1, rayLength.Max)
 
 	if rayLengthMax <= rayLengthMin {
 		return false
@@ -89,10 +87,24 @@ func (a aabb) hit(r geo.Ray, rayLength util.Interval) bool {
 	tMin = (a.z.Min - r.Origin.Z) / r.Direction.Z
 	tMax = (a.z.Max - r.Origin.Z) / r.Direction.Z
 
-	t0 = math.Min(tMin, tMax)
-	t1 = math.Max(tMin, tMax)
-	rayLengthMin = math.Max(t0, rayLength.Min)
-	rayLengthMax = math.Min(t1, rayLength.Max)
+	t0 = min(tMin, tMax)
+	t1 = max(tMin, tMax)
+	rayLengthMin = max(t0, rayLength.Min)
+	rayLengthMax = min(t1, rayLength.Max)
 
 	return rayLengthMax > rayLengthMin
+}
+
+func min(v0, v1 float64) float64 {
+	if v0 < v1 {
+		return v0
+	}
+	return v1
+}
+
+func max(v0, v1 float64) float64 {
+	if v0 > v1 {
+		return v0
+	}
+	return v1
 }
