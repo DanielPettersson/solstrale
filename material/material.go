@@ -32,6 +32,8 @@ type PdfGeneratingMaterial interface {
 // NonPdfGeneratingMaterial is to be used by materials that do not use pdfs
 type NonPdfGeneratingMaterial struct{}
 
+// ScatteringPdf as NonPdfGeneratingMaterial is used for materials that do not generate a pdf
+// Just return 0
 func (m NonPdfGeneratingMaterial) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
 	return 0
 }
@@ -44,6 +46,7 @@ type LightEmittingMaterial interface {
 // NonLightEmittingMaterial is to be used by materials that do not emit light
 type NonLightEmittingMaterial struct{}
 
+// Emitted a non emitting material emits zero light
 func (m NonLightEmittingMaterial) Emitted(rec *HitRecord) geo.Vec3 {
 	return geo.ZeroVector
 }
@@ -66,13 +69,13 @@ func (m Lambertian) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord)
 	}
 }
 
+// ScatteringPdf returns the pdf value for a given rays for the lambertian material
 func (m Lambertian) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
 	cosTheta := rec.Normal.Dot(scattered.Direction.Unit())
 	if cosTheta < 0 {
 		return 0
-	} else {
-		return cosTheta / math.Pi
 	}
+	return cosTheta / math.Pi
 }
 
 // Metal is a material that is reflective
@@ -188,6 +191,7 @@ func (m Isotropic) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) 
 	}
 }
 
+// ScatteringPdf returns the pdf value for a given rays for the isotropic material
 func (m Isotropic) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
 	return 1 / (4 * math.Pi)
 }

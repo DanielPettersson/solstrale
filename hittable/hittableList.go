@@ -78,6 +78,7 @@ func (hl *HittableList) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	return hl.list[idx].RandomDirection(origin)
 }
 
+// IsLight returns if a hittable list itself is a light, which it is not
 func (hl *HittableList) IsLight() bool {
 	return false
 }

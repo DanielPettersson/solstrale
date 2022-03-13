@@ -150,7 +150,35 @@ func createBvhTestScene(traceSpec spec.TraceSpecification, useBvh bool, numSpher
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		Spec:            traceSpec,
 	}
+}
 
+func createSimpleTestScene(traceSpec spec.TraceSpecification, addLight bool) *spec.Scene {
+	camera := camera.New(
+		traceSpec.ImageWidth,
+		traceSpec.ImageHeight,
+		20,
+		0.1,
+		10,
+		geo.NewVec3(0, 0, 4),
+		geo.NewVec3(0, 0, 0),
+		geo.NewVec3(0, 1, 0),
+	)
+
+	world := hittable.NewHittableList()
+	yellow := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 0)}}
+	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
+
+	if addLight {
+		world.Add(hittable.NewSphere(geo.NewVec3(0, 100, 0), 20, light))
+	}
+	world.Add(hittable.NewSphere(geo.NewVec3(0, 0, 0), .5, yellow))
+
+	return &spec.Scene{
+		World:           &world,
+		Cam:             camera,
+		BackgroundColor: geo.NewVec3(.2, .3, .5),
+		Spec:            traceSpec,
+	}
 }
 
 func TestRenderScene(t *testing.T) {
@@ -210,6 +238,23 @@ func TestAbortRenderScene(t *testing.T) {
 	}
 
 	assert.Equal(t, 2, progressCount)
+}
+
+func TestRenderSceneWithoutLight(t *testing.T) {
+
+	traceSpec := spec.TraceSpecification{
+		ImageWidth:      10,
+		ImageHeight:     10,
+		SamplesPerPixel: 100,
+		MaxDepth:        50,
+	}
+	scene := createSimpleTestScene(traceSpec, false)
+
+	assert.Panics(t, func() {
+		solstrale.RayTrace(scene, make(chan spec.TraceProgress), make(chan bool, 1))
+
+	})
+
 }
 
 func BenchmarkBvh(b *testing.B) {

@@ -14,6 +14,8 @@ import (
 	"github.com/DanielPettersson/solstrale/spec"
 )
 
+// Renderer is a central part of the raytracer responsible for controlling the
+// process reporting back progress to the caller
 type Renderer struct {
 	scene  *spec.Scene
 	lights *hittable.HittableList
@@ -21,10 +23,15 @@ type Renderer struct {
 	abort  chan bool
 }
 
+// NewRenderer creates a new renderer given a scene and channels for communicating with the caller
 func NewRenderer(scene *spec.Scene, output chan spec.TraceProgress, abort chan bool) *Renderer {
 
 	lights := hittable.NewHittableList()
 	findLights(scene.World, &lights)
+
+	if len(lights.List()) == 0 {
+		panic("Scene should have at least one light")
+	}
 
 	return &Renderer{
 		scene:  scene,
