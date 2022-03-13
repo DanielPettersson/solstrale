@@ -11,7 +11,7 @@ Examples of output from renderer:
 
 ![example](https://user-images.githubusercontent.com/3603911/156641766-bc3ad13f-3395-4b63-831d-577c7538fae1.jpg)
 
-![nedladdning (3)](https://user-images.githubusercontent.com/3603911/151518004-ccfa67f9-44cd-4a83-86ff-8f55df6d583a.png)
+![Skärmbild från 2022-03-05 23-34-25](https://user-images.githubusercontent.com/3603911/158075822-d3af8cd5-bd88-4c99-9da1-8487eacbc631.png)
 
 ![nedladdning (2)](https://user-images.githubusercontent.com/3603911/151518050-2d7812c5-ad88-4ce9-8419-caac0654a6af.png)
 
@@ -19,4 +19,3 @@ Examples of output from renderer:
 
 ## Credits
 The ray tracing is based on the excellent [_Ray Tracing in One Weekend Book Series_](https://github.com/RayTracing/raytracing.github.io) by Peter Shirley
-
