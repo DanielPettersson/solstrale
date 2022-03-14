@@ -32,7 +32,7 @@ func (p CosinePdf) Value(direction geo.Vec3) float64 {
 	return math.Max(0, cosineTheta/math.Pi)
 }
 
-// Generates random direction for the CosinePdf shape
+// Generate random direction for the CosinePdf shape
 func (p CosinePdf) Generate() geo.Vec3 {
 	return p.uvw.Local(geo.RandomCosineDirection())
 }
@@ -50,7 +50,7 @@ func (p SpherePdf) Value(direction geo.Vec3) float64 {
 	return 1 / (4 * math.Pi)
 }
 
-// Generates random direction for the SpherePdf shape
+// Generate random direction for the SpherePdf shape
 func (p SpherePdf) Generate() geo.Vec3 {
 	return geo.RandomUnitVector()
 }
@@ -75,7 +75,7 @@ func (p MixturePdf) Value(direction geo.Vec3) float64 {
 	return .5*(*p.p0).Value(direction) + .5*(*p.p1).Value(direction)
 }
 
-// Generates random direction for the MixturePdf shape.
+// Generate random direction for the MixturePdf shape.
 // Which is randomly chosen between the two base pdfs.
 func (p MixturePdf) Generate() geo.Vec3 {
 	if random.RandomNormalFloat() < .5 {
