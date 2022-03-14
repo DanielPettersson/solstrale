@@ -13,15 +13,15 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/hittable"
 	"github.com/DanielPettersson/solstrale/material"
-	"github.com/DanielPettersson/solstrale/spec"
+	"github.com/DanielPettersson/solstrale/renderer"
 	"github.com/stretchr/testify/assert"
 	"github.com/vitali-fedulov/images3"
 )
 
-func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
+func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	camera := camera.New(
-		traceSpec.ImageWidth,
-		traceSpec.ImageHeight,
+		renderConfig.ImageWidth,
+		renderConfig.ImageHeight,
 		20,
 		0.1,
 		10,
@@ -104,19 +104,19 @@ func createTestScene(traceSpec spec.TraceSpecification) *spec.Scene {
 		),
 	)
 
-	return &spec.Scene{
+	return &renderer.Scene{
 		World:           &world,
 		Cam:             camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
-		Spec:            traceSpec,
+		RenderConfig:    renderConfig,
 	}
 
 }
 
-func createBvhTestScene(traceSpec spec.TraceSpecification, useBvh bool, numSpheres int) *spec.Scene {
+func createBvhTestScene(renderConfig renderer.RenderConfig, useBvh bool, numSpheres int) *renderer.Scene {
 	camera := camera.New(
-		traceSpec.ImageWidth,
-		traceSpec.ImageHeight,
+		renderConfig.ImageWidth,
+		renderConfig.ImageHeight,
 		20,
 		0.1,
 		10,
@@ -144,18 +144,18 @@ func createBvhTestScene(traceSpec spec.TraceSpecification, useBvh bool, numSpher
 		world.Add(hittable.NewBoundingVolumeHierarchy(balls))
 	}
 
-	return &spec.Scene{
+	return &renderer.Scene{
 		World:           &world,
 		Cam:             camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
-		Spec:            traceSpec,
+		RenderConfig:    renderConfig,
 	}
 }
 
-func createSimpleTestScene(traceSpec spec.TraceSpecification, addLight bool) *spec.Scene {
+func createSimpleTestScene(renderConfig renderer.RenderConfig, addLight bool) *renderer.Scene {
 	camera := camera.New(
-		traceSpec.ImageWidth,
-		traceSpec.ImageHeight,
+		renderConfig.ImageWidth,
+		renderConfig.ImageHeight,
 		20,
 		0.1,
 		10,
@@ -173,61 +173,75 @@ func createSimpleTestScene(traceSpec spec.TraceSpecification, addLight bool) *sp
 	}
 	world.Add(hittable.NewSphere(geo.NewVec3(0, 0, 0), .5, yellow))
 
-	return &spec.Scene{
+	return &renderer.Scene{
 		World:           &world,
 		Cam:             camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
-		Spec:            traceSpec,
+		RenderConfig:    renderConfig,
 	}
 }
 
 func TestRenderScene(t *testing.T) {
 
-	traceSpec := spec.TraceSpecification{
-		ImageWidth:      200,
-		ImageHeight:     100,
-		SamplesPerPixel: 100,
-		MaxDepth:        50,
-	}
-	scene := createTestScene(traceSpec)
-
-	renderProgress := make(chan spec.TraceProgress, 1)
-	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
-
-	var im image.Image
-	for p := range renderProgress {
-		im = p.RenderImage
+	shaders := map[string]renderer.Shader{
+		"pathTracing": renderer.PathTracingShader{MaxDepth: 50},
+		"simple":      renderer.SimpleShader{},
 	}
 
-	actualFile, err := os.Create("out_actual.png")
-	if err != nil {
-		panic(err)
-	}
-	if err = jpeg.Encode(actualFile, im, nil); err != nil {
-		log.Printf("failed to encode: %v", err)
-	}
-	actualFile.Close()
+	for shaderName, shader := range shaders {
 
-	actualImage, _ := images3.Open("out_actual.png")
-	expectedImage, _ := images3.Open("out_expected.png")
-	actualIcon := images3.Icon(actualImage, "out_actual.png")
-	expectedIcon := images3.Icon(expectedImage, "out_expected.png")
+		t.Run(shaderName, func(t *testing.T) {
 
-	// Image comparison.
-	assert.True(t, images3.Similar(actualIcon, expectedIcon))
+			expectedFileName := fmt.Sprintf("out_expected_%v.png", shaderName)
+			actualFileName := fmt.Sprintf("out_actual_%v.png", shaderName)
+
+			traceSpec := renderer.RenderConfig{
+				ImageWidth:      200,
+				ImageHeight:     100,
+				SamplesPerPixel: 100,
+				Shader:          shader,
+			}
+			scene := createTestScene(traceSpec)
+
+			renderProgress := make(chan renderer.RenderProgress, 1)
+			go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+
+			var im image.Image
+			for p := range renderProgress {
+				im = p.RenderImage
+			}
+
+			actualFile, err := os.Create(actualFileName)
+			if err != nil {
+				panic(err)
+			}
+			if err = jpeg.Encode(actualFile, im, nil); err != nil {
+				log.Printf("failed to encode: %v", err)
+			}
+			actualFile.Close()
+
+			actualImage, _ := images3.Open(actualFileName)
+			expectedImage, _ := images3.Open(expectedFileName)
+			actualIcon := images3.Icon(actualImage, actualFileName)
+			expectedIcon := images3.Icon(expectedImage, expectedFileName)
+
+			// Image comparison.
+			assert.True(t, images3.Similar(actualIcon, expectedIcon))
+		})
+	}
 }
 
 func TestAbortRenderScene(t *testing.T) {
 
-	traceSpec := spec.TraceSpecification{
+	traceSpec := renderer.RenderConfig{
 		ImageWidth:      10,
 		ImageHeight:     10,
 		SamplesPerPixel: 100,
-		MaxDepth:        50,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createTestScene(traceSpec)
 
-	renderProgress := make(chan spec.TraceProgress, 1)
+	renderProgress := make(chan renderer.RenderProgress, 1)
 	abort := make(chan bool, 1)
 	go solstrale.RayTrace(scene, renderProgress, abort)
 
@@ -242,16 +256,16 @@ func TestAbortRenderScene(t *testing.T) {
 
 func TestRenderSceneWithoutLight(t *testing.T) {
 
-	traceSpec := spec.TraceSpecification{
+	traceSpec := renderer.RenderConfig{
 		ImageWidth:      10,
 		ImageHeight:     10,
 		SamplesPerPixel: 100,
-		MaxDepth:        50,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createSimpleTestScene(traceSpec, false)
 
 	assert.Panics(t, func() {
-		solstrale.RayTrace(scene, make(chan spec.TraceProgress), make(chan bool, 1))
+		solstrale.RayTrace(scene, make(chan renderer.RenderProgress), make(chan bool, 1))
 
 	})
 
@@ -270,16 +284,16 @@ func BenchmarkBvh(b *testing.B) {
 
 			b.Run(fmt.Sprintf("%v spheres %v", numSpheres, bhvLabel), func(b *testing.B) {
 				b.StopTimer()
-				traceSpec := spec.TraceSpecification{
+				traceSpec := renderer.RenderConfig{
 					ImageWidth:      20,
 					ImageHeight:     10,
 					SamplesPerPixel: b.N,
-					MaxDepth:        50,
+					Shader:          renderer.PathTracingShader{MaxDepth: 50},
 				}
 				scene := createBvhTestScene(traceSpec, useBvh, numSpheres)
 				b.StartTimer()
 
-				renderProgress := make(chan spec.TraceProgress)
+				renderProgress := make(chan renderer.RenderProgress)
 				go solstrale.RayTrace(scene, renderProgress, make(chan bool))
 				for range renderProgress {
 				}

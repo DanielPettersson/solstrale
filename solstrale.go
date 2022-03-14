@@ -2,12 +2,11 @@
 package solstrale
 
 import (
-	"github.com/DanielPettersson/solstrale/internal/renderer"
-	"github.com/DanielPettersson/solstrale/spec"
+	"github.com/DanielPettersson/solstrale/renderer"
 )
 
 // RayTrace executes the ray tracing with the given scene and reports progress on
 // the output channel. Listens to abort channel for aborting a started ray trace operation
-func RayTrace(scene *spec.Scene, output chan spec.TraceProgress, abort chan bool) {
+func RayTrace(scene *renderer.Scene, output chan renderer.RenderProgress, abort chan bool) {
 	renderer.NewRenderer(scene, output, abort).Render()
 }
