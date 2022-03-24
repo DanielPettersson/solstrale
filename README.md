@@ -9,9 +9,9 @@ A basic ray tracer implemented in Golang. Nothing fancy.
 
 Examples of output from renderer:
 
-![example](https://user-images.githubusercontent.com/3603911/156641766-bc3ad13f-3395-4b63-831d-577c7538fae1.jpg)
-
 ![out2](https://user-images.githubusercontent.com/3603911/160006652-39fef265-cc9e-44e0-90db-b370f1daaf89.png)
+
+![example](https://user-images.githubusercontent.com/3603911/156641766-bc3ad13f-3395-4b63-831d-577c7538fae1.jpg)
 
 ![nedladdning (2)](https://user-images.githubusercontent.com/3603911/151518050-2d7812c5-ad88-4ce9-8419-caac0654a6af.png)
 
