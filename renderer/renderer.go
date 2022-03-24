@@ -51,7 +51,7 @@ func (r *Renderer) rayColor(ray geo.Ray, depth int) geo.Vec3 {
 }
 
 // Render executes the rendering of the image
-func (r *Renderer) Render() {
+func (r *Renderer) Render() (bool, []geo.Vec3) {
 
 	s := r.scene
 	imageWidth := s.RenderConfig.ImageWidth
@@ -63,8 +63,7 @@ func (r *Renderer) Render() {
 
 		select {
 		case <-r.abort:
-			close(r.output)
-			return
+			return true, nil
 		default:
 		}
 
@@ -110,7 +109,12 @@ func (r *Renderer) Render() {
 		}
 	}
 
-	close(r.output)
+	// Return the normalized pixels values
+	for i := 0; i < len(pixels); i++ {
+		pixels[i] = image.ToFloat(pixels[i], s.RenderConfig.SamplesPerPixel)
+	}
+
+	return false, pixels
 }
 
 func findLights(s hittable.Hittable, list *hittable.HittableList) {

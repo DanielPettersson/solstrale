@@ -13,6 +13,7 @@ import (
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/hittable"
 	"github.com/DanielPettersson/solstrale/material"
+	"github.com/DanielPettersson/solstrale/post"
 	"github.com/DanielPettersson/solstrale/renderer"
 	"github.com/stretchr/testify/assert"
 	"github.com/vitali-fedulov/images3"
@@ -200,6 +201,7 @@ func TestRenderScene(t *testing.T) {
 				ImageHeight:     100,
 				SamplesPerPixel: 100,
 				Shader:          shader,
+				PostProcessor:   post.NopPostProcessor{},
 			}
 			scene := createTestScene(traceSpec)
 
@@ -229,6 +231,46 @@ func TestRenderScene(t *testing.T) {
 			assert.True(t, images3.Similar(actualIcon, expectedIcon))
 		})
 	}
+}
+
+func TestRenderSceneWithOidn(t *testing.T) {
+
+	expectedFileName := fmt.Sprintf("out_expected_oidn.png")
+	actualFileName := fmt.Sprintf("out_actual_oidn.png")
+
+	traceSpec := renderer.RenderConfig{
+		ImageWidth:      200,
+		ImageHeight:     100,
+		SamplesPerPixel: 100,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
+		PostProcessor:   post.OidnPostProcessor{},
+	}
+	scene := createSimpleTestScene(traceSpec, true)
+
+	renderProgress := make(chan renderer.RenderProgress, 1)
+	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+
+	var im image.Image
+	for p := range renderProgress {
+		im = p.RenderImage
+	}
+
+	actualFile, err := os.Create(actualFileName)
+	if err != nil {
+		panic(err)
+	}
+	if err = jpeg.Encode(actualFile, im, nil); err != nil {
+		log.Printf("failed to encode: %v", err)
+	}
+	actualFile.Close()
+
+	actualImage, _ := images3.Open(actualFileName)
+	expectedImage, _ := images3.Open(expectedFileName)
+	actualIcon := images3.Icon(actualImage, actualFileName)
+	expectedIcon := images3.Icon(expectedImage, expectedFileName)
+
+	// Image comparison.
+	assert.True(t, images3.Similar(actualIcon, expectedIcon))
 }
 
 func TestAbortRenderScene(t *testing.T) {

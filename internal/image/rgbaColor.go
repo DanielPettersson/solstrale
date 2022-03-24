@@ -15,6 +15,19 @@ var (
 // ToRgba converts a color in a Vec3 that is the sum of a given of amounts of samples
 // to a RGBA color. Applies gamma correction to the output color.
 func ToRgba(col geo.Vec3, samplesPerPixel int) color.RGBA {
+	c := ToFloat(col, samplesPerPixel)
+
+	return color.RGBA{
+		byte(256 * c.X),
+		byte(256 * c.Y),
+		byte(256 * c.Z),
+		255,
+	}
+}
+
+// ToFloat converts a color in a Vec3 that is the sum of a given of amounts of samples
+// to a float color. Applies gamma correction to the output color.
+func ToFloat(col geo.Vec3, samplesPerPixel int) geo.Vec3 {
 	r := col.X
 	g := col.Y
 	b := col.Z
@@ -28,12 +41,7 @@ func ToRgba(col geo.Vec3, samplesPerPixel int) color.RGBA {
 
 	intensity := util.Interval{Min: 0, Max: 0.999}
 
-	return color.RGBA{
-		byte(256 * intensity.Clamp(r)),
-		byte(256 * intensity.Clamp(g)),
-		byte(256 * intensity.Clamp(b)),
-		255,
-	}
+	return geo.NewVec3(intensity.Clamp(r), intensity.Clamp(g), intensity.Clamp(b))
 }
 
 // RgbToVec3 converts rgb bytes to a Vec3 color

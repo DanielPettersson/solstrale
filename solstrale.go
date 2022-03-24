@@ -8,5 +8,19 @@ import (
 // RayTrace executes the ray tracing with the given scene and reports progress on
 // the output channel. Listens to abort channel for aborting a started ray trace operation
 func RayTrace(scene *renderer.Scene, output chan renderer.RenderProgress, abort chan bool) {
-	renderer.NewRenderer(scene, output, abort).Render()
+	aborted, pixels := renderer.NewRenderer(scene, output, abort).Render()
+
+	if scene.RenderConfig.PostProcessor != nil && !aborted {
+		postProcessed, image := scene.RenderConfig.PostProcessor.PostProcess(pixels, scene.RenderConfig.ImageWidth, scene.RenderConfig.ImageHeight)
+
+		if postProcessed {
+
+			output <- renderer.RenderProgress{
+				Progress:    1,
+				RenderImage: *image,
+			}
+		}
+	}
+
+	close(output)
 }

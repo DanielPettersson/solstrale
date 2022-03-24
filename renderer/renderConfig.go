@@ -6,6 +6,7 @@ import (
 	"github.com/DanielPettersson/solstrale/camera"
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/hittable"
+	"github.com/DanielPettersson/solstrale/post"
 )
 
 // RenderConfig is input to the ray tracer for how the image should be rendered
@@ -14,6 +15,7 @@ type RenderConfig struct {
 	ImageHeight     int
 	SamplesPerPixel int
 	Shader          Shader
+	PostProcessor   post.PostProcessor
 }
 
 // Scene contains all information needed to render an image
