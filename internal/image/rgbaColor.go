@@ -39,7 +39,7 @@ func ToFloat(col geo.Vec3, samplesPerPixel int) geo.Vec3 {
 	g = math.Sqrt(scale * g)
 	b = math.Sqrt(scale * b)
 
-	intensity := util.Interval{Min: 0, Max: 0.999}
+	intensity := util.Interval{Min: -0.999, Max: 0.999}
 
 	return geo.NewVec3(intensity.Clamp(r), intensity.Clamp(g), intensity.Clamp(b))
 }

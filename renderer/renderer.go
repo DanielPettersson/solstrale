@@ -1,12 +1,13 @@
 package renderer
 
 import (
+	"image"
 	"image/color"
 	"sync"
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/hittable"
-	"github.com/DanielPettersson/solstrale/internal/image"
+	im "github.com/DanielPettersson/solstrale/internal/image"
 	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/DanielPettersson/solstrale/random"
 )
@@ -14,10 +15,12 @@ import (
 // Renderer is a central part of the raytracer responsible for controlling the
 // process reporting back progress to the caller
 type Renderer struct {
-	scene  *Scene
-	lights *hittable.HittableList
-	output chan RenderProgress
-	abort  chan bool
+	scene        *Scene
+	lights       *hittable.HittableList
+	output       chan RenderProgress
+	abort        chan bool
+	albedoShader AlbedoShader
+	normalShader NormalShader
 }
 
 // NewRenderer creates a new renderer given a scene and channels for communicating with the caller
@@ -31,39 +34,54 @@ func NewRenderer(scene *Scene, output chan RenderProgress, abort chan bool) *Ren
 	}
 
 	return &Renderer{
-		scene:  scene,
-		lights: &lights,
-		output: output,
-		abort:  abort,
+		scene:        scene,
+		lights:       &lights,
+		output:       output,
+		abort:        abort,
+		albedoShader: AlbedoShader{},
+		normalShader: NormalShader{},
 	}
 }
 
-func (r *Renderer) rayColor(ray geo.Ray, depth int) geo.Vec3 {
+func (r *Renderer) rayColor(ray geo.Ray, depth int) (geo.Vec3, geo.Vec3, geo.Vec3) {
 
 	s := r.scene
 
 	hit, rec := s.World.Hit(ray, util.Interval{Min: 0.001, Max: util.Infinity})
 	if hit {
-		return s.RenderConfig.Shader.Shade(r, rec, ray, depth)
+		pixelColor := s.RenderConfig.Shader.Shade(r, rec, ray, depth)
+
+		var albedoColor geo.Vec3
+		var normalColor geo.Vec3
+
+		if r.scene.RenderConfig.PostProcessor != nil && depth == 0 {
+			albedoColor = r.albedoShader.Shade(r, rec, ray, depth)
+			normalColor = r.normalShader.Shade(r, rec, ray, depth)
+		}
+
+		return pixelColor, albedoColor, normalColor
 	}
 
-	return s.BackgroundColor
+	return s.BackgroundColor, s.BackgroundColor, geo.ZeroVector
 }
 
 // Render executes the rendering of the image
-func (r *Renderer) Render() (bool, []geo.Vec3) {
+func (r *Renderer) Render() {
 
 	s := r.scene
 	imageWidth := s.RenderConfig.ImageWidth
 	imageHeight := s.RenderConfig.ImageHeight
 
-	pixels := make([]geo.Vec3, imageWidth*imageHeight)
+	pixelColors := make([]geo.Vec3, imageWidth*imageHeight)
+	albedoColors := make([]geo.Vec3, imageWidth*imageHeight)
+	normalColors := make([]geo.Vec3, imageWidth*imageHeight)
 
 	for sample := 0; sample < s.RenderConfig.SamplesPerPixel; sample++ {
 
 		select {
 		case <-r.abort:
-			return true, nil
+			close(r.output)
+			return
 		default:
 		}
 
@@ -80,41 +98,56 @@ func (r *Renderer) Render() (bool, []geo.Vec3) {
 					u := (float64(x) + random.RandomNormalFloat()) / float64(imageWidth-1)
 					v := (float64(yy) + random.RandomNormalFloat()) / float64(imageHeight-1)
 					ray := s.Cam.GetRay(u, v)
-					pixelColor := r.rayColor(ray, 0)
+					pixelColor, albedoColor, normalColor := r.rayColor(ray, 0)
 
-					pixels[i] = pixels[i].Add(pixelColor)
+					pixelColors[i] = pixelColors[i].Add(pixelColor)
+
+					if r.scene.RenderConfig.PostProcessor != nil {
+						albedoColors[i] = albedoColors[i].Add(albedoColor)
+						normalColors[i] = normalColors[i].Add(normalColor)
+					}
 				}
 			}(y, &waitGroup)
 
 		}
 		waitGroup.Wait()
 
-		ret := make([]color.RGBA, len(pixels))
+		var image image.Image
 
-		for y := 0; y < imageHeight; y++ {
-			for x := 0; x < imageWidth; x++ {
+		if r.scene.RenderConfig.PostProcessor != nil {
 
-				i := (((imageHeight-1)-y)*imageWidth + x)
-				ret[i] = image.ToRgba(pixels[i], sample+1)
+			image = *r.scene.RenderConfig.PostProcessor.PostProcess(
+				pixelColors,
+				albedoColors,
+				normalColors,
+				imageWidth,
+				imageHeight,
+				sample+1,
+			)
+		} else {
+
+			ret := make([]color.RGBA, len(pixelColors))
+
+			for y := 0; y < imageHeight; y++ {
+				for x := 0; x < imageWidth; x++ {
+
+					i := (((imageHeight-1)-y)*imageWidth + x)
+					ret[i] = im.ToRgba(pixelColors[i], sample+1)
+				}
+			}
+			image = im.RenderImage{
+				ImageWidth:  imageWidth,
+				ImageHeight: imageHeight,
+				Data:        ret,
 			}
 		}
 
 		r.output <- RenderProgress{
-			Progress: float64(sample+1) / float64(s.RenderConfig.SamplesPerPixel),
-			RenderImage: image.RenderImage{
-				ImageWidth:  imageWidth,
-				ImageHeight: imageHeight,
-				Data:        ret,
-			},
+			Progress:    float64(sample+1) / float64(s.RenderConfig.SamplesPerPixel),
+			RenderImage: image,
 		}
 	}
-
-	// Return the normalized pixels values
-	for i := 0; i < len(pixels); i++ {
-		pixels[i] = image.ToFloat(pixels[i], s.RenderConfig.SamplesPerPixel)
-	}
-
-	return false, pixels
+	close(r.output)
 }
 
 func findLights(s hittable.Hittable, list *hittable.HittableList) {

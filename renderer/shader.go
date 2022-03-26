@@ -33,7 +33,8 @@ func (pts PathTracingShader) Shade(renderer *Renderer, rec *material.HitRecord, 
 	}
 
 	if scatterRecord.SkipPdf {
-		return scatterRecord.Attenuation.Mul(renderer.rayColor(scatterRecord.SkipPdfRay, depth+1))
+		rc, _, _ := renderer.rayColor(scatterRecord.SkipPdfRay, depth+1)
+		return scatterRecord.Attenuation.Mul(rc)
 	}
 
 	lightPtr := hittable.NewHittablePdf(renderer.lights, rec.HitPoint)
@@ -46,7 +47,8 @@ func (pts PathTracingShader) Shade(renderer *Renderer, rec *material.HitRecord, 
 	}
 	pdfVal := mixturePdf.Value(scattered.Direction)
 	scatteringPdf := rec.Material.ScatteringPdf(ray, rec, scattered)
-	scatterColor := scatterRecord.Attenuation.MulS(scatteringPdf).Mul(renderer.rayColor(scattered, depth+1)).DivS(pdfVal)
+	rc, _, _ := renderer.rayColor(scattered, depth+1)
+	scatterColor := scatterRecord.Attenuation.MulS(scatteringPdf).Mul(rc).DivS(pdfVal)
 
 	return filterInvalidColorValues(emittedColor.Add(scatterColor))
 }
@@ -71,11 +73,32 @@ func filterColorValue(val float64) float64 {
 	return val
 }
 
+// AlbedoShader outputs flat color
+type AlbedoShader struct{}
+
+// Shade calculates the color only attenuation color.
+func (AlbedoShader) Shade(renderer *Renderer, rec *material.HitRecord, ray geo.Ray, depth int) geo.Vec3 {
+	emittedColor := rec.Material.Emitted(rec)
+	scatter, scatterRecord := rec.Material.Scatter(ray, rec)
+	if !scatter {
+		return emittedColor
+	}
+	return scatterRecord.Attenuation
+}
+
+// NormalShader outputs the normals of the ray hitpoint
+type NormalShader struct{}
+
+// Shade calculates the color only using normal.
+func (NormalShader) Shade(renderer *Renderer, rec *material.HitRecord, ray geo.Ray, depth int) geo.Vec3 {
+	return rec.Normal.Unit()
+}
+
 // SimpleShader is a simple shader for quick rendering
 type SimpleShader struct{}
 
 // Shade calculates the color only using normal and attenuation color.
-func (ss SimpleShader) Shade(renderer *Renderer, rec *material.HitRecord, ray geo.Ray, depth int) geo.Vec3 {
+func (SimpleShader) Shade(renderer *Renderer, rec *material.HitRecord, ray geo.Ray, depth int) geo.Vec3 {
 	emittedColor := rec.Material.Emitted(rec)
 	scatter, scatterRecord := rec.Material.Scatter(ray, rec)
 	if !scatter {
