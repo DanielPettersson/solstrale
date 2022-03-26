@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"image"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 
@@ -52,29 +51,16 @@ func (p OidnPostProcessor) PostProcess(input []geo.Vec3, width, height int) (boo
 		},
 	}
 
-	oidnInputFile, err := ioutil.TempFile("", "*.pfm")
-	if err != nil {
-		log.Fatal(err)
-	}
+	oidnInputFile, _ := ioutil.TempFile("", "*.pfm")
 	defer os.Remove(oidnInputFile.Name())
-	oidnOutputFile, err := ioutil.TempFile("", "*.pfm")
-	if err != nil {
-		log.Fatal(err)
-	}
+	oidnOutputFile, _ := ioutil.TempFile("", "*.pfm")
 	defer os.Remove(oidnOutputFile.Name())
 
 	pfm.Encode(oidnInputFile, &hdrImg)
 
 	oidnCmd := exec.Command(p.OidnDenoiseExecutablePath, "--ldr", oidnInputFile.Name(), "-o", oidnOutputFile.Name())
-	err = oidnCmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	oidnCmd.Run()
 
-	image, _, err := image.Decode(oidnOutputFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	image, _, _ := image.Decode(oidnOutputFile)
 	return true, &image
 }
