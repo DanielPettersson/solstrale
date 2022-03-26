@@ -18,4 +18,3 @@ cmd/solstrale-profiler/solstrale-profiler
 out_actual_pathTracing.png
 out_actual_simple.png
 out_actual_oidn.png
-tests/oidnDenoise

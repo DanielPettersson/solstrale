@@ -197,9 +197,9 @@ func TestRenderScene(t *testing.T) {
 			actualFileName := fmt.Sprintf("out_actual_%v.png", shaderName)
 
 			traceSpec := renderer.RenderConfig{
-				ImageWidth:      200,
-				ImageHeight:     100,
-				SamplesPerPixel: 100,
+				ImageWidth:      100,
+				ImageHeight:     50,
+				SamplesPerPixel: 75,
 				Shader:          shader,
 				PostProcessor:   post.NopPostProcessor{},
 			}
@@ -243,7 +243,9 @@ func TestRenderSceneWithOidn(t *testing.T) {
 		ImageHeight:     100,
 		SamplesPerPixel: 100,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
-		PostProcessor:   post.OidnPostProcessor{},
+		PostProcessor: post.OidnPostProcessor{
+			OidnDenoiseExecutablePath: "./mock_oidn.sh",
+		},
 	}
 	scene := createSimpleTestScene(traceSpec, true)
 

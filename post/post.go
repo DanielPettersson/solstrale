@@ -15,18 +15,6 @@ import (
 	_ "github.com/mdouchement/hdr/codec/pfm"
 )
 
-var (
-	//go:embed oidnDenoise
-	oidnDenoiseExecutable []byte
-)
-
-func init() {
-	err := os.WriteFile("oidnDenoise", oidnDenoiseExecutable, 0755)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 // PostProcessor is responsible for taking the rendered image and transforming it
 type PostProcessor interface {
 	PostProcess(input []geo.Vec3, width, height int) (bool, *image.Image)
@@ -42,10 +30,11 @@ func (NopPostProcessor) PostProcess(input []geo.Vec3, width, height int) (bool, 
 
 // OidnPostProcessor delegates postprocessing of the rendered image to the Intel Open Image Denoise library
 type OidnPostProcessor struct {
+	OidnDenoiseExecutablePath string
 }
 
 // PostProcess runs an external command to oidn in a separate process
-func (OidnPostProcessor) PostProcess(input []geo.Vec3, width, height int) (bool, *image.Image) {
+func (p OidnPostProcessor) PostProcess(input []geo.Vec3, width, height int) (bool, *image.Image) {
 
 	inputData := make([]float64, len(input)*3)
 	for i := 0; i < len(input); i++ {
@@ -76,7 +65,7 @@ func (OidnPostProcessor) PostProcess(input []geo.Vec3, width, height int) (bool,
 
 	pfm.Encode(oidnInputFile, &hdrImg)
 
-	oidnCmd := exec.Command("./oidnDenoise", "--ldr", oidnInputFile.Name(), "-o", oidnOutputFile.Name())
+	oidnCmd := exec.Command(p.OidnDenoiseExecutablePath, "--ldr", oidnInputFile.Name(), "-o", oidnOutputFile.Name())
 	err = oidnCmd.Run()
 	if err != nil {
 		log.Fatal(err)
