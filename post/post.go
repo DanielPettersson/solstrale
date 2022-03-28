@@ -59,6 +59,7 @@ func (p OidnPostProcessor) PostProcess(
 		"--alb", albFile.Name(),
 		"--nrm", nrmFile.Name(),
 		"-o", outFile.Name(),
+		"--clean_aux",
 	)
 	oidnCmd.Run()
 

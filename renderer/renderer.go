@@ -71,12 +71,15 @@ func (r *Renderer) Render() {
 	s := r.scene
 	imageWidth := s.RenderConfig.ImageWidth
 	imageHeight := s.RenderConfig.ImageHeight
+	samplesPerPixel := s.RenderConfig.SamplesPerPixel
+	postProcessor := s.RenderConfig.PostProcessor
+	pixelCount := imageWidth * imageHeight
 
-	pixelColors := make([]geo.Vec3, imageWidth*imageHeight)
-	albedoColors := make([]geo.Vec3, imageWidth*imageHeight)
-	normalColors := make([]geo.Vec3, imageWidth*imageHeight)
+	pixelColors := make([]geo.Vec3, pixelCount)
+	albedoColors := make([]geo.Vec3, pixelCount)
+	normalColors := make([]geo.Vec3, pixelCount)
 
-	for sample := 0; sample < s.RenderConfig.SamplesPerPixel; sample++ {
+	for sample := 1; sample <= samplesPerPixel; sample++ {
 
 		select {
 		case <-r.abort:
@@ -102,7 +105,7 @@ func (r *Renderer) Render() {
 
 					pixelColors[i] = pixelColors[i].Add(pixelColor)
 
-					if r.scene.RenderConfig.PostProcessor != nil {
+					if postProcessor != nil {
 						albedoColors[i] = albedoColors[i].Add(albedoColor)
 						normalColors[i] = normalColors[i].Add(normalColor)
 					}
@@ -114,26 +117,21 @@ func (r *Renderer) Render() {
 
 		var image image.Image
 
-		if r.scene.RenderConfig.PostProcessor != nil {
+		if postProcessor != nil && sample == samplesPerPixel {
 
-			image = *r.scene.RenderConfig.PostProcessor.PostProcess(
+			image = *postProcessor.PostProcess(
 				pixelColors,
 				albedoColors,
 				normalColors,
 				imageWidth,
 				imageHeight,
-				sample+1,
+				sample,
 			)
 		} else {
 
-			ret := make([]color.RGBA, len(pixelColors))
-
-			for y := 0; y < imageHeight; y++ {
-				for x := 0; x < imageWidth; x++ {
-
-					i := (((imageHeight-1)-y)*imageWidth + x)
-					ret[i] = im.ToRgba(pixelColors[i], sample+1)
-				}
+			ret := make([]color.RGBA, pixelCount)
+			for i := 0; i < pixelCount; i++ {
+				ret[i] = im.ToRgba(pixelColors[i], sample)
 			}
 			image = im.RenderImage{
 				ImageWidth:  imageWidth,
@@ -143,7 +141,7 @@ func (r *Renderer) Render() {
 		}
 
 		r.output <- RenderProgress{
-			Progress:    float64(sample+1) / float64(s.RenderConfig.SamplesPerPixel),
+			Progress:    float64(sample) / float64(samplesPerPixel),
 			RenderImage: image,
 		}
 	}
