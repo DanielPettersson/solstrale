@@ -64,6 +64,7 @@ func (cm constantMedium) Hit(r geo.Ray, rayLength util.Interval) (bool, *materia
 	t := rec1.RayLength + hitDistance/rLength
 
 	hitRecord := material.HitRecord{
+		Normal:    geo.RandomUnitVector(),
 		HitPoint:  r.At(t),
 		Material:  cm.PhaseFunction,
 		RayLength: t,
