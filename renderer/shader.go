@@ -40,11 +40,11 @@ func (pts PathTracingShader) Shade(renderer *Renderer, rec *material.HitRecord, 
 	lightPtr := hittable.NewHittablePdf(renderer.lights, rec.HitPoint)
 	mixturePdf := pdf.NewMixturePdf(&lightPtr, scatterRecord.PdfPtr)
 
-	scattered := geo.Ray{
-		Origin:    rec.HitPoint,
-		Direction: mixturePdf.Generate(),
-		Time:      ray.Time,
-	}
+	scattered := geo.NewRay(
+		rec.HitPoint,
+		mixturePdf.Generate(),
+		ray.Time,
+	)
 	pdfVal := mixturePdf.Value(scattered.Direction)
 	scatteringPdf := rec.Material.ScatteringPdf(ray, rec, scattered)
 	rc, _, _ := renderer.rayColor(scattered, depth+1)

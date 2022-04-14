@@ -113,10 +113,11 @@ func (q quad) BoundingBox() aabb {
 }
 
 func (q quad) PdfValue(origin, direction geo.Vec3) float64 {
-	ray := geo.Ray{
-		Origin:    origin,
-		Direction: direction,
-	}
+	ray := geo.NewRay(
+		origin,
+		direction,
+		0,
+	)
 
 	hit, rec := q.Hit(ray, util.Interval{Min: 0.001, Max: util.Infinity})
 

@@ -72,7 +72,7 @@ func (ry rotationY) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 	direction.X = ry.cosTheta*r.Direction.X - ry.sinTheta*r.Direction.Z
 	direction.Z = ry.sinTheta*r.Direction.X + ry.cosTheta*r.Direction.Z
 
-	rotatedR := geo.Ray{Origin: origin, Direction: direction, Time: r.Time}
+	rotatedR := geo.NewRay(origin, direction, r.Time)
 
 	hit, rec := ry.object.Hit(rotatedR, rayLength)
 	if !hit {

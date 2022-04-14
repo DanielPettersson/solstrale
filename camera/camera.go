@@ -66,9 +66,9 @@ func (c Camera) GetRay(u float64, v float64) geo.Ray {
 	rDir := c.lowerLeftCorner.Add(c.horizontal.MulS(u))
 	rDir = rDir.Add(c.vertical.MulS(v))
 	rDir = rDir.Sub(c.origin).Sub(offset)
-	return geo.Ray{
-		Origin:    c.origin.Add(offset),
-		Direction: rDir,
-		Time:      random.RandomNormalFloat(),
-	}
+	return geo.NewRay(
+		c.origin.Add(offset),
+		rDir,
+		random.RandomNormalFloat(),
+	)
 }

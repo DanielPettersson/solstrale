@@ -90,11 +90,11 @@ type Metal struct {
 // The Fuzz property of the metal defines the randomness applied to the reflection
 func (m Metal) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 	reflected := rayIn.Direction.Unit().Reflect(rec.Normal)
-	scatterRay := geo.Ray{
-		Origin:    rec.HitPoint,
-		Direction: reflected.Add(geo.RandomInUnitSphere().MulS(m.Fuzz)),
-		Time:      rayIn.Time,
-	}
+	scatterRay := geo.NewRay(
+		rec.HitPoint,
+		reflected.Add(geo.RandomInUnitSphere().MulS(m.Fuzz)),
+		rayIn.Time,
+	)
 
 	return true, ScatterRecord{
 		Attenuation: m.Tex.Color(rec),
@@ -133,11 +133,11 @@ func (m Dielectric) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord)
 		direction = unitDirection.Refract(rec.Normal, refractionRatio)
 	}
 
-	scatterRay := geo.Ray{
-		Origin:    rec.HitPoint,
-		Direction: direction,
-		Time:      rayIn.Time,
-	}
+	scatterRay := geo.NewRay(
+		rec.HitPoint,
+		direction,
+		rayIn.Time,
+	)
 
 	return true, ScatterRecord{
 		Attenuation: m.Tex.Color(rec),

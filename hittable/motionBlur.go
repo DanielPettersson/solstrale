@@ -35,11 +35,11 @@ func (m motionBlur) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.Hit
 
 	offset := m.blurDirection.MulS(r.Time)
 
-	offsetRay := geo.Ray{
-		Origin:    r.Origin.Sub(offset),
-		Direction: r.Direction,
-		Time:      r.Time,
-	}
+	offsetRay := geo.NewRay(
+		r.Origin.Sub(offset),
+		r.Direction,
+		r.Time,
+	)
 
 	hit, record := m.blurredHittable.Hit(offsetRay, rayLength)
 	if record != nil {

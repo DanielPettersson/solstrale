@@ -29,11 +29,11 @@ func NewTranslation(
 
 func (t translation) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
 
-	offsetRay := geo.Ray{
-		Origin:    r.Origin.Sub(t.offset),
-		Direction: r.Direction,
-		Time:      r.Time,
-	}
+	offsetRay := geo.NewRay(
+		r.Origin.Sub(t.offset),
+		r.Direction,
+		r.Time,
+	)
 
 	hit, record := t.object.Hit(offsetRay, rayLength)
 	if record != nil {

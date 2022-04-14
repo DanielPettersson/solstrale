@@ -103,10 +103,11 @@ func (s sphere) BoundingBox() aabb {
 }
 
 func (s sphere) PdfValue(origin, direction geo.Vec3) float64 {
-	ray := geo.Ray{
-		Origin:    origin,
-		Direction: direction,
-	}
+	ray := geo.NewRay(
+		origin,
+		direction,
+		0,
+	)
 
 	hit, _ := s.Hit(ray, util.Interval{Min: 0.001, Max: util.Infinity})
 
