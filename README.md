@@ -13,8 +13,7 @@ Examples of output from renderer:
 
 ![example](https://user-images.githubusercontent.com/3603911/156641766-bc3ad13f-3395-4b63-831d-577c7538fae1.jpg)
 
-![nedladdning (2)](https://user-images.githubusercontent.com/3603911/151518050-2d7812c5-ad88-4ce9-8419-caac0654a6af.png)
-
+![Skärmbild från 2022-04-14 21-02-43](https://user-images.githubusercontent.com/3603911/163459215-36e5738d-4a71-4d20-802b-839c6fde995a.png)
 
 
 ## Credits
