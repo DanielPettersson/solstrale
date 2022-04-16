@@ -83,11 +83,11 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 		geo.NewVec3(0, 1, 0),
 	))
 
-	balls := hittable.NewHittableList()
+	balls := []hittable.Hittable{}
 	for i := 0.; i < 1; i += .2 {
 		for j := 0.; j < 1; j += .2 {
 			for k := 0.; k < 1; k += .2 {
-				balls.Add(hittable.NewSphere(geo.NewVec3(i, j+.05, k+.8), .05, redMat))
+				balls = append(balls, hittable.NewSphere(geo.NewVec3(i, j+.05, k+.8), .05, redMat))
 			}
 		}
 	}
@@ -135,12 +135,12 @@ func createBvhTestScene(renderConfig renderer.RenderConfig, useBvh bool, numSphe
 	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
 	world.Add(hittable.NewSphere(geo.NewVec3(0, 4, 10), 4, light))
 
-	triangles := hittable.NewHittableList()
+	triangles := []hittable.Hittable{}
 	for x := 0.; x < float64(numSpheres); x += 1 {
 		cx := x - float64(numSpheres)/2
 		s := hittable.NewTriangle(geo.NewVec3(cx, -.5, 0), geo.NewVec3(cx+1, -.5, 0), geo.NewVec3(cx+.5, .5, 0), yellow)
 		if useBvh {
-			triangles.Add(s)
+			triangles = append(triangles, s)
 		} else {
 			world.Add(s)
 		}
@@ -178,6 +178,51 @@ func createSimpleTestScene(renderConfig renderer.RenderConfig, addLight bool) *r
 		world.Add(hittable.NewSphere(geo.NewVec3(0, 100, 0), 20, light))
 	}
 	world.Add(hittable.NewSphere(geo.NewVec3(0, 0, 0), .5, yellow))
+
+	return &renderer.Scene{
+		World:           &world,
+		Cam:             camera,
+		BackgroundColor: geo.NewVec3(.2, .3, .5),
+		RenderConfig:    renderConfig,
+	}
+}
+
+func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
+	camera := camera.New(
+		renderConfig.ImageWidth,
+		renderConfig.ImageHeight,
+		40,
+		0.1,
+		10,
+		geo.NewVec3(-3, 0, 10),
+		geo.NewVec3(0, -.5, 0),
+		geo.NewVec3(0, 1, 0),
+	)
+
+	world := hittable.NewHittableList()
+	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
+
+	f, _ := os.Open("tex.jpg")
+	defer f.Close()
+	image, _, _ := image.Decode(f)
+	imageTex := material.ImageTexture{
+		Image:  image,
+		Mirror: false,
+	}
+
+	groundMaterial := material.Lambertian{Tex: imageTex}
+
+	world.Add(hittable.NewSphere(geo.NewVec3(10, 40, 40), 15, light))
+	model, err := hittable.NewObjModel("al.obj")
+	if err != nil {
+		panic(err)
+	}
+	world.Add(model)
+
+	world.Add(hittable.NewQuad(
+		geo.NewVec3(-10, -3.25, -15), geo.NewVec3(20, 0, 0), geo.NewVec3(0, 0, 20),
+		groundMaterial,
+	))
 
 	return &renderer.Scene{
 		World:           &world,
@@ -252,6 +297,45 @@ func TestRenderSceneWithOidn(t *testing.T) {
 		},
 	}
 	scene := createSimpleTestScene(traceSpec, true)
+
+	renderProgress := make(chan renderer.RenderProgress, 1)
+	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+
+	var im image.Image
+	for p := range renderProgress {
+		im = p.RenderImage
+	}
+
+	actualFile, err := os.Create(actualFileName)
+	if err != nil {
+		panic(err)
+	}
+	if err = jpeg.Encode(actualFile, im, nil); err != nil {
+		log.Printf("failed to encode: %v", err)
+	}
+	actualFile.Close()
+
+	actualImage, _ := images3.Open(actualFileName)
+	expectedImage, _ := images3.Open(expectedFileName)
+	actualIcon := images3.Icon(actualImage, actualFileName)
+	expectedIcon := images3.Icon(expectedImage, expectedFileName)
+
+	// Image comparison.
+	assert.True(t, images3.Similar(actualIcon, expectedIcon))
+}
+
+func TestRenderObj(t *testing.T) {
+
+	expectedFileName := fmt.Sprintf("out_expected_obj.png")
+	actualFileName := fmt.Sprintf("out_actual_obj.png")
+
+	traceSpec := renderer.RenderConfig{
+		ImageWidth:      400,
+		ImageHeight:     400,
+		SamplesPerPixel: 50,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
+	}
+	scene := createObjScene(traceSpec)
 
 	renderProgress := make(chan renderer.RenderProgress, 1)
 	go solstrale.RayTrace(scene, renderProgress, make(chan bool))

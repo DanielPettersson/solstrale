@@ -21,13 +21,13 @@ type bvh struct {
 // The bounding Volume Hierarchy sorts the hittables in a binary tree
 // where each node has a bounding box.
 // This is to optimize the ray intersection search when having many hittable objects.
-func NewBoundingVolumeHierarchy(hl HittableList) Hittable {
+func NewBoundingVolumeHierarchy(list []Hittable) Hittable {
 
-	if len(hl.list) == 0 {
+	if len(list) == 0 {
 		panic("Cannot create a Bvh with empty list of objects")
 	}
 
-	return _createBvh(hl.list, 0, len(hl.list))
+	return _createBvh(list, 0, len(list))
 }
 
 func _createBvh(list []Hittable, start, end int) *bvh {

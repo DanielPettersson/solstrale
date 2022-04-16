@@ -9,6 +9,6 @@ import (
 
 func TestBvhWithEmptyList(t *testing.T) {
 	assert.Panics(t, func() {
-		hittable.NewBoundingVolumeHierarchy(hittable.NewHittableList())
+		hittable.NewBoundingVolumeHierarchy([]hittable.Hittable{})
 	})
 }
