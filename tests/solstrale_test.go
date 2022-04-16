@@ -55,7 +55,7 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	checkerMat := material.Lambertian{Tex: checkerTex}
 	glassMat := material.Dielectric{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)}, IndexOfRefraction: 1.5}
 	goldMat := material.Metal{Tex: noiseTex, Fuzz: .2}
-	lightMat := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(5, 5, 5)}}
+	lightMat := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
 	fogMat := material.Isotropic{Albedo: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)}}
 	redMat := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 0, 0)}}
 
@@ -91,8 +91,11 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 			}
 		}
 	}
-
 	world.Add(hittable.NewBoundingVolumeHierarchy(balls))
+
+	world.Add(hittable.NewTriangle(geo.NewVec3(1, .1, 2), geo.NewVec3(3, .1, 2), geo.NewVec3(2, .1, 1), redMat))
+
+	// Lights
 
 	world.Add(hittable.NewSphere(geo.NewVec3(10, 5, 10), 10, lightMat))
 	world.Add(
@@ -104,6 +107,7 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 			geo.NewVec3(-1, 10, -1),
 		),
 	)
+	world.Add(hittable.NewTriangle(geo.NewVec3(-2, 1, -3), geo.NewVec3(0, 1, -3), geo.NewVec3(-1, 2, -3), lightMat))
 
 	return &renderer.Scene{
 		World:           &world,
@@ -129,20 +133,21 @@ func createBvhTestScene(renderConfig renderer.RenderConfig, useBvh bool, numSphe
 	world := hittable.NewHittableList()
 	yellow := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 0)}}
 	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
-	world.Add(hittable.NewSphere(geo.NewVec3(0, 100, 0), 20, light))
+	world.Add(hittable.NewSphere(geo.NewVec3(0, 4, 10), 4, light))
 
-	balls := hittable.NewHittableList()
+	triangles := hittable.NewHittableList()
 	for x := 0.; x < float64(numSpheres); x += 1 {
-		s := hittable.NewSphere(geo.NewVec3(x-float64(numSpheres)/2, 0, 0), .5, yellow)
+		cx := x - float64(numSpheres)/2
+		s := hittable.NewTriangle(geo.NewVec3(cx, -.5, 0), geo.NewVec3(cx+1, -.5, 0), geo.NewVec3(cx+.5, .5, 0), yellow)
 		if useBvh {
-			balls.Add(s)
+			triangles.Add(s)
 		} else {
 			world.Add(s)
 		}
 	}
 
 	if useBvh {
-		world.Add(hittable.NewBoundingVolumeHierarchy(balls))
+		world.Add(hittable.NewBoundingVolumeHierarchy(triangles))
 	}
 
 	return &renderer.Scene{
@@ -197,8 +202,8 @@ func TestRenderScene(t *testing.T) {
 			actualFileName := fmt.Sprintf("out_actual_%v.png", shaderName)
 
 			traceSpec := renderer.RenderConfig{
-				ImageWidth:      100,
-				ImageHeight:     50,
+				ImageWidth:      200,
+				ImageHeight:     100,
 				SamplesPerPixel: 75,
 				Shader:          shader,
 			}

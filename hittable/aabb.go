@@ -12,11 +12,19 @@ type aabb struct {
 	x, y, z util.Interval
 }
 
-func createAabbFromPoints(a geo.Vec3, b geo.Vec3) aabb {
+func createAabbFromPoints(a, b geo.Vec3) aabb {
 	return aabb{
 		util.Interval{Min: math.Min(a.X, b.X), Max: math.Max(a.X, b.X)},
 		util.Interval{Min: math.Min(a.Y, b.Y), Max: math.Max(a.Y, b.Y)},
 		util.Interval{Min: math.Min(a.Z, b.Z), Max: math.Max(a.Z, b.Z)},
+	}
+}
+
+func createAabbFrom3Points(a, b, c geo.Vec3) aabb {
+	return aabb{
+		util.Interval{Min: math.Min(math.Min(a.X, b.X), c.X), Max: math.Max(math.Max(a.X, b.X), c.X)},
+		util.Interval{Min: math.Min(math.Min(a.Y, b.Y), c.Y), Max: math.Max(math.Max(a.Y, b.Y), c.Y)},
+		util.Interval{Min: math.Min(math.Min(a.Z, b.Z), c.Z), Max: math.Max(math.Max(a.Z, b.Z), c.Z)},
 	}
 }
 
