@@ -12,6 +12,9 @@ import (
 type objModel struct {
 }
 
+// NewObjModel reads a Wavefront .obj file and creates a bvh containing
+// all triangles. It also read materials from the referred .mat file.
+// Support for colored and textured lambertian materials.
 func NewObjModel(path string) (Hittable, error) {
 
 	options := &gwob.ObjParserOptions{IgnoreNormals: true}
