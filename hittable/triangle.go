@@ -13,15 +13,25 @@ type triangle struct {
 	v0     geo.Vec3
 	v0v1   geo.Vec3
 	v0v2   geo.Vec3
+	tu0    float64
+	tv0    float64
+	tu1    float64
+	tv1    float64
+	tu2    float64
+	tv2    float64
 	normal geo.Vec3
 	mat    material.Material
 	bBox   aabb
 	area   float64
 }
 
+func NewTriangle(v0, v1, v2 geo.Vec3, mat material.Material) Hittable {
+	return NewTriangleWithTexCoords(v0, v1, v2, 0, 0, 0, 0, 0, 0, mat)
+}
+
 // NewTriangle creates a new triangle flat hittable object
 // A counter clockwise winding is expected
-func NewTriangle(v0, v1, v2 geo.Vec3, mat material.Material) Hittable {
+func NewTriangleWithTexCoords(v0, v1, v2 geo.Vec3, tu0, tv0, tu1, tv1, tu2, tv2 float64, mat material.Material) Hittable {
 	bBox := createAabbFrom3Points(v0, v1, v2).padIfNeeded()
 	v0v1 := v1.Sub(v0)
 	v0v2 := v2.Sub(v0)
@@ -33,6 +43,12 @@ func NewTriangle(v0, v1, v2 geo.Vec3, mat material.Material) Hittable {
 		v0,
 		v0v1,
 		v0v2,
+		tu0,
+		tv0,
+		tu1,
+		tv1,
+		tu2,
+		tv2,
 		normal,
 		mat,
 		bBox,
@@ -72,6 +88,10 @@ func (t triangle) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRe
 		return false, nil
 	}
 
+	uv0 := (1 - u - v)
+	uu := uv0*t.tu0 + u*t.tu1 + v*t.tu2
+	vv := uv0*t.tv0 + u*t.tv1 + v*t.tv2
+
 	normal := t.normal
 	frontFace := r.Direction.Dot(normal) < 0
 	if !frontFace {
@@ -82,8 +102,8 @@ func (t triangle) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRe
 		Normal:    normal,
 		Material:  t.mat,
 		RayLength: tt,
-		U:         u,
-		V:         v,
+		U:         uu,
+		V:         vv,
 		FrontFace: frontFace,
 	}
 

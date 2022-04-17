@@ -191,16 +191,23 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	camera := camera.New(
 		renderConfig.ImageWidth,
 		renderConfig.ImageHeight,
-		40,
-		0.1,
-		10,
-		geo.NewVec3(-3, 0, 10),
-		geo.NewVec3(0, -.5, 0),
+		30,
+		20,
+		260,
+		geo.NewVec3(-250, 30, 150),
+		geo.NewVec3(-50, 0, 0),
 		geo.NewVec3(0, 1, 0),
 	)
 
 	world := hittable.NewHittableList()
-	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
+	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(15, 15, 15)}}
+
+	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
+	model, err := hittable.NewObjModel("spider/spider.obj")
+	if err != nil {
+		panic(err)
+	}
+	world.Add(model)
 
 	f, _ := os.Open("tex.jpg")
 	defer f.Close()
@@ -211,18 +218,7 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	}
 
 	groundMaterial := material.Lambertian{Tex: imageTex}
-
-	world.Add(hittable.NewSphere(geo.NewVec3(10, 40, 40), 15, light))
-	model, err := hittable.NewObjModel("al.obj")
-	if err != nil {
-		panic(err)
-	}
-	world.Add(model)
-
-	world.Add(hittable.NewQuad(
-		geo.NewVec3(-10, -3.25, -15), geo.NewVec3(20, 0, 0), geo.NewVec3(0, 0, 20),
-		groundMaterial,
-	))
+	world.Add(hittable.NewQuad(geo.NewVec3(-200, -30, -200), geo.NewVec3(400, 0, 0), geo.NewVec3(0, 0, 400), groundMaterial))
 
 	return &renderer.Scene{
 		World:           &world,
@@ -330,9 +326,9 @@ func TestRenderObj(t *testing.T) {
 	actualFileName := fmt.Sprintf("out_actual_obj.png")
 
 	traceSpec := renderer.RenderConfig{
-		ImageWidth:      400,
-		ImageHeight:     400,
-		SamplesPerPixel: 50,
+		ImageWidth:      200,
+		ImageHeight:     100,
+		SamplesPerPixel: 20,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createObjScene(traceSpec)
