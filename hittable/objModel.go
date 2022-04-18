@@ -9,13 +9,21 @@ import (
 	"github.com/udhos/gwob"
 )
 
-type objModel struct {
-}
-
 // NewObjModel reads a Wavefront .obj file and creates a bvh containing
 // all triangles. It also read materials from the referred .mat file.
 // Support for colored and textured lambertian materials.
 func NewObjModel(path string) (Hittable, error) {
+	return NewObjModelWithDefaultMaterial(
+		path,
+		material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)}},
+	)
+}
+
+// NewObjModelWithDefaultMaterial reads a Wavefront .obj file and creates a bvh containing
+// all triangles. It also read materials from the referred .mat file.
+// Support for colored and textured lambertian materials.
+// Applies supplied default material if none in model
+func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Material) (Hittable, error) {
 
 	options := &gwob.ObjParserOptions{IgnoreNormals: true}
 	object, err := gwob.NewObjFromFile(path, options)
@@ -24,8 +32,10 @@ func NewObjModel(path string) (Hittable, error) {
 	}
 
 	mats := map[string]material.Material{
-		"_": material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)}},
+		"_": defaultMaterial,
 	}
+
+	// Read all materials if a library is defined
 
 	if object.Mtllib != "" {
 		materialLib, err := gwob.ReadMaterialLibFromFile(object.Mtllib, options)
@@ -46,8 +56,8 @@ func NewObjModel(path string) (Hittable, error) {
 				}
 				mats[name] = material.Lambertian{Tex: material.ImageTexture{Image: image}}
 
-				// Otherwise a color other than white
-			} else if m.Kd[0] != 1 || m.Kd[1] != 1 || m.Kd[2] != 1 {
+				// Otherwise use the diffuse color for a lambertian
+			} else {
 
 				mats[name] = material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(
 					float64(m.Kd[0]),
@@ -61,6 +71,8 @@ func NewObjModel(path string) (Hittable, error) {
 	triangles := make([]Hittable, 0, object.NumberOfElements())
 
 	for _, group := range object.Groups {
+
+		// For each group in object, read all triangles and set material
 
 		for i := group.IndexBegin; i < group.IndexBegin+group.IndexCount; i += 3 {
 
@@ -77,6 +89,8 @@ func NewObjModel(path string) (Hittable, error) {
 			v2 := geo.NewVec3(float64(x), float64(y), float64(z))
 
 			var tu0, tv0, tu1, tv1, tu2, tv2 float64
+
+			// Read texture coordinates if any
 
 			if object.TextCoordFound {
 				tu0, tv0 = textureCoordinates(*object, object.Indices[i])

@@ -228,6 +228,37 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	}
 }
 
+func createObjWithDefaultMaterialScene(renderConfig renderer.RenderConfig) *renderer.Scene {
+	camera := camera.New(
+		renderConfig.ImageWidth,
+		renderConfig.ImageHeight,
+		30,
+		0,
+		1,
+		geo.NewVec3(2, 1, 3),
+		geo.NewVec3(0, 0, 0),
+		geo.NewVec3(0, 1, 0),
+	)
+
+	world := hittable.NewHittableList()
+	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(15, 15, 15)}}
+	red := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 0, 0)}}
+
+	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
+	model, err := hittable.NewObjModelWithDefaultMaterial("box.obj", red)
+	if err != nil {
+		panic(err)
+	}
+	world.Add(model)
+
+	return &renderer.Scene{
+		World:           &world,
+		Cam:             camera,
+		BackgroundColor: geo.NewVec3(.2, .3, .5),
+		RenderConfig:    renderConfig,
+	}
+}
+
 func TestRenderScene(t *testing.T) {
 
 	shaders := map[string]renderer.Shader{
@@ -245,7 +276,7 @@ func TestRenderScene(t *testing.T) {
 			traceSpec := renderer.RenderConfig{
 				ImageWidth:      200,
 				ImageHeight:     100,
-				SamplesPerPixel: 75,
+				SamplesPerPixel: 25,
 				Shader:          shader,
 			}
 			scene := createTestScene(traceSpec)
@@ -332,6 +363,45 @@ func TestRenderObj(t *testing.T) {
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createObjScene(traceSpec)
+
+	renderProgress := make(chan renderer.RenderProgress, 1)
+	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+
+	var im image.Image
+	for p := range renderProgress {
+		im = p.RenderImage
+	}
+
+	actualFile, err := os.Create(actualFileName)
+	if err != nil {
+		panic(err)
+	}
+	if err = jpeg.Encode(actualFile, im, nil); err != nil {
+		log.Printf("failed to encode: %v", err)
+	}
+	actualFile.Close()
+
+	actualImage, _ := images3.Open(actualFileName)
+	expectedImage, _ := images3.Open(expectedFileName)
+	actualIcon := images3.Icon(actualImage, actualFileName)
+	expectedIcon := images3.Icon(expectedImage, expectedFileName)
+
+	// Image comparison.
+	assert.True(t, images3.Similar(actualIcon, expectedIcon))
+}
+
+func TestRenderObjWithDefaultMaterial(t *testing.T) {
+
+	expectedFileName := fmt.Sprintf("out_expected_obj_default.png")
+	actualFileName := fmt.Sprintf("out_actual_obj_default.png")
+
+	traceSpec := renderer.RenderConfig{
+		ImageWidth:      200,
+		ImageHeight:     100,
+		SamplesPerPixel: 50,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
+	}
+	scene := createObjWithDefaultMaterialScene(traceSpec)
 
 	renderProgress := make(chan renderer.RenderProgress, 1)
 	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
