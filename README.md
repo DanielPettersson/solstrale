@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/DanielPettersson/solstrale)](https://goreportcard.com/report/github.com/DanielPettersson/solstrale)
 ------
 # Solstråle
-A basic ray tracer implemented in Golang. Nothing fancy.
+A path tracer implemented in Golang.
 
 Examples of output from renderer:
 
@@ -17,5 +17,5 @@ Examples of output from renderer:
 
 
 ## Credits
-The ray tracing is based on the excellent [_Ray Tracing in One Weekend Book Series_](https://github.com/RayTracing/raytracing.github.io) by Peter Shirley
+The ray tracing is mostly based on the excellent [_Ray Tracing in One Weekend Book Series_](https://github.com/RayTracing/raytracing.github.io) by Peter Shirley
 
