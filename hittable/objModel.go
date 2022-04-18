@@ -30,7 +30,7 @@ func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Materi
 	options := &gwob.ObjParserOptions{IgnoreNormals: true}
 	object, err := gwob.NewObjFromFile(path, options)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to parse obj file: %v", err.Error()))
+		return nil, errors.New(fmt.Sprintf("Failed to read obj file: %v", err.Error()))
 	}
 
 	mats := map[string]material.Material{
@@ -42,7 +42,7 @@ func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Materi
 	if object.Mtllib != "" {
 		materialLib, err := gwob.ReadMaterialLibFromFile(object.Mtllib, options)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(fmt.Sprintf("Failed to read material file: %v", err.Error()))
 		}
 
 		for name, m := range materialLib.Lib {
@@ -50,11 +50,14 @@ func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Materi
 			// If a texture
 			if m.MapKd != "" {
 
-				f, _ := os.Open(m.MapKd)
+				f, err := os.Open(m.MapKd)
+				if err != nil {
+					return nil, errors.New(fmt.Sprintf("Failed to open image file: %v", err.Error()))
+				}
 				defer f.Close()
 				image, _, err := image.Decode(f)
 				if err != nil {
-					return nil, err
+					return nil, errors.New(fmt.Sprintf("Failed to read image file: %v", err.Error()))
 				}
 				mats[name] = material.Lambertian{Tex: material.ImageTexture{Image: image}}
 
