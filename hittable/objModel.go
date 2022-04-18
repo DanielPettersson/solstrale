@@ -1,6 +1,8 @@
 package hittable
 
 import (
+	"errors"
+	"fmt"
 	"image"
 	"os"
 
@@ -28,7 +30,7 @@ func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Materi
 	options := &gwob.ObjParserOptions{IgnoreNormals: true}
 	object, err := gwob.NewObjFromFile(path, options)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("Failed to parse obj file: %v", err.Error()))
 	}
 
 	mats := map[string]material.Material{
