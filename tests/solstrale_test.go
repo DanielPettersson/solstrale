@@ -203,7 +203,7 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(15, 15, 15)}}
 
 	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
-	model, err := hittable.NewObjModel("spider/spiderr.obj")
+	model, err := hittable.NewObjModel("spider/spider.obj")
 	if err != nil {
 		panic(err)
 	}
