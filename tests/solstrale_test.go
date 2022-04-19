@@ -46,10 +46,7 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	f, _ := os.Open("tex.jpg")
 	defer f.Close()
 	image, _, _ := image.Decode(f)
-	imageTex := material.ImageTexture{
-		Image:  image,
-		Mirror: false,
-	}
+	imageTex := material.NewImageTexture(image, false)
 
 	groundMaterial := material.Lambertian{Tex: imageTex}
 	checkerMat := material.Lambertian{Tex: checkerTex}
@@ -207,7 +204,7 @@ func createUvScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	f, _ := os.Open("checker.jpg")
 	defer f.Close()
 	checkerImg, _, _ := image.Decode(f)
-	checkerMat := material.Lambertian{Tex: material.ImageTexture{Image: checkerImg}}
+	checkerMat := material.Lambertian{Tex: material.NewImageTexture(checkerImg, false)}
 
 	world.Add(hittable.NewTriangleWithTexCoords(
 		geo.NewVec3(-1, 0, 0),
@@ -252,10 +249,7 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	f, _ := os.Open("tex.jpg")
 	defer f.Close()
 	image, _, _ := image.Decode(f)
-	imageTex := material.ImageTexture{
-		Image:  image,
-		Mirror: false,
-	}
+	imageTex := material.NewImageTexture(image, false)
 
 	groundMaterial := material.Lambertian{Tex: imageTex}
 	world.Add(hittable.NewQuad(geo.NewVec3(-200, -30, -200), geo.NewVec3(400, 0, 0), geo.NewVec3(0, 0, 400), groundMaterial))
@@ -410,7 +404,7 @@ func TestAbortRenderScene(t *testing.T) {
 		abort <- true
 	}
 
-	assert.Equal(t, 2, progressCount)
+	assert.Equal(t, 1, progressCount)
 }
 
 func TestRenderSceneWithoutLight(t *testing.T) {

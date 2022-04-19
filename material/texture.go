@@ -48,25 +48,36 @@ func (ct CheckerTexture) Color(rec *HitRecord) geo.Vec3 {
 	return ct.Odd.Color(rec)
 }
 
-// ImageTexture is a texture that uses image data for color
-type ImageTexture struct {
-	Image  im.Image
-	Mirror bool
+type imageTexture struct {
+	image      im.Image
+	mirror     bool
+	maxX, maxY float64
+}
+
+// NewImageTexture creates a texture that uses image data for color
+func NewImageTexture(image im.Image, mirror bool) Texture {
+	max := image.Bounds().Max
+	return imageTexture{
+		image:  image,
+		mirror: mirror,
+		maxX:   float64(max.X - 1),
+		maxY:   float64(max.Y - 1),
+	}
 }
 
 // Color returns the color in the image data that corresponds to the UV coordinate of the hittable
-func (it ImageTexture) Color(rec *HitRecord) geo.Vec3 {
+// If UV coordinates from hit record is <0 or >1 texture wraps
+func (it imageTexture) Color(rec *HitRecord) geo.Vec3 {
 	u := math.Mod(math.Abs(rec.U), 1)
-	if it.Mirror {
+	if it.mirror {
 		u = 1 - u
 	}
 	v := 1 - math.Mod(math.Abs(rec.V), 1)
 
-	size := it.Image.Bounds().Max
-	x := int(u * float64(size.X))
-	y := int(v * float64(size.Y))
+	x := int(u * it.maxX)
+	y := int(v * it.maxY)
 
-	r, g, b, _ := it.Image.At(x, y).RGBA()
+	r, g, b, _ := it.image.At(x, y).RGBA()
 	return image.RgbToVec3(r, g, b)
 }
 

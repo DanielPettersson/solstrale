@@ -1,9 +1,9 @@
 package renderer
 
 import (
-	"image"
 	"image/color"
-	"sync"
+	"runtime"
+	"time"
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/hittable"
@@ -15,16 +15,17 @@ import (
 // Renderer is a central part of the raytracer responsible for controlling the
 // process reporting back progress to the caller
 type Renderer struct {
-	scene        *Scene
-	lights       *hittable.HittableList
-	output       chan RenderProgress
-	abort        chan bool
-	albedoShader AlbedoShader
-	normalShader NormalShader
+	scene                          *Scene
+	lights                         *hittable.HittableList
+	output                         chan<- RenderProgress
+	abort                          <-chan bool
+	albedoShader                   AlbedoShader
+	normalShader                   NormalShader
+	maxMillisBetweenProgressOutput int64
 }
 
 // NewRenderer creates a new renderer given a scene and channels for communicating with the caller
-func NewRenderer(scene *Scene, output chan RenderProgress, abort chan bool) *Renderer {
+func NewRenderer(scene *Scene, output chan<- RenderProgress, abort <-chan bool) *Renderer {
 
 	lights := hittable.NewHittableList()
 	findLights(scene.World, &lights)
@@ -34,12 +35,13 @@ func NewRenderer(scene *Scene, output chan RenderProgress, abort chan bool) *Ren
 	}
 
 	return &Renderer{
-		scene:        scene,
-		lights:       &lights,
-		output:       output,
-		abort:        abort,
-		albedoShader: AlbedoShader{},
-		normalShader: NormalShader{},
+		scene:                          scene,
+		lights:                         &lights,
+		output:                         output,
+		abort:                          abort,
+		albedoShader:                   AlbedoShader{},
+		normalShader:                   NormalShader{},
+		maxMillisBetweenProgressOutput: 500,
 	}
 }
 
@@ -79,27 +81,29 @@ func (r *Renderer) Render() {
 	albedoColors := make([]geo.Vec3, pixelCount)
 	normalColors := make([]geo.Vec3, pixelCount)
 
-	for sample := 1; sample <= samplesPerPixel; sample++ {
+	numWorkers := runtime.NumCPU() - 1
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
 
-		select {
-		case <-r.abort:
-			close(r.output)
-			return
-		default:
-		}
+	workerJobChannel := make(chan int, imageHeight)
+	workerDoneChannel := make(chan bool)
+	aborted := false
 
-		var waitGroup sync.WaitGroup
-		for y := 0; y < imageHeight; y++ {
+	for i := 0; i < numWorkers; i++ {
+		go func() {
 
-			waitGroup.Add(1)
-			go func(yy int, wg *sync.WaitGroup) {
-				defer wg.Done()
+			for y := range workerJobChannel {
 
 				for x := 0; x < imageWidth; x++ {
-					i := (((imageHeight-1)-yy)*imageWidth + x)
+					if aborted {
+						break
+					}
+
+					i := (((imageHeight-1)-y)*imageWidth + x)
 
 					u := (float64(x) + random.RandomNormalFloat()) / float64(imageWidth-1)
-					v := (float64(yy) + random.RandomNormalFloat()) / float64(imageHeight-1)
+					v := (float64(y) + random.RandomNormalFloat()) / float64(imageHeight-1)
 					ray := s.Cam.GetRay(u, v)
 					pixelColor, albedoColor, normalColor := r.rayColor(ray, 0)
 
@@ -109,43 +113,84 @@ func (r *Renderer) Render() {
 						albedoColors[i] = albedoColors[i].Add(albedoColor)
 						normalColors[i] = normalColors[i].Add(normalColor)
 					}
+
 				}
-			}(y, &waitGroup)
-
-		}
-		waitGroup.Wait()
-
-		var image image.Image
-
-		if postProcessor != nil && sample == samplesPerPixel {
-
-			image = *postProcessor.PostProcess(
-				pixelColors,
-				albedoColors,
-				normalColors,
-				imageWidth,
-				imageHeight,
-				sample,
-			)
-		} else {
-
-			ret := make([]color.RGBA, pixelCount)
-			for i := 0; i < pixelCount; i++ {
-				ret[i] = im.ToRgba(pixelColors[i], sample)
+				workerDoneChannel <- true
 			}
-			image = im.RenderImage{
-				ImageWidth:  imageWidth,
-				ImageHeight: imageHeight,
-				Data:        ret,
+		}()
+	}
+
+	var lastProgressTime time.Time
+
+	for sample := 1; sample <= samplesPerPixel; sample++ {
+
+		lastProgressTime = time.Now()
+
+		for y := imageHeight - 1; y >= 0; y-- {
+			workerJobChannel <- y
+		}
+		for y := 0; y < imageHeight; y++ {
+			<-workerDoneChannel
+
+			select {
+			case <-r.abort:
+				aborted = true
+			default:
+			}
+
+			nowTime := time.Now()
+			millisSinceLastProgress := nowTime.Sub(lastProgressTime).Milliseconds()
+			if millisSinceLastProgress > r.maxMillisBetweenProgressOutput && !aborted {
+				lastProgressTime = nowTime
+				createProgress(pixelCount, imageWidth, imageHeight, sample, samplesPerPixel, pixelColors, r.output)
 			}
 		}
+
+		if aborted {
+			break
+		}
+
+		createProgress(pixelCount, imageWidth, imageHeight, sample, samplesPerPixel, pixelColors, r.output)
+	}
+
+	if postProcessor != nil && !aborted {
+
+		img := *postProcessor.PostProcess(
+			pixelColors,
+			albedoColors,
+			normalColors,
+			imageWidth,
+			imageHeight,
+			samplesPerPixel,
+		)
 
 		r.output <- RenderProgress{
-			Progress:    float64(sample) / float64(samplesPerPixel),
-			RenderImage: image,
+			Progress:    1,
+			RenderImage: img,
 		}
 	}
+
 	close(r.output)
+}
+
+func createProgress(
+	pixelCount, imageWidth, imageHeight, sample, samplesPerPixel int,
+	pixelColors []geo.Vec3,
+	output chan<- RenderProgress) {
+	ret := make([]color.RGBA, pixelCount)
+	for i := 0; i < pixelCount; i++ {
+		ret[i] = im.ToRgba(pixelColors[i], sample)
+	}
+	img := im.RenderImage{
+		ImageWidth:  imageWidth,
+		ImageHeight: imageHeight,
+		Data:        ret,
+	}
+
+	output <- RenderProgress{
+		Progress:    float64(sample) / float64(samplesPerPixel),
+		RenderImage: img,
+	}
 }
 
 func findLights(s hittable.Hittable, list *hittable.HittableList) {

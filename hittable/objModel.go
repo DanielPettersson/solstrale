@@ -59,7 +59,7 @@ func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Materi
 				if err != nil {
 					return nil, errors.New(fmt.Sprintf("Failed to read image file: %v", err.Error()))
 				}
-				mats[name] = material.Lambertian{Tex: material.ImageTexture{Image: image}}
+				mats[name] = material.Lambertian{Tex: material.NewImageTexture(image, false)}
 
 				// Otherwise use the diffuse color for a lambertian
 			} else {
