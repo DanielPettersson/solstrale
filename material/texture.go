@@ -6,7 +6,6 @@ import (
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/image"
-	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/ojrac/opensimplex-go"
 )
 
@@ -57,11 +56,11 @@ type ImageTexture struct {
 
 // Color returns the color in the image data that corresponds to the UV coordinate of the hittable
 func (it ImageTexture) Color(rec *HitRecord) geo.Vec3 {
-	u := util.Interval{Min: 0, Max: 1}.Clamp(rec.U)
+	u := math.Mod(math.Abs(rec.U), 1)
 	if it.Mirror {
 		u = 1 - u
 	}
-	v := 1 - util.Interval{Min: 0, Max: 1}.Clamp(rec.V)
+	v := 1 - math.Mod(math.Abs(rec.V), 1)
 
 	size := it.Image.Bounds().Max
 	x := int(u * float64(size.X))

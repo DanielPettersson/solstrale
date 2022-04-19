@@ -187,6 +187,46 @@ func createSimpleTestScene(renderConfig renderer.RenderConfig, addLight bool) *r
 	}
 }
 
+func createUvScene(renderConfig renderer.RenderConfig) *renderer.Scene {
+	camera := camera.New(
+		renderConfig.ImageWidth,
+		renderConfig.ImageHeight,
+		20,
+		0,
+		1,
+		geo.NewVec3(0, 1, 5),
+		geo.NewVec3(0, 1, 0),
+		geo.NewVec3(0, 1, 0),
+	)
+
+	world := hittable.NewHittableList()
+	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
+
+	world.Add(hittable.NewSphere(geo.NewVec3(50, 50, 50), 20, light))
+
+	f, _ := os.Open("checker.jpg")
+	defer f.Close()
+	checkerImg, _, _ := image.Decode(f)
+	checkerMat := material.Lambertian{Tex: material.ImageTexture{Image: checkerImg}}
+
+	world.Add(hittable.NewTriangleWithTexCoords(
+		geo.NewVec3(-1, 0, 0),
+		geo.NewVec3(1, 0, 0),
+		geo.NewVec3(0, 2, 0),
+		-1, -1,
+		2, -1,
+		0, 2,
+		checkerMat,
+	))
+
+	return &renderer.Scene{
+		World:           &world,
+		Cam:             camera,
+		BackgroundColor: geo.NewVec3(.2, .3, .5),
+		RenderConfig:    renderConfig,
+	}
+}
+
 func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	camera := camera.New(
 		renderConfig.ImageWidth,
@@ -270,9 +310,6 @@ func TestRenderScene(t *testing.T) {
 
 		t.Run(shaderName, func(t *testing.T) {
 
-			expectedFileName := fmt.Sprintf("out_expected_%v.png", shaderName)
-			actualFileName := fmt.Sprintf("out_actual_%v.png", shaderName)
-
 			traceSpec := renderer.RenderConfig{
 				ImageWidth:      200,
 				ImageHeight:     100,
@@ -281,38 +318,12 @@ func TestRenderScene(t *testing.T) {
 			}
 			scene := createTestScene(traceSpec)
 
-			renderProgress := make(chan renderer.RenderProgress, 1)
-			go solstrale.RayTrace(scene, renderProgress, make(chan bool))
-
-			var im image.Image
-			for p := range renderProgress {
-				im = p.RenderImage
-			}
-
-			actualFile, err := os.Create(actualFileName)
-			if err != nil {
-				panic(err)
-			}
-			if err = jpeg.Encode(actualFile, im, nil); err != nil {
-				log.Printf("failed to encode: %v", err)
-			}
-			actualFile.Close()
-
-			actualImage, _ := images3.Open(actualFileName)
-			expectedImage, _ := images3.Open(expectedFileName)
-			actualIcon := images3.Icon(actualImage, actualFileName)
-			expectedIcon := images3.Icon(expectedImage, expectedFileName)
-
-			// Image comparison.
-			assert.True(t, images3.Similar(actualIcon, expectedIcon))
+			renderAndCompareOutput(t, scene, shaderName)
 		})
 	}
 }
 
 func TestRenderSceneWithOidn(t *testing.T) {
-
-	expectedFileName := fmt.Sprintf("out_expected_oidn.png")
-	actualFileName := fmt.Sprintf("out_actual_oidn.png")
 
 	traceSpec := renderer.RenderConfig{
 		ImageWidth:      200,
@@ -325,36 +336,10 @@ func TestRenderSceneWithOidn(t *testing.T) {
 	}
 	scene := createSimpleTestScene(traceSpec, true)
 
-	renderProgress := make(chan renderer.RenderProgress, 1)
-	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
-
-	var im image.Image
-	for p := range renderProgress {
-		im = p.RenderImage
-	}
-
-	actualFile, err := os.Create(actualFileName)
-	if err != nil {
-		panic(err)
-	}
-	if err = jpeg.Encode(actualFile, im, nil); err != nil {
-		log.Printf("failed to encode: %v", err)
-	}
-	actualFile.Close()
-
-	actualImage, _ := images3.Open(actualFileName)
-	expectedImage, _ := images3.Open(expectedFileName)
-	actualIcon := images3.Icon(actualImage, actualFileName)
-	expectedIcon := images3.Icon(expectedImage, expectedFileName)
-
-	// Image comparison.
-	assert.True(t, images3.Similar(actualIcon, expectedIcon))
+	renderAndCompareOutput(t, scene, "oidn")
 }
 
 func TestRenderObjWithTextures(t *testing.T) {
-
-	expectedFileName := fmt.Sprintf("out_expected_obj.png")
-	actualFileName := fmt.Sprintf("out_actual_obj.png")
 
 	traceSpec := renderer.RenderConfig{
 		ImageWidth:      200,
@@ -364,36 +349,10 @@ func TestRenderObjWithTextures(t *testing.T) {
 	}
 	scene := createObjScene(traceSpec)
 
-	renderProgress := make(chan renderer.RenderProgress, 1)
-	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
-
-	var im image.Image
-	for p := range renderProgress {
-		im = p.RenderImage
-	}
-
-	actualFile, err := os.Create(actualFileName)
-	if err != nil {
-		panic(err)
-	}
-	if err = jpeg.Encode(actualFile, im, nil); err != nil {
-		log.Printf("failed to encode: %v", err)
-	}
-	actualFile.Close()
-
-	actualImage, _ := images3.Open(actualFileName)
-	expectedImage, _ := images3.Open(expectedFileName)
-	actualIcon := images3.Icon(actualImage, actualFileName)
-	expectedIcon := images3.Icon(expectedImage, expectedFileName)
-
-	// Image comparison.
-	assert.True(t, images3.Similar(actualIcon, expectedIcon))
+	renderAndCompareOutput(t, scene, "obj")
 }
 
 func TestRenderObjWithDefaultMaterial(t *testing.T) {
-
-	expectedFileName := fmt.Sprintf("out_expected_obj_default.png")
-	actualFileName := fmt.Sprintf("out_actual_obj_default.png")
 
 	traceSpec := renderer.RenderConfig{
 		ImageWidth:      200,
@@ -403,36 +362,10 @@ func TestRenderObjWithDefaultMaterial(t *testing.T) {
 	}
 	scene := createObjWithBox(traceSpec, "box.obj")
 
-	renderProgress := make(chan renderer.RenderProgress, 1)
-	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
-
-	var im image.Image
-	for p := range renderProgress {
-		im = p.RenderImage
-	}
-
-	actualFile, err := os.Create(actualFileName)
-	if err != nil {
-		panic(err)
-	}
-	if err = jpeg.Encode(actualFile, im, nil); err != nil {
-		log.Printf("failed to encode: %v", err)
-	}
-	actualFile.Close()
-
-	actualImage, _ := images3.Open(actualFileName)
-	expectedImage, _ := images3.Open(expectedFileName)
-	actualIcon := images3.Icon(actualImage, actualFileName)
-	expectedIcon := images3.Icon(expectedImage, expectedFileName)
-
-	// Image comparison.
-	assert.True(t, images3.Similar(actualIcon, expectedIcon))
+	renderAndCompareOutput(t, scene, "obj_default")
 }
 
 func TestRenderObjWithDiffuseMaterial(t *testing.T) {
-
-	expectedFileName := fmt.Sprintf("out_expected_obj_diffuse.png")
-	actualFileName := fmt.Sprintf("out_actual_obj_diffuse.png")
 
 	traceSpec := renderer.RenderConfig{
 		ImageWidth:      200,
@@ -442,30 +375,19 @@ func TestRenderObjWithDiffuseMaterial(t *testing.T) {
 	}
 	scene := createObjWithBox(traceSpec, "boxWithMat.obj")
 
-	renderProgress := make(chan renderer.RenderProgress, 1)
-	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+	renderAndCompareOutput(t, scene, "obj_diffuse")
+}
 
-	var im image.Image
-	for p := range renderProgress {
-		im = p.RenderImage
+func TestRenderUvMapping(t *testing.T) {
+	traceSpec := renderer.RenderConfig{
+		ImageWidth:      200,
+		ImageHeight:     200,
+		SamplesPerPixel: 5,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
+	scene := createUvScene(traceSpec)
 
-	actualFile, err := os.Create(actualFileName)
-	if err != nil {
-		panic(err)
-	}
-	if err = jpeg.Encode(actualFile, im, nil); err != nil {
-		log.Printf("failed to encode: %v", err)
-	}
-	actualFile.Close()
-
-	actualImage, _ := images3.Open(actualFileName)
-	expectedImage, _ := images3.Open(expectedFileName)
-	actualIcon := images3.Icon(actualImage, actualFileName)
-	expectedIcon := images3.Icon(expectedImage, expectedFileName)
-
-	// Image comparison.
-	assert.True(t, images3.Similar(actualIcon, expectedIcon))
+	renderAndCompareOutput(t, scene, "uv")
 }
 
 func TestAbortRenderScene(t *testing.T) {
@@ -537,4 +459,34 @@ func BenchmarkBvh(b *testing.B) {
 			})
 		}
 	}
+}
+
+func renderAndCompareOutput(t *testing.T, scene *renderer.Scene, name string) {
+	renderProgress := make(chan renderer.RenderProgress, 1)
+	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+
+	var im image.Image
+	for p := range renderProgress {
+		im = p.RenderImage
+	}
+
+	actualFileName := fmt.Sprintf("out_actual_%v.png", name)
+	expectedFileName := fmt.Sprintf("out_expected_%v.png", name)
+
+	actualFile, err := os.Create(actualFileName)
+	if err != nil {
+		panic(err)
+	}
+	if err = jpeg.Encode(actualFile, im, nil); err != nil {
+		log.Printf("failed to encode: %v", err)
+	}
+	actualFile.Close()
+
+	actualImage, _ := images3.Open(actualFileName)
+	expectedImage, _ := images3.Open(expectedFileName)
+	actualIcon := images3.Icon(actualImage, actualFileName)
+	expectedIcon := images3.Icon(expectedImage, expectedFileName)
+
+	// Image comparison.
+	assert.True(t, images3.Similar(actualIcon, expectedIcon))
 }
