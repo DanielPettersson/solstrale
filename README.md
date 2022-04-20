@@ -1,4 +1,3 @@
-
 [![Go Reference](https://pkg.go.dev/badge/github.com/DanielPettersson/solstrale.svg)](https://pkg.go.dev/github.com/DanielPettersson/solstrale)
 [![Coverage](https://codecov.io/gh/DanielPettersson/solstrale/branch/main/graphs/badge.svg?branch=main)](https://codecov.io/gh/DanielPettersson/solstrale)
 [![license](https://img.shields.io/github/license/DanielPettersson/solstrale.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
@@ -9,6 +8,8 @@
 A path tracer implemented in Golang.
 
 Examples of output from renderer:
+
+![Skärmbild från 2022-04-19 14-13-47](https://user-images.githubusercontent.com/3603911/164302212-f2d0758b-c794-4a65-a204-c68c7b744ead.png)
 
 ![Skärmbild från 2022-04-18 21-28-36](https://user-images.githubusercontent.com/3603911/163865196-b44ca145-acd0-4c6f-946a-443d4253b13d.png)
 
