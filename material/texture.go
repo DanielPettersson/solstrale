@@ -1,16 +1,16 @@
 package material
 
 import (
+	"errors"
+	"fmt"
 	im "image"
+	_ "image/jpeg"
+	_ "image/png"
 	"math"
+	"os"
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/image"
-	"github.com/ojrac/opensimplex-go"
-)
-
-var (
-	noise opensimplex.Noise = opensimplex.NewNormalized(123456)
 )
 
 // Texture describes the color of a material.
@@ -24,34 +24,37 @@ type SolidColor struct {
 	ColorValue geo.Vec3
 }
 
+func NewSolidColor(r, g, b float64) Texture {
+	return SolidColor{
+		ColorValue: geo.NewVec3(r, g, b),
+	}
+}
+
 // Color returns the solid color
 func (sc SolidColor) Color(rec *HitRecord) geo.Vec3 {
 	return sc.ColorValue
-}
-
-// CheckerTexture is a checkered texture
-type CheckerTexture struct {
-	Scale float64
-	Even  Texture
-	Odd   Texture
-}
-
-// Color returns either Even of Odd color depending on the UV coordinates of the hittable
-func (ct CheckerTexture) Color(rec *HitRecord) geo.Vec3 {
-	invScale := 1 / ct.Scale
-	uInt := math.Floor(rec.U * invScale)
-	vInt := math.Floor(rec.V * invScale)
-
-	if int(uInt+vInt)%2 == 0 {
-		return ct.Even.Color(rec)
-	}
-	return ct.Odd.Color(rec)
 }
 
 type imageTexture struct {
 	image      im.Image
 	mirror     bool
 	maxX, maxY float64
+}
+
+// LoadImageTexture creates a texture that uses image data for color by loading the image from the path
+func LoadImageTexture(path string) (Texture, error) {
+	f, err := os.Open(path)
+	defer f.Close()
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to load image texture %v. Got error: %v", path, err.Error()))
+	}
+
+	image, _, err := im.Decode(f)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to decode image texture %v. Got error: %v", path, err.Error()))
+	}
+
+	return NewImageTexture(image, false), nil
 }
 
 // NewImageTexture creates a texture that uses image data for color
@@ -79,17 +82,4 @@ func (it imageTexture) Color(rec *HitRecord) geo.Vec3 {
 
 	r, g, b, _ := it.image.At(x, y).RGBA()
 	return image.RgbToVec3(r, g, b)
-}
-
-// NoiseTexture is a "random" noise texture
-type NoiseTexture struct {
-	ColorValue geo.Vec3
-	Scale      float64
-}
-
-// Color returns the "random" color at the given UV coordinate given the simplex noise algorithm
-func (nt NoiseTexture) Color(rec *HitRecord) geo.Vec3 {
-	p := rec.HitPoint.MulS(1 / nt.Scale)
-	val := noise.Eval3(p.X, p.Y, p.Z)
-	return nt.ColorValue.MulS(val)
 }

@@ -3,8 +3,6 @@ package hittable
 import (
 	"errors"
 	"fmt"
-	"image"
-	"os"
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/material"
@@ -17,7 +15,7 @@ import (
 func NewObjModel(path string) (Hittable, error) {
 	return NewObjModelWithDefaultMaterial(
 		path,
-		material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)}},
+		material.NewLambertian(material.NewSolidColor(1, 1, 1)),
 	)
 }
 
@@ -49,26 +47,20 @@ func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Materi
 
 			// If a texture
 			if m.MapKd != "" {
-
-				f, err := os.Open(m.MapKd)
+				tex, err := material.LoadImageTexture(m.MapKd)
 				if err != nil {
-					return nil, errors.New(fmt.Sprintf("Failed to open image file: %v", err.Error()))
+					return nil, err
 				}
-				defer f.Close()
-				image, _, err := image.Decode(f)
-				if err != nil {
-					return nil, errors.New(fmt.Sprintf("Failed to read image file: %v", err.Error()))
-				}
-				mats[name] = material.Lambertian{Tex: material.NewImageTexture(image, false)}
+				mats[name] = material.NewLambertian(tex)
 
 				// Otherwise use the diffuse color for a lambertian
 			} else {
 
-				mats[name] = material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(
+				mats[name] = material.NewLambertian(material.NewSolidColor(
 					float64(m.Kd[0]),
 					float64(m.Kd[1]),
 					float64(m.Kd[2]),
-				)}}
+				))
 			}
 		}
 	}

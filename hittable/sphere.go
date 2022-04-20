@@ -128,10 +128,5 @@ func (s sphere) RandomDirection(origin geo.Vec3) geo.Vec3 {
 }
 
 func (s sphere) IsLight() bool {
-	switch s.mat.(type) {
-	case material.DiffuseLight:
-		return true
-	default:
-		return false
-	}
+	return s.mat.IsLight()
 }

@@ -9,6 +9,15 @@ import (
 	"github.com/DanielPettersson/solstrale/random"
 )
 
+// CameraConfig contains all needed parameters for constructing a camera
+type CameraConfig struct {
+	VerticalFovDegrees float64
+	ApertureSize       float64
+	FocusDistance      float64
+	LookFrom           geo.Vec3
+	LookAt             geo.Vec3
+}
+
 // Camera contains all data needed to describe a cameras position, field of view and
 // where it is pointing
 type Camera struct {
@@ -21,31 +30,26 @@ type Camera struct {
 	lensRadius      float64
 }
 
-// New creates a new camera with more easy to understand parameters
+// New creates a new camera from image dimensions and config
 func New(
 	imageWidth int,
 	imageHeight int,
-	verticalFovDegrees float64,
-	aperture float64,
-	focusDistance float64,
-	lookFrom geo.Vec3,
-	lookAt geo.Vec3,
-	vup geo.Vec3,
+	c CameraConfig,
 ) Camera {
 	aspectRatio := float64(imageWidth) / float64(imageHeight)
-	theta := util.DegreesToRadians(verticalFovDegrees)
+	theta := util.DegreesToRadians(c.VerticalFovDegrees)
 	h := math.Tan(theta / 2)
 	viewPortHeight := 2.0 * h
 	viewPortWidth := aspectRatio * viewPortHeight
 
-	w := lookFrom.Sub(lookAt).Unit()
-	u := vup.Cross(w).Unit()
+	w := c.LookFrom.Sub(c.LookAt).Unit()
+	u := geo.NewVec3(0, 1, 0).Cross(w).Unit()
 	v := w.Cross(u)
 
-	origin := lookFrom
-	horizontal := u.MulS(viewPortWidth).MulS(focusDistance)
-	vertical := v.MulS(viewPortHeight).MulS(focusDistance)
-	lowerLeftCorner := origin.Sub(horizontal.DivS(2)).Sub(vertical.DivS(2)).Sub(w.MulS(focusDistance))
+	origin := c.LookFrom
+	horizontal := u.MulS(viewPortWidth).MulS(c.FocusDistance)
+	vertical := v.MulS(viewPortHeight).MulS(c.FocusDistance)
+	lowerLeftCorner := origin.Sub(horizontal.DivS(2)).Sub(vertical.DivS(2)).Sub(w.MulS(c.FocusDistance))
 
 	return Camera{
 		origin,
@@ -54,7 +58,7 @@ func New(
 		vertical,
 		u,
 		v,
-		aperture / 2,
+		c.ApertureSize / 2,
 	}
 }
 

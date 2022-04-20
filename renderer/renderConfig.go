@@ -11,8 +11,6 @@ import (
 
 // RenderConfig is input to the ray tracer for how the image should be rendered
 type RenderConfig struct {
-	ImageWidth      int
-	ImageHeight     int
 	SamplesPerPixel int
 	Shader          Shader
 	PostProcessor   post.PostProcessor
@@ -21,7 +19,7 @@ type RenderConfig struct {
 // Scene contains all information needed to render an image
 type Scene struct {
 	World           hittable.Hittable
-	Cam             camera.Camera
+	Camera          camera.CameraConfig
 	BackgroundColor geo.Vec3
 	RenderConfig    RenderConfig
 }

@@ -7,6 +7,6 @@ import (
 
 // RayTrace executes the ray tracing with the given scene and reports progress on
 // the output channel. Listens to abort channel for aborting a started ray trace operation
-func RayTrace(scene *renderer.Scene, output chan<- renderer.RenderProgress, abort <-chan bool) {
-	renderer.NewRenderer(scene, output, abort).Render()
+func RayTrace(width, height int, scene *renderer.Scene, output chan<- renderer.RenderProgress, abort <-chan bool) {
+	renderer.NewRenderer(scene, output, abort).Render(width, height)
 }

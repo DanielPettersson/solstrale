@@ -139,10 +139,5 @@ func (t triangle) RandomDirection(origin geo.Vec3) geo.Vec3 {
 }
 
 func (t triangle) IsLight() bool {
-	switch t.mat.(type) {
-	case material.DiffuseLight:
-		return true
-	default:
-		return false
-	}
+	return t.mat.IsLight()
 }

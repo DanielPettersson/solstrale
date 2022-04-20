@@ -137,10 +137,5 @@ func (q quad) RandomDirection(origin geo.Vec3) geo.Vec3 {
 }
 
 func (q quad) IsLight() bool {
-	switch q.mat.(type) {
-	case material.DiffuseLight:
-		return true
-	default:
-		return false
-	}
+	return q.mat.IsLight()
 }

@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/DanielPettersson/solstrale/camera"
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/hittable"
 	im "github.com/DanielPettersson/solstrale/internal/image"
@@ -68,11 +69,9 @@ func (r *Renderer) rayColor(ray geo.Ray, depth int) (geo.Vec3, geo.Vec3, geo.Vec
 }
 
 // Render executes the rendering of the image
-func (r *Renderer) Render() {
+func (r *Renderer) Render(imageWidth, imageHeight int) {
 
 	s := r.scene
-	imageWidth := s.RenderConfig.ImageWidth
-	imageHeight := s.RenderConfig.ImageHeight
 	samplesPerPixel := s.RenderConfig.SamplesPerPixel
 	postProcessor := s.RenderConfig.PostProcessor
 	pixelCount := imageWidth * imageHeight
@@ -90,6 +89,8 @@ func (r *Renderer) Render() {
 	workerDoneChannel := make(chan bool)
 	aborted := false
 
+	camera := camera.New(imageWidth, imageHeight, r.scene.Camera)
+
 	// Setup the pool of worker goroutines responsible for rendering lines
 
 	for i := 0; i < numWorkers; i++ {
@@ -106,7 +107,7 @@ func (r *Renderer) Render() {
 
 					u := (float64(x) + random.RandomNormalFloat()) / float64(imageWidth-1)
 					v := (float64(y) + random.RandomNormalFloat()) / float64(imageHeight-1)
-					ray := s.Cam.GetRay(u, v)
+					ray := camera.GetRay(u, v)
 					pixelColor, albedoColor, normalColor := r.rayColor(ray, 0)
 
 					pixelColors[i] = pixelColors[i].Add(pixelColor)

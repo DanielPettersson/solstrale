@@ -20,41 +20,26 @@ import (
 )
 
 func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
-	camera := camera.New(
-		renderConfig.ImageWidth,
-		renderConfig.ImageHeight,
-		20,
-		0.1,
-		10,
-		geo.NewVec3(-5, 3, 6),
-		geo.NewVec3(.25, 1, 0),
-		geo.NewVec3(0, 1, 0),
-	)
+	camera := camera.CameraConfig{
+		VerticalFovDegrees: 20,
+		ApertureSize:       .1,
+		FocusDistance:      10,
+		LookFrom:           geo.NewVec3(-5, 3, 6),
+		LookAt:             geo.NewVec3(.25, 1, 0),
+	}
 
 	world := hittable.NewHittableList()
 
-	checkerTex := material.CheckerTexture{
-		Scale: 0.1,
-		Even:  material.SolidColor{ColorValue: geo.NewVec3(0.4, 0.2, 0.1)},
-		Odd:   material.SolidColor{ColorValue: geo.NewVec3(0.8, 0.4, 0.2)},
-	}
-	noiseTex := material.NoiseTexture{
-		ColorValue: geo.NewVec3(1, 1, 0),
-		Scale:      .05,
+	imageTex, err := material.LoadImageTexture("tex.jpg")
+	if err != nil {
+		panic(err)
 	}
 
-	f, _ := os.Open("tex.jpg")
-	defer f.Close()
-	image, _, _ := image.Decode(f)
-	imageTex := material.NewImageTexture(image, false)
-
-	groundMaterial := material.Lambertian{Tex: imageTex}
-	checkerMat := material.Lambertian{Tex: checkerTex}
-	glassMat := material.Dielectric{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)}, IndexOfRefraction: 1.5}
-	goldMat := material.Metal{Tex: noiseTex, Fuzz: .2}
-	lightMat := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
-	fogMat := material.Isotropic{Albedo: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)}}
-	redMat := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 0, 0)}}
+	groundMaterial := material.NewLambertian(imageTex)
+	glassMat := material.NewDielectric(material.NewSolidColor(1, 1, 1), 1.5)
+	lightMat := material.NewLight(10, 10, 10)
+	fogMat := material.Isotropic{Albedo: material.NewSolidColor(1, 1, 1)}
+	redMat := material.NewLambertian(material.NewSolidColor(1, 0, 0))
 
 	world.Add(hittable.NewQuad(
 		geo.NewVec3(-5, 0, -15), geo.NewVec3(20, 0, 0), geo.NewVec3(0, 0, 20),
@@ -62,7 +47,7 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	))
 	world.Add(hittable.NewSphere(geo.NewVec3(-1, 1, 0), 1, glassMat))
 	world.Add(hittable.NewRotationY(
-		hittable.NewBox(geo.NewVec3(0, 0, -.5), geo.NewVec3(1, 2, .5), checkerMat),
+		hittable.NewBox(geo.NewVec3(0, 0, -.5), geo.NewVec3(1, 2, .5), redMat),
 		15,
 	))
 	world.Add(hittable.NewConstantMedium(
@@ -71,10 +56,8 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 			geo.NewVec3(0, 0, 1),
 		),
 		0.1,
-		material.SolidColor{ColorValue: geo.NewVec3(1, 1, 1)},
+		material.NewSolidColor(1, 1, 1),
 	))
-	world.Add(hittable.NewSphere(geo.NewVec3(2, 1, 0), 1, goldMat))
-
 	world.Add(hittable.NewMotionBlur(
 		hittable.NewBox(geo.NewVec3(-1, 2, 0), geo.NewVec3(-.5, 2.5, .5), redMat),
 		geo.NewVec3(0, 1, 0),
@@ -108,7 +91,7 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 
 	return &renderer.Scene{
 		World:           &world,
-		Cam:             camera,
+		Camera:          camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		RenderConfig:    renderConfig,
 	}
@@ -116,20 +99,17 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 }
 
 func createBvhTestScene(renderConfig renderer.RenderConfig, useBvh bool, numSpheres int) *renderer.Scene {
-	camera := camera.New(
-		renderConfig.ImageWidth,
-		renderConfig.ImageHeight,
-		20,
-		0.1,
-		10,
-		geo.NewVec3(-.5, 0, 4),
-		geo.NewVec3(-.5, 0, 0),
-		geo.NewVec3(0, 1, 0),
-	)
+	camera := camera.CameraConfig{
+		VerticalFovDegrees: 20,
+		ApertureSize:       .1,
+		FocusDistance:      10,
+		LookFrom:           geo.NewVec3(-.5, 0, 4),
+		LookAt:             geo.NewVec3(-.5, 0, 0),
+	}
 
 	world := hittable.NewHittableList()
-	yellow := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 0)}}
-	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
+	yellow := material.NewLambertian(material.NewSolidColor(1, 1, 0))
+	light := material.NewLight(10, 10, 10)
 	world.Add(hittable.NewSphere(geo.NewVec3(0, 4, 10), 4, light))
 
 	triangles := []hittable.Hittable{}
@@ -149,28 +129,24 @@ func createBvhTestScene(renderConfig renderer.RenderConfig, useBvh bool, numSphe
 
 	return &renderer.Scene{
 		World:           &world,
-		Cam:             camera,
+		Camera:          camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		RenderConfig:    renderConfig,
 	}
 }
 
 func createSimpleTestScene(renderConfig renderer.RenderConfig, addLight bool) *renderer.Scene {
-	camera := camera.New(
-		renderConfig.ImageWidth,
-		renderConfig.ImageHeight,
-		20,
-		0.1,
-		10,
-		geo.NewVec3(0, 0, 4),
-		geo.NewVec3(0, 0, 0),
-		geo.NewVec3(0, 1, 0),
-	)
+	camera := camera.CameraConfig{
+		VerticalFovDegrees: 20,
+		ApertureSize:       .1,
+		FocusDistance:      10,
+		LookFrom:           geo.NewVec3(0, 0, 4),
+		LookAt:             geo.NewVec3(0, 0, 0),
+	}
 
 	world := hittable.NewHittableList()
-	yellow := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 1, 0)}}
-	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
-
+	yellow := material.NewLambertian(material.NewSolidColor(1, 1, 0))
+	light := material.NewLight(10, 10, 10)
 	if addLight {
 		world.Add(hittable.NewSphere(geo.NewVec3(0, 100, 0), 20, light))
 	}
@@ -178,33 +154,31 @@ func createSimpleTestScene(renderConfig renderer.RenderConfig, addLight bool) *r
 
 	return &renderer.Scene{
 		World:           &world,
-		Cam:             camera,
+		Camera:          camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		RenderConfig:    renderConfig,
 	}
 }
 
 func createUvScene(renderConfig renderer.RenderConfig) *renderer.Scene {
-	camera := camera.New(
-		renderConfig.ImageWidth,
-		renderConfig.ImageHeight,
-		20,
-		0,
-		1,
-		geo.NewVec3(0, 1, 5),
-		geo.NewVec3(0, 1, 0),
-		geo.NewVec3(0, 1, 0),
-	)
+	camera := camera.CameraConfig{
+		VerticalFovDegrees: 20,
+		ApertureSize:       0,
+		FocusDistance:      1,
+		LookFrom:           geo.NewVec3(0, 1, 5),
+		LookAt:             geo.NewVec3(0, 1, 0),
+	}
 
 	world := hittable.NewHittableList()
-	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(10, 10, 10)}}
+	light := material.NewLight(10, 10, 10)
 
 	world.Add(hittable.NewSphere(geo.NewVec3(50, 50, 50), 20, light))
 
-	f, _ := os.Open("checker.jpg")
-	defer f.Close()
-	checkerImg, _, _ := image.Decode(f)
-	checkerMat := material.Lambertian{Tex: material.NewImageTexture(checkerImg, false)}
+	tex, err := material.LoadImageTexture("checker.jpg")
+	if err != nil {
+		panic(err)
+	}
+	checkerMat := material.NewLambertian(tex)
 
 	world.Add(hittable.NewTriangleWithTexCoords(
 		geo.NewVec3(-1, 0, 0),
@@ -218,26 +192,23 @@ func createUvScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 
 	return &renderer.Scene{
 		World:           &world,
-		Cam:             camera,
+		Camera:          camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		RenderConfig:    renderConfig,
 	}
 }
 
 func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
-	camera := camera.New(
-		renderConfig.ImageWidth,
-		renderConfig.ImageHeight,
-		30,
-		20,
-		260,
-		geo.NewVec3(-250, 30, 150),
-		geo.NewVec3(-50, 0, 0),
-		geo.NewVec3(0, 1, 0),
-	)
+	camera := camera.CameraConfig{
+		VerticalFovDegrees: 30,
+		ApertureSize:       20,
+		FocusDistance:      260,
+		LookFrom:           geo.NewVec3(-250, 30, 150),
+		LookAt:             geo.NewVec3(-50, 0, 0),
+	}
 
 	world := hittable.NewHittableList()
-	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(15, 15, 15)}}
+	light := material.NewLight(15, 15, 15)
 
 	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
 	model, err := hittable.NewObjModel("spider/spider.obj")
@@ -246,37 +217,34 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	}
 	world.Add(model)
 
-	f, _ := os.Open("tex.jpg")
-	defer f.Close()
-	image, _, _ := image.Decode(f)
-	imageTex := material.NewImageTexture(image, false)
+	imageTex, err := material.LoadImageTexture("tex.jpg")
+	if err != nil {
+		panic(err)
+	}
 
-	groundMaterial := material.Lambertian{Tex: imageTex}
+	groundMaterial := material.NewLambertian(imageTex)
 	world.Add(hittable.NewQuad(geo.NewVec3(-200, -30, -200), geo.NewVec3(400, 0, 0), geo.NewVec3(0, 0, 400), groundMaterial))
 
 	return &renderer.Scene{
 		World:           &world,
-		Cam:             camera,
+		Camera:          camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		RenderConfig:    renderConfig,
 	}
 }
 
 func createObjWithBox(renderConfig renderer.RenderConfig, objFilePath string) *renderer.Scene {
-	camera := camera.New(
-		renderConfig.ImageWidth,
-		renderConfig.ImageHeight,
-		30,
-		0,
-		1,
-		geo.NewVec3(2, 1, 3),
-		geo.NewVec3(0, 0, 0),
-		geo.NewVec3(0, 1, 0),
-	)
+	camera := camera.CameraConfig{
+		VerticalFovDegrees: 30,
+		ApertureSize:       0,
+		FocusDistance:      1,
+		LookFrom:           geo.NewVec3(2, 1, 3),
+		LookAt:             geo.NewVec3(0, 0, 0),
+	}
 
 	world := hittable.NewHittableList()
-	light := material.DiffuseLight{Emit: material.SolidColor{ColorValue: geo.NewVec3(15, 15, 15)}}
-	red := material.Lambertian{Tex: material.SolidColor{ColorValue: geo.NewVec3(1, 0, 0)}}
+	light := material.NewLight(15, 15, 15)
+	red := material.NewLambertian(material.NewSolidColor(1, 0, 0))
 
 	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
 	model, err := hittable.NewObjModelWithDefaultMaterial(objFilePath, red)
@@ -287,7 +255,7 @@ func createObjWithBox(renderConfig renderer.RenderConfig, objFilePath string) *r
 
 	return &renderer.Scene{
 		World:           &world,
-		Cam:             camera,
+		Camera:          camera,
 		BackgroundColor: geo.NewVec3(.2, .3, .5),
 		RenderConfig:    renderConfig,
 	}
@@ -305,14 +273,12 @@ func TestRenderScene(t *testing.T) {
 		t.Run(shaderName, func(t *testing.T) {
 
 			traceSpec := renderer.RenderConfig{
-				ImageWidth:      200,
-				ImageHeight:     100,
 				SamplesPerPixel: 25,
 				Shader:          shader,
 			}
 			scene := createTestScene(traceSpec)
 
-			renderAndCompareOutput(t, scene, shaderName)
+			renderAndCompareOutput(t, scene, shaderName, 200, 100)
 		})
 	}
 }
@@ -320,8 +286,6 @@ func TestRenderScene(t *testing.T) {
 func TestRenderSceneWithOidn(t *testing.T) {
 
 	traceSpec := renderer.RenderConfig{
-		ImageWidth:      200,
-		ImageHeight:     100,
 		SamplesPerPixel: 10,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 		PostProcessor: post.OidnPostProcessor{
@@ -330,65 +294,55 @@ func TestRenderSceneWithOidn(t *testing.T) {
 	}
 	scene := createSimpleTestScene(traceSpec, true)
 
-	renderAndCompareOutput(t, scene, "oidn")
+	renderAndCompareOutput(t, scene, "oidn", 200, 100)
 }
 
 func TestRenderObjWithTextures(t *testing.T) {
 
 	traceSpec := renderer.RenderConfig{
-		ImageWidth:      200,
-		ImageHeight:     100,
 		SamplesPerPixel: 20,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createObjScene(traceSpec)
 
-	renderAndCompareOutput(t, scene, "obj")
+	renderAndCompareOutput(t, scene, "obj", 200, 100)
 }
 
 func TestRenderObjWithDefaultMaterial(t *testing.T) {
 
 	traceSpec := renderer.RenderConfig{
-		ImageWidth:      200,
-		ImageHeight:     100,
 		SamplesPerPixel: 50,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createObjWithBox(traceSpec, "box.obj")
 
-	renderAndCompareOutput(t, scene, "obj_default")
+	renderAndCompareOutput(t, scene, "obj_default", 200, 100)
 }
 
 func TestRenderObjWithDiffuseMaterial(t *testing.T) {
 
 	traceSpec := renderer.RenderConfig{
-		ImageWidth:      200,
-		ImageHeight:     100,
 		SamplesPerPixel: 50,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createObjWithBox(traceSpec, "boxWithMat.obj")
 
-	renderAndCompareOutput(t, scene, "obj_diffuse")
+	renderAndCompareOutput(t, scene, "obj_diffuse", 200, 100)
 }
 
 func TestRenderUvMapping(t *testing.T) {
 	traceSpec := renderer.RenderConfig{
-		ImageWidth:      200,
-		ImageHeight:     200,
 		SamplesPerPixel: 5,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createUvScene(traceSpec)
 
-	renderAndCompareOutput(t, scene, "uv")
+	renderAndCompareOutput(t, scene, "uv", 200, 200)
 }
 
 func TestAbortRenderScene(t *testing.T) {
 
 	traceSpec := renderer.RenderConfig{
-		ImageWidth:      10,
-		ImageHeight:     10,
 		SamplesPerPixel: 100,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
@@ -396,7 +350,7 @@ func TestAbortRenderScene(t *testing.T) {
 
 	renderProgress := make(chan renderer.RenderProgress, 1)
 	abort := make(chan bool, 1)
-	go solstrale.RayTrace(scene, renderProgress, abort)
+	go solstrale.RayTrace(10, 10, scene, renderProgress, abort)
 
 	progressCount := 0
 	for range renderProgress {
@@ -410,15 +364,13 @@ func TestAbortRenderScene(t *testing.T) {
 func TestRenderSceneWithoutLight(t *testing.T) {
 
 	traceSpec := renderer.RenderConfig{
-		ImageWidth:      10,
-		ImageHeight:     10,
 		SamplesPerPixel: 100,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
 	scene := createSimpleTestScene(traceSpec, false)
 
 	assert.Panics(t, func() {
-		solstrale.RayTrace(scene, make(chan renderer.RenderProgress), make(chan bool, 1))
+		solstrale.RayTrace(10, 10, scene, make(chan renderer.RenderProgress), make(chan bool, 1))
 
 	})
 
@@ -438,8 +390,6 @@ func BenchmarkBvh(b *testing.B) {
 			b.Run(fmt.Sprintf("%v spheres %v", numSpheres, bhvLabel), func(b *testing.B) {
 				b.StopTimer()
 				traceSpec := renderer.RenderConfig{
-					ImageWidth:      20,
-					ImageHeight:     10,
 					SamplesPerPixel: b.N,
 					Shader:          renderer.PathTracingShader{MaxDepth: 50},
 				}
@@ -447,7 +397,7 @@ func BenchmarkBvh(b *testing.B) {
 				b.StartTimer()
 
 				renderProgress := make(chan renderer.RenderProgress)
-				go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+				go solstrale.RayTrace(20, 10, scene, renderProgress, make(chan bool))
 				for range renderProgress {
 				}
 			})
@@ -455,9 +405,9 @@ func BenchmarkBvh(b *testing.B) {
 	}
 }
 
-func renderAndCompareOutput(t *testing.T, scene *renderer.Scene, name string) {
+func renderAndCompareOutput(t *testing.T, scene *renderer.Scene, name string, imageWidth, imageHeight int) {
 	renderProgress := make(chan renderer.RenderProgress, 1)
-	go solstrale.RayTrace(scene, renderProgress, make(chan bool))
+	go solstrale.RayTrace(imageWidth, imageHeight, scene, renderProgress, make(chan bool))
 
 	var im image.Image
 	for p := range renderProgress {

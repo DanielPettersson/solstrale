@@ -30,8 +30,7 @@ func TestMissingImageFile(t *testing.T) {
 	o, err := hittable.NewObjModel("missingImage.obj")
 
 	assert.Equal(t, nil, o)
-	assert.Contains(t, err.Error(), "Failed to open image file")
-	assert.Contains(t, err.Error(), "no such file or directory")
+	assert.Equal(t, "Failed to load image texture missing.jpg. Got error: open missing.jpg: no such file or directory", err.Error())
 }
 
 func TestInvalidImageFile(t *testing.T) {
@@ -39,5 +38,5 @@ func TestInvalidImageFile(t *testing.T) {
 	o, err := hittable.NewObjModel("invalidImage.obj")
 
 	assert.Equal(t, nil, o)
-	assert.Contains(t, err.Error(), "Failed to read image file: image: unknown format")
+	assert.Equal(t, "Failed to decode image texture invalidImage.mtl. Got error: image: unknown format", err.Error())
 }
