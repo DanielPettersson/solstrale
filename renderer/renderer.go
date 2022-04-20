@@ -90,6 +90,8 @@ func (r *Renderer) Render() {
 	workerDoneChannel := make(chan bool)
 	aborted := false
 
+	// Setup the pool of worker goroutines responsible for rendering lines
+
 	for i := 0; i < numWorkers; i++ {
 		go func() {
 
@@ -122,21 +124,31 @@ func (r *Renderer) Render() {
 
 	var lastProgressTime time.Time
 
+	// Render loop, executes the workers and reports progress
+
 	for sample := 1; sample <= samplesPerPixel; sample++ {
 
 		lastProgressTime = time.Now()
+
+		// Submit jobs to the workers
 
 		for y := imageHeight - 1; y >= 0; y-- {
 			workerJobChannel <- y
 		}
 		for y := 0; y < imageHeight; y++ {
+
 			<-workerDoneChannel
+
+			// Does caller want to abort the render?
 
 			select {
 			case <-r.abort:
 				aborted = true
 			default:
 			}
+
+			// If it was sufficiently long ago we last reported progress, do it
+			// even though a sample is not complete
 
 			nowTime := time.Now()
 			millisSinceLastProgress := nowTime.Sub(lastProgressTime).Milliseconds()
@@ -152,6 +164,8 @@ func (r *Renderer) Render() {
 
 		createProgress(pixelCount, imageWidth, imageHeight, sample, samplesPerPixel, pixelColors, r.output)
 	}
+
+	// Apply post processing if applicable, and report a final progress
 
 	if postProcessor != nil && !aborted {
 
