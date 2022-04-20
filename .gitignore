@@ -20,4 +20,5 @@ out_actual_simple.png
 out_actual_oidn.png
 out_actual_obj.png
 out_actual_obj_default.png
-tests/out_actual_obj_diffuse.png
+out_actual_obj_diffuse.png
+out_actual_obj_uv.png

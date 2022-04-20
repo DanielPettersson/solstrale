@@ -30,7 +30,7 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 
 	world := hittable.NewHittableList()
 
-	imageTex, err := material.LoadImageTexture("tex.jpg")
+	imageTex, err := material.LoadImageTexture("textures/tex.jpg")
 	if err != nil {
 		panic(err)
 	}
@@ -174,7 +174,7 @@ func createUvScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 
 	world.Add(hittable.NewSphere(geo.NewVec3(50, 50, 50), 20, light))
 
-	tex, err := material.LoadImageTexture("checker.jpg")
+	tex, err := material.LoadImageTexture("textures/checker.jpg")
 	if err != nil {
 		panic(err)
 	}
@@ -211,13 +211,13 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	light := material.NewLight(15, 15, 15)
 
 	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
-	model, err := hittable.NewObjModel("spider/spider.obj")
+	model, err := hittable.NewObjModel("spider/", "spider.obj")
 	if err != nil {
 		panic(err)
 	}
 	world.Add(model)
 
-	imageTex, err := material.LoadImageTexture("tex.jpg")
+	imageTex, err := material.LoadImageTexture("textures/tex.jpg")
 	if err != nil {
 		panic(err)
 	}
@@ -233,7 +233,7 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	}
 }
 
-func createObjWithBox(renderConfig renderer.RenderConfig, objFilePath string) *renderer.Scene {
+func createObjWithBox(renderConfig renderer.RenderConfig, path, filename string) *renderer.Scene {
 	camera := camera.CameraConfig{
 		VerticalFovDegrees: 30,
 		ApertureSize:       0,
@@ -247,7 +247,7 @@ func createObjWithBox(renderConfig renderer.RenderConfig, objFilePath string) *r
 	red := material.NewLambertian(material.NewSolidColor(1, 0, 0))
 
 	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
-	model, err := hittable.NewObjModelWithDefaultMaterial(objFilePath, red)
+	model, err := hittable.NewObjModelWithDefaultMaterial(path, filename, red)
 	if err != nil {
 		panic(err)
 	}
@@ -314,7 +314,7 @@ func TestRenderObjWithDefaultMaterial(t *testing.T) {
 		SamplesPerPixel: 50,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
-	scene := createObjWithBox(traceSpec, "box.obj")
+	scene := createObjWithBox(traceSpec, "obj/", "box.obj")
 
 	renderAndCompareOutput(t, scene, "obj_default", 200, 100)
 }
@@ -325,7 +325,7 @@ func TestRenderObjWithDiffuseMaterial(t *testing.T) {
 		SamplesPerPixel: 50,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
 	}
-	scene := createObjWithBox(traceSpec, "boxWithMat.obj")
+	scene := createObjWithBox(traceSpec, "obj/", "boxWithMat.obj")
 
 	renderAndCompareOutput(t, scene, "obj_diffuse", 200, 100)
 }
@@ -414,8 +414,8 @@ func renderAndCompareOutput(t *testing.T, scene *renderer.Scene, name string, im
 		im = p.RenderImage
 	}
 
-	actualFileName := fmt.Sprintf("out_actual_%v.png", name)
-	expectedFileName := fmt.Sprintf("out_expected_%v.png", name)
+	actualFileName := fmt.Sprintf("output/out_actual_%v.png", name)
+	expectedFileName := fmt.Sprintf("output/out_expected_%v.png", name)
 
 	actualFile, err := os.Create(actualFileName)
 	if err != nil {

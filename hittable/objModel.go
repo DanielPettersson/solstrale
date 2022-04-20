@@ -12,9 +12,9 @@ import (
 // NewObjModel reads a Wavefront .obj file and creates a bvh containing
 // all triangles. It also read materials from the referred .mat file.
 // Support for colored and textured lambertian materials.
-func NewObjModel(path string) (Hittable, error) {
+func NewObjModel(path, filename string) (Hittable, error) {
 	return NewObjModelWithDefaultMaterial(
-		path,
+		path, filename,
 		material.NewLambertian(material.NewSolidColor(1, 1, 1)),
 	)
 }
@@ -23,10 +23,10 @@ func NewObjModel(path string) (Hittable, error) {
 // all triangles. It also read materials from the referred .mat file.
 // Support for colored and textured lambertian materials.
 // Applies supplied default material if none in model
-func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Material) (Hittable, error) {
+func NewObjModelWithDefaultMaterial(path, filename string, defaultMaterial material.Material) (Hittable, error) {
 
 	options := &gwob.ObjParserOptions{IgnoreNormals: true}
-	object, err := gwob.NewObjFromFile(path, options)
+	object, err := gwob.NewObjFromFile(path+filename, options)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Failed to read obj file: %v", err.Error()))
 	}
@@ -38,7 +38,7 @@ func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Materi
 	// Read all materials if a library is defined
 
 	if object.Mtllib != "" {
-		materialLib, err := gwob.ReadMaterialLibFromFile(object.Mtllib, options)
+		materialLib, err := gwob.ReadMaterialLibFromFile(path+object.Mtllib, options)
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf("Failed to read material file: %v", err.Error()))
 		}
@@ -47,7 +47,7 @@ func NewObjModelWithDefaultMaterial(path string, defaultMaterial material.Materi
 
 			// If a texture
 			if m.MapKd != "" {
-				tex, err := material.LoadImageTexture(m.MapKd)
+				tex, err := material.LoadImageTexture(path + m.MapKd)
 				if err != nil {
 					return nil, err
 				}
