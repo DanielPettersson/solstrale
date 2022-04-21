@@ -407,6 +407,21 @@ func BenchmarkBvh(b *testing.B) {
 	}
 }
 
+func BenchmarkScene(b *testing.B) {
+	traceSpec := renderer.RenderConfig{
+		SamplesPerPixel: b.N,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
+	}
+	scene := createTestScene(traceSpec)
+	renderProgress := make(chan renderer.RenderProgress)
+
+	b.ResetTimer()
+
+	go solstrale.RayTrace(100, 50, scene, renderProgress, make(chan bool))
+	for range renderProgress {
+	}
+}
+
 func renderAndCompareOutput(t *testing.T, scene *renderer.Scene, name string, imageWidth, imageHeight int) {
 	renderProgress := make(chan renderer.RenderProgress, 1)
 	go solstrale.RayTrace(imageWidth, imageHeight, scene, renderProgress, make(chan bool))

@@ -37,8 +37,8 @@ func (pts PathTracingShader) Shade(renderer *Renderer, rec *material.HitRecord, 
 		return scatterRecord.Attenuation.Mul(rc)
 	}
 
-	lightPtr := hittable.NewHittablePdf(renderer.lights, rec.HitPoint)
-	mixturePdf := pdf.NewMixturePdf(&lightPtr, scatterRecord.PdfPtr)
+	lightPdf := hittable.NewHittablePdf(renderer.lights, rec.HitPoint)
+	mixturePdf := pdf.NewMixturePdf(lightPdf, scatterRecord.Pdf)
 
 	scattered := geo.NewRay(
 		rec.HitPoint,
@@ -46,7 +46,7 @@ func (pts PathTracingShader) Shade(renderer *Renderer, rec *material.HitRecord, 
 		ray.Time,
 	)
 	pdfVal := mixturePdf.Value(scattered.Direction)
-	scatteringPdf := rec.Material.ScatteringPdf(ray, rec, scattered)
+	scatteringPdf := rec.Material.ScatteringPdf(rec, scattered)
 	rc, _, _ := renderer.rayColor(scattered, depth+1)
 	scatterColor := scatterRecord.Attenuation.MulS(scatteringPdf).Mul(rc).DivS(pdfVal)
 
@@ -67,10 +67,7 @@ func filterColorValue(val float64) float64 {
 	}
 	// A subjectively chosen value that is a trade off between
 	// color acne and suppressing intensity
-	if val > 3 {
-		return 3
-	}
-	return val
+	return math.Min(val, 3)
 }
 
 // AlbedoShader outputs flat color

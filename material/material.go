@@ -11,7 +11,7 @@ import (
 // ScatterRecord is a collection of attributes from the scattering of a ray with a material
 type ScatterRecord struct {
 	Attenuation geo.Vec3
-	PdfPtr      *pdf.Pdf
+	Pdf         pdf.Pdf
 	SkipPdf     bool
 	SkipPdfRay  geo.Ray
 }
@@ -27,7 +27,7 @@ type Material interface {
 
 // PdfGeneratingMaterial is a material that can use pdfs for scattering of rays
 type PdfGeneratingMaterial interface {
-	ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64
+	ScatteringPdf(rec *HitRecord, scattered geo.Ray) float64
 }
 
 // NonPdfGeneratingMaterial is to be used by materials that do not use pdfs
@@ -35,7 +35,7 @@ type NonPdfGeneratingMaterial struct{}
 
 // ScatteringPdf as NonPdfGeneratingMaterial is used for materials that do not generate a pdf
 // Just return 0
-func (m NonPdfGeneratingMaterial) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
+func (m NonPdfGeneratingMaterial) ScatteringPdf(rec *HitRecord, scattered geo.Ray) float64 {
 	return 0
 }
 
@@ -73,17 +73,17 @@ func NewLambertian(tex Texture) Material {
 // Scatter returns a randomish scatter of the ray for the matte material
 func (m lambertian) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 	attenuation := m.Tex.Color(rec)
-	pdfPtr := pdf.NewCosinePdf(rec.Normal)
+	pdf := pdf.NewCosinePdf(rec.Normal)
 
 	return true, ScatterRecord{
 		Attenuation: attenuation,
-		PdfPtr:      &pdfPtr,
+		Pdf:         pdf,
 		SkipPdf:     false,
 	}
 }
 
 // ScatteringPdf returns the pdf value for a given rays for the lambertian material
-func (m lambertian) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
+func (m lambertian) ScatteringPdf(rec *HitRecord, scattered geo.Ray) float64 {
 	cosTheta := rec.Normal.Dot(scattered.Direction.Unit())
 	if cosTheta < 0 {
 		return 0
@@ -116,7 +116,6 @@ func (m metal) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 
 	return true, ScatterRecord{
 		Attenuation: m.Tex.Color(rec),
-		PdfPtr:      nil,
 		SkipPdf:     true,
 		SkipPdfRay:  scatterRay,
 	}
@@ -167,7 +166,6 @@ func (m dielectric) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord)
 
 	return true, ScatterRecord{
 		Attenuation: m.Tex.Color(rec),
-		PdfPtr:      nil,
 		SkipPdf:     true,
 		SkipPdfRay:  scatterRay,
 	}
@@ -221,16 +219,16 @@ type Isotropic struct {
 // Scatter returns a randomly scattered ray in any direction
 func (m Isotropic) Scatter(rayIn geo.Ray, rec *HitRecord) (bool, ScatterRecord) {
 	attenuation := m.Albedo.Color(rec)
-	pdfPtr := pdf.NewSpherePdf()
+	pdf := pdf.NewSpherePdf()
 
 	return true, ScatterRecord{
 		Attenuation: attenuation,
-		PdfPtr:      &pdfPtr,
+		Pdf:         pdf,
 		SkipPdf:     false,
 	}
 }
 
 // ScatteringPdf returns the pdf value for a given rays for the isotropic material
-func (m Isotropic) ScatteringPdf(rayIn geo.Ray, rec *HitRecord, scattered geo.Ray) float64 {
-	return 1 / (4 * math.Pi)
+func (m Isotropic) ScatteringPdf(rec *HitRecord, scattered geo.Ray) float64 {
+	return pdf.SpherePdfValue
 }

@@ -10,18 +10,13 @@ import (
 
 func TestNonPdfGeneratingMaterial(t *testing.T) {
 	m := material.NonPdfGeneratingMaterial{}
-	r1 := geo.NewRay(
-		geo.RandomVec3(-1, 1),
-		geo.RandomVec3(-1, 1),
-		0,
-	)
-	r2 := geo.NewRay(
+	r := geo.NewRay(
 		geo.RandomVec3(-1, 1),
 		geo.RandomVec3(-1, 1),
 		0,
 	)
 
-	assert.Equal(t, 0., m.ScatteringPdf(r1, nil, r2))
+	assert.Equal(t, 0., m.ScatteringPdf(nil, r))
 }
 
 func TestNonLightEmittingMaterial(t *testing.T) {
