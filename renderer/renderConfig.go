@@ -28,4 +28,5 @@ type Scene struct {
 type RenderProgress struct {
 	Progress    float64
 	RenderImage image.Image
+	Error       error
 }

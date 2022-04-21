@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"errors"
 	"image/color"
 	"runtime"
 	"time"
@@ -26,13 +27,13 @@ type Renderer struct {
 }
 
 // NewRenderer creates a new renderer given a scene and channels for communicating with the caller
-func NewRenderer(scene *Scene, output chan<- RenderProgress, abort <-chan bool) *Renderer {
+func NewRenderer(scene *Scene, output chan<- RenderProgress, abort <-chan bool) (*Renderer, error) {
 
 	lights := hittable.NewHittableList()
 	findLights(scene.World, &lights)
 
 	if len(lights.List()) == 0 {
-		panic("Scene should have at least one light")
+		return nil, errors.New("Scene should have at least one light")
 	}
 
 	return &Renderer{
@@ -43,7 +44,7 @@ func NewRenderer(scene *Scene, output chan<- RenderProgress, abort <-chan bool) 
 		albedoShader:                   AlbedoShader{},
 		normalShader:                   NormalShader{},
 		maxMillisBetweenProgressOutput: 500,
-	}
+	}, nil
 }
 
 func (r *Renderer) rayColor(ray geo.Ray, depth int) (geo.Vec3, geo.Vec3, geo.Vec3) {
@@ -80,11 +81,6 @@ func (r *Renderer) Render(imageWidth, imageHeight int) {
 	albedoColors := make([]geo.Vec3, pixelCount)
 	normalColors := make([]geo.Vec3, pixelCount)
 
-	numWorkers := runtime.NumCPU() - 1
-	if numWorkers < 1 {
-		numWorkers = 1
-	}
-
 	workerJobChannel := make(chan int, imageHeight)
 	workerDoneChannel := make(chan bool)
 	aborted := false
@@ -93,6 +89,7 @@ func (r *Renderer) Render(imageWidth, imageHeight int) {
 
 	// Setup the pool of worker goroutines responsible for rendering lines
 
+	numWorkers := numWorkers()
 	for i := 0; i < numWorkers; i++ {
 		go func() {
 
@@ -126,7 +123,7 @@ func (r *Renderer) Render(imageWidth, imageHeight int) {
 	var lastProgressTime time.Time
 
 	// Render loop, executes the workers and reports progress
-
+RenderLoop:
 	for sample := 1; sample <= samplesPerPixel; sample++ {
 
 		lastProgressTime = time.Now()
@@ -145,6 +142,7 @@ func (r *Renderer) Render(imageWidth, imageHeight int) {
 			select {
 			case <-r.abort:
 				aborted = true
+				break RenderLoop
 			default:
 			}
 
@@ -157,10 +155,6 @@ func (r *Renderer) Render(imageWidth, imageHeight int) {
 				lastProgressTime = nowTime
 				createProgress(pixelCount, imageWidth, imageHeight, sample, samplesPerPixel, pixelColors, r.output)
 			}
-		}
-
-		if aborted {
-			break
 		}
 
 		createProgress(pixelCount, imageWidth, imageHeight, sample, samplesPerPixel, pixelColors, r.output)
@@ -186,6 +180,14 @@ func (r *Renderer) Render(imageWidth, imageHeight int) {
 	}
 
 	close(r.output)
+}
+
+func numWorkers() int {
+	numWorkers := runtime.NumCPU()
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
+	return numWorkers
 }
 
 func createProgress(

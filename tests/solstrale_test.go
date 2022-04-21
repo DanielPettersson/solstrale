@@ -369,10 +369,12 @@ func TestRenderSceneWithoutLight(t *testing.T) {
 	}
 	scene := createSimpleTestScene(traceSpec, false)
 
-	assert.Panics(t, func() {
-		solstrale.RayTrace(10, 10, scene, make(chan renderer.RenderProgress), make(chan bool, 1))
+	renderProgress := make(chan renderer.RenderProgress)
+	go solstrale.RayTrace(10, 10, scene, renderProgress, make(chan bool))
 
-	})
+	for p := range renderProgress {
+		assert.Equal(t, "Scene should have at least one light", p.Error.Error())
+	}
 
 }
 
