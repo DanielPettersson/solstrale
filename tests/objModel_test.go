@@ -9,7 +9,7 @@ import (
 
 func TestMissingFile(t *testing.T) {
 
-	o, err := hittable.NewObjModel("obj/", "missing.obj")
+	o, err := hittable.NewObjModel("obj/", "missing.obj", 1)
 
 	assert.Equal(t, nil, o)
 	assert.Contains(t, err.Error(), "Failed to read obj file")
@@ -18,7 +18,7 @@ func TestMissingFile(t *testing.T) {
 
 func TestMissingMaterialFile(t *testing.T) {
 
-	o, err := hittable.NewObjModel("obj/", "missingMaterialLib.obj")
+	o, err := hittable.NewObjModel("obj/", "missingMaterialLib.obj", 1)
 
 	assert.Equal(t, nil, o)
 	assert.Contains(t, err.Error(), "Failed to read material file")
@@ -27,7 +27,7 @@ func TestMissingMaterialFile(t *testing.T) {
 
 func TestMissingImageFile(t *testing.T) {
 
-	o, err := hittable.NewObjModel("obj/", "missingImage.obj")
+	o, err := hittable.NewObjModel("obj/", "missingImage.obj", 1)
 
 	assert.Equal(t, nil, o)
 	assert.Equal(t, "Failed to load image texture obj/missing.jpg. Got error: open obj/missing.jpg: no such file or directory", err.Error())
@@ -35,7 +35,7 @@ func TestMissingImageFile(t *testing.T) {
 
 func TestInvalidImageFile(t *testing.T) {
 
-	o, err := hittable.NewObjModel("obj/", "invalidImage.obj")
+	o, err := hittable.NewObjModel("obj/", "invalidImage.obj", 1)
 
 	assert.Equal(t, nil, o)
 	assert.Equal(t, "Failed to decode image texture obj/invalidImage.mtl. Got error: image: unknown format", err.Error())

@@ -211,7 +211,7 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	light := material.NewLight(15, 15, 15)
 
 	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
-	model, err := hittable.NewObjModel("spider/", "spider.obj")
+	model, err := hittable.NewObjModel("spider/", "spider.obj", 1)
 	if err != nil {
 		panic(err)
 	}
@@ -247,7 +247,7 @@ func createObjWithBox(renderConfig renderer.RenderConfig, path, filename string)
 	red := material.NewLambertian(material.NewSolidColor(1, 0, 0))
 
 	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
-	model, err := hittable.NewObjModelWithDefaultMaterial(path, filename, red)
+	model, err := hittable.NewObjModelWithDefaultMaterial(path, filename, 1, red)
 	if err != nil {
 		panic(err)
 	}
@@ -285,12 +285,13 @@ func TestRenderScene(t *testing.T) {
 
 func TestRenderSceneWithOidn(t *testing.T) {
 
+	oidnPost, err := post.NewOidn("./mock_oidn.sh")
+	assert.Nil(t, err)
+
 	traceSpec := renderer.RenderConfig{
 		SamplesPerPixel: 10,
 		Shader:          renderer.PathTracingShader{MaxDepth: 50},
-		PostProcessor: post.OidnPostProcessor{
-			OidnDenoiseExecutablePath: "./mock_oidn.sh",
-		},
+		PostProcessor:   oidnPost,
 	}
 	scene := createSimpleTestScene(traceSpec, true)
 

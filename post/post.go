@@ -3,6 +3,8 @@ package post
 
 import (
 	_ "embed"
+	"errors"
+	"fmt"
 	"image"
 	"io/ioutil"
 	"os"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/DanielPettersson/solstrale/geo"
 	im "github.com/DanielPettersson/solstrale/internal/image"
+	"github.com/DanielPettersson/solstrale/internal/util"
 	"github.com/mdouchement/hdr"
 	"github.com/mdouchement/hdr/codec/pfm"
 	_ "github.com/mdouchement/hdr/codec/pfm"
@@ -25,13 +28,29 @@ type PostProcessor interface {
 	) *image.Image
 }
 
-// OidnPostProcessor delegates postprocessing of the rendered image to the Intel Open Image Denoise library
-type OidnPostProcessor struct {
+// oidnPostProcessor delegates postprocessing of the rendered image to the Intel Open Image Denoise library
+type oidnPostProcessor struct {
 	OidnDenoiseExecutablePath string
 }
 
+func NewOidn(oidnDenoiseExecutablePath string) (PostProcessor, error) {
+
+	f, err := os.Stat(oidnDenoiseExecutablePath)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Oidn path does not exist: %v", err.Error()))
+	}
+
+	if !util.IsExecOwner(f.Mode()) {
+		return nil, errors.New(fmt.Sprintf("Oidn path is not executable: %v", oidnDenoiseExecutablePath))
+	}
+
+	return oidnPostProcessor{
+		OidnDenoiseExecutablePath: oidnDenoiseExecutablePath,
+	}, nil
+}
+
 // PostProcess runs an external command to oidn in a separate process
-func (p OidnPostProcessor) PostProcess(
+func (p oidnPostProcessor) PostProcess(
 	pixelColors []geo.Vec3,
 	albedoColors []geo.Vec3,
 	normalColors []geo.Vec3,

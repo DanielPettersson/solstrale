@@ -2,6 +2,7 @@ package util
 
 import (
 	"math"
+	"os"
 )
 
 var (
@@ -14,4 +15,9 @@ var (
 // DegreesToRadians converts an angle in degrees to radians
 func DegreesToRadians(degrees float64) float64 {
 	return degrees * (math.Pi / 180)
+}
+
+// IsExecOwner checks the file mode to see if it is executable by owner
+func IsExecOwner(mode os.FileMode) bool {
+	return mode&0100 != 0
 }

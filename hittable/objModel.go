@@ -12,9 +12,10 @@ import (
 // NewObjModel reads a Wavefront .obj file and creates a bvh containing
 // all triangles. It also read materials from the referred .mat file.
 // Support for colored and textured lambertian materials.
-func NewObjModel(path, filename string) (Hittable, error) {
+func NewObjModel(path, filename string, scale float64) (Hittable, error) {
 	return NewObjModelWithDefaultMaterial(
 		path, filename,
+		scale,
 		material.NewLambertian(material.NewSolidColor(1, 1, 1)),
 	)
 }
@@ -23,7 +24,7 @@ func NewObjModel(path, filename string) (Hittable, error) {
 // all triangles. It also read materials from the referred .mat file.
 // Support for colored and textured lambertian materials.
 // Applies supplied default material if none in model
-func NewObjModelWithDefaultMaterial(path, filename string, defaultMaterial material.Material) (Hittable, error) {
+func NewObjModelWithDefaultMaterial(path, filename string, scale float64, defaultMaterial material.Material) (Hittable, error) {
 
 	options := &gwob.ObjParserOptions{IgnoreNormals: true}
 	object, err := gwob.NewObjFromFile(path+filename, options)
@@ -79,11 +80,11 @@ func NewObjModelWithDefaultMaterial(path, filename string, defaultMaterial mater
 			}
 
 			x, y, z := object.VertexCoordinates(object.Indices[i])
-			v0 := geo.NewVec3(float64(x), float64(y), float64(z))
+			v0 := geo.NewVec3(float64(x), float64(y), float64(z)).MulS(scale)
 			x, y, z = object.VertexCoordinates(object.Indices[i+1])
-			v1 := geo.NewVec3(float64(x), float64(y), float64(z))
+			v1 := geo.NewVec3(float64(x), float64(y), float64(z)).MulS(scale)
 			x, y, z = object.VertexCoordinates(object.Indices[i+2])
-			v2 := geo.NewVec3(float64(x), float64(y), float64(z))
+			v2 := geo.NewVec3(float64(x), float64(y), float64(z)).MulS(scale)
 
 			var tu0, tv0, tu1, tv1, tu2, tv2 float64
 
