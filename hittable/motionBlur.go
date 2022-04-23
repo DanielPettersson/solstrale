@@ -7,7 +7,7 @@ import (
 )
 
 type motionBlur struct {
-	NonPdfUsingHittable
+	NonPdfLightHittable
 	blurredHittable Hittable
 	blurDirection   geo.Vec3
 	bBox            aabb

@@ -13,7 +13,7 @@ import (
 )
 
 type constantMedium struct {
-	NonPdfUsingHittable
+	NonPdfLightHittable
 	Boundary               Hittable
 	NegativeInverseDensity float64
 	PhaseFunction          material.Material
@@ -21,11 +21,12 @@ type constantMedium struct {
 
 // NewConstantMedium creates a fog type hittable object where rays not only scatter
 // at the edge of the object, but at random points inside the object
-func NewConstantMedium(boundary Hittable, density float64, color material.Texture) Hittable {
+// The material of the boundary hittable is not used and can be nil
+func NewConstantMedium(boundary Hittable, density float64, color geo.Vec3) Hittable {
 	return constantMedium{
 		Boundary:               boundary,
 		NegativeInverseDensity: -1 / density,
-		PhaseFunction:          material.Isotropic{Albedo: color},
+		PhaseFunction:          material.Isotropic{Albedo: material.SolidColor{ColorValue: color}},
 	}
 }
 

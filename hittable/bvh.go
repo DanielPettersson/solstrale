@@ -11,7 +11,7 @@ import (
 
 // Bounding Volume Hierarchy
 type bvh struct {
-	NonPdfUsingHittable
+	NonPdfLightHittable
 	left  *Hittable
 	right *Hittable
 	bBox  *aabb

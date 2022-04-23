@@ -38,7 +38,6 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	groundMaterial := material.NewLambertian(imageTex)
 	glassMat := material.NewDielectric(material.NewSolidColor(1, 1, 1), 1.5)
 	lightMat := material.NewLight(10, 10, 10)
-	fogMat := material.Isotropic{Albedo: material.NewSolidColor(1, 1, 1)}
 	redMat := material.NewLambertian(material.NewSolidColor(1, 0, 0))
 
 	world.Add(hittable.NewQuad(
@@ -52,11 +51,11 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	))
 	world.Add(hittable.NewConstantMedium(
 		hittable.NewTranslation(
-			hittable.NewBox(geo.NewVec3(0, 0, -.5), geo.NewVec3(1, 2, .5), fogMat),
+			hittable.NewBox(geo.NewVec3(0, 0, -.5), geo.NewVec3(1, 2, .5), nil),
 			geo.NewVec3(0, 0, 1),
 		),
 		0.1,
-		material.NewSolidColor(1, 1, 1),
+		geo.NewVec3(1, 1, 1),
 	))
 	world.Add(hittable.NewMotionBlur(
 		hittable.NewBox(geo.NewVec3(-1, 2, 0), geo.NewVec3(-.5, 2.5, .5), redMat),

@@ -10,7 +10,7 @@ import (
 
 func TestNonPdfUsingHittable(t *testing.T) {
 
-	h := hittable.NonPdfUsingHittable{}
+	h := hittable.NonPdfLightHittable{}
 
 	assert.Panics(t, func() {
 		h.PdfValue(geo.RandomVec3(-1, 1), geo.RandomVec3(-1, 1))
