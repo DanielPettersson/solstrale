@@ -14,7 +14,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-cmd/solstrale-profiler/solstrale-profiler
+cmd/profiling/profiling
 out_actual_pathTracing.png
 out_actual_simple.png
 out_actual_oidn.png

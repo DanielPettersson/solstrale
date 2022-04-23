@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/mdouchement/hdr v0.2.3
+	github.com/pkg/profile v1.6.0
 	github.com/stretchr/testify v1.7.0
 	github.com/udhos/gwob v0.0.0-20200524213453-619810f75817
 	github.com/valyala/fastrand v1.1.0
