@@ -97,6 +97,10 @@ func (ry rotationY) BoundingBox() aabb {
 	return ry.bBox
 }
 
+func (ry rotationY) Center() geo.Vec3 {
+	return ry.bBox.center()
+}
+
 func (ry rotationY) PdfValue(origin, direction geo.Vec3) float64 {
 	return ry.object.PdfValue(origin, direction)
 }

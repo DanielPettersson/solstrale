@@ -112,6 +112,10 @@ func (q quad) BoundingBox() aabb {
 	return q.bBox
 }
 
+func (q quad) Center() geo.Vec3 {
+	return q.bBox.center()
+}
+
 func (q quad) PdfValue(origin, direction geo.Vec3) float64 {
 	ray := geo.NewRay(
 		origin,

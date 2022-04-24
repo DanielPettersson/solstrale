@@ -23,6 +23,7 @@ type triangle struct {
 	mat    material.Material
 	bBox   aabb
 	area   float64
+	center geo.Vec3
 }
 
 func NewTriangle(v0, v1, v2 geo.Vec3, mat material.Material) Hittable {
@@ -39,6 +40,8 @@ func NewTriangleWithTexCoords(v0, v1, v2 geo.Vec3, tu0, tv0, tu1, tv1, tu2, tv2 
 	normal := n.Unit()
 	area := n.Length() / 2
 
+	center := v0.Add(v1).Add(v2).MulS(0.33333)
+
 	return triangle{
 		v0,
 		v0v1,
@@ -53,6 +56,7 @@ func NewTriangleWithTexCoords(v0, v1, v2 geo.Vec3, tu0, tv0, tu1, tv1, tu2, tv2 
 		mat,
 		bBox,
 		area,
+		center,
 	}
 }
 
@@ -112,6 +116,10 @@ func (t triangle) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRe
 
 func (t triangle) BoundingBox() aabb {
 	return t.bBox
+}
+
+func (t triangle) Center() geo.Vec3 {
+	return t.center
 }
 
 func (t triangle) PdfValue(origin, direction geo.Vec3) float64 {

@@ -56,3 +56,7 @@ func (m motionBlur) BoundingBox() aabb {
 func (m motionBlur) IsLight() bool {
 	return m.blurredHittable.IsLight()
 }
+
+func (m motionBlur) Center() geo.Vec3 {
+	return m.bBox.center()
+}

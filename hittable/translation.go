@@ -47,6 +47,10 @@ func (t translation) BoundingBox() aabb {
 	return t.bBox
 }
 
+func (t translation) Center() geo.Vec3 {
+	return t.bBox.center()
+}
+
 func (t translation) PdfValue(origin, direction geo.Vec3) float64 {
 	return t.object.PdfValue(origin, direction)
 }

@@ -90,3 +90,11 @@ func (b aabb) hit(r geo.Ray, rayLength util.Interval) bool {
 
 	return tmax > math.Max(tmin, 0)
 }
+
+func (b aabb) center() geo.Vec3 {
+	return geo.NewVec3(
+		b.x.Min+b.x.Max*.5,
+		b.y.Min+b.y.Max*.5,
+		b.z.Min+b.z.Max*.5,
+	)
+}

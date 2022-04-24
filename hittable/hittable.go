@@ -12,6 +12,7 @@ type Hittable interface {
 	PdfLightHittable
 	Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord)
 	BoundingBox() aabb
+	Center() geo.Vec3
 	IsLight() bool
 }
 

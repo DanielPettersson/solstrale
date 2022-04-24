@@ -2,7 +2,6 @@ package hittable
 
 import (
 	"math"
-	"sort"
 
 	"github.com/DanielPettersson/solstrale/geo"
 	"github.com/DanielPettersson/solstrale/internal/util"
@@ -14,7 +13,7 @@ type bvh struct {
 	NonPdfLightHittable
 	left  *Hittable
 	right *Hittable
-	bBox  *aabb
+	bBox  aabb
 }
 
 // NewBoundingVolumeHierarchy creates a new hittable object from the given hittable list
@@ -27,11 +26,10 @@ func NewBoundingVolumeHierarchy(list []Hittable) Hittable {
 		panic("Cannot create a Bvh with empty list of objects")
 	}
 
-	return _createBvh(list, 0, len(list))
+	return createBvh(list, 0, len(list))
 }
 
-func _createBvh(list []Hittable, start, end int) *bvh {
-
+func createBvh(list []Hittable, start, end int) *bvh {
 	numObjects := end - start
 	var left Hittable
 	var right Hittable
@@ -43,50 +41,70 @@ func _createBvh(list []Hittable, start, end int) *bvh {
 		bBox = left.BoundingBox()
 
 	} else if numObjects == 2 {
-		sortHittablesSliceByMostSpreadAxis(list, start, end)
 		left = list[start]
 		right = list[start+1]
 		bBox = combineAabbs(left.BoundingBox(), right.BoundingBox())
 
 	} else {
-		sortHittablesSliceByMostSpreadAxis(list, start, end)
-		mid := start + numObjects/2
-		left = _createBvh(list, start, mid)
-		right = _createBvh(list, mid, end)
+		mid := sortHittablesSliceByMostSpreadAxis(list, start, end)
+
+		// Could not split with objects on both sides. Just split up the middle index
+		if mid == start || mid == end {
+			mid = start + numObjects/2
+		}
+
+		left = createBvh(list, start, mid)
+		right = createBvh(list, mid, end)
 		bBox = combineAabbs(left.BoundingBox(), right.BoundingBox())
 	}
 
-	return &bvh{left: &left, right: &right, bBox: &bBox}
+	return &bvh{left: &left, right: &right, bBox: bBox}
 }
 
-func sortHittablesSliceByMostSpreadAxis(list []Hittable, start, end int) {
+func sortHittablesSliceByMostSpreadAxis(list []Hittable, start, end int) int {
 	slice := list[start:end]
 
-	xSpread := boundingBoxSpread(slice, func(h Hittable) util.Interval { return h.BoundingBox().x })
-	ySpread := boundingBoxSpread(slice, func(h Hittable) util.Interval { return h.BoundingBox().y })
-	zSpread := boundingBoxSpread(slice, func(h Hittable) util.Interval { return h.BoundingBox().z })
+	xSpread, xCenter := boundingBoxSpread(slice, func(h Hittable) float64 { return h.Center().X })
+	ySpread, yCenter := boundingBoxSpread(slice, func(h Hittable) float64 { return h.Center().Y })
+	zSpread, zCenter := boundingBoxSpread(slice, func(h Hittable) float64 { return h.Center().Z })
 
 	if xSpread >= ySpread && xSpread >= zSpread {
-		sortHittablesByBoundingBox(slice, func(h Hittable) util.Interval { return h.BoundingBox().x })
+		return sortHittablesByCenter(slice, xCenter, func(h Hittable) float64 { return h.Center().X }) + start
 	} else if ySpread >= xSpread && ySpread >= zSpread {
-		sortHittablesByBoundingBox(slice, func(h Hittable) util.Interval { return h.BoundingBox().y })
+		return sortHittablesByCenter(slice, yCenter, func(h Hittable) float64 { return h.Center().Y }) + start
 	} else {
-		sortHittablesByBoundingBox(slice, func(h Hittable) util.Interval { return h.BoundingBox().z })
+		return sortHittablesByCenter(slice, zCenter, func(h Hittable) float64 { return h.Center().Z }) + start
 	}
 }
 
-func boundingBoxSpread(list []Hittable, boundingIntervalFunc func(h Hittable) util.Interval) float64 {
+func boundingBoxSpread(list []Hittable, centerFunc func(h Hittable) float64) (float64, float64) {
 	min := util.Infinity
 	max := -util.Infinity
 	for _, h := range list {
-		min = math.Min(min, boundingIntervalFunc(h).Min)
-		max = math.Max(max, boundingIntervalFunc(h).Min)
+		min = math.Min(min, centerFunc(h))
+		max = math.Max(max, centerFunc(h))
 	}
-	return max - min
+	return max - min, (min + max) * .5
 }
 
-func sortHittablesByBoundingBox(list []Hittable, boundingIntervalFunc func(h Hittable) util.Interval) {
-	sort.Slice(list, func(i, j int) bool { return boundingIntervalFunc(list[i]).Min < boundingIntervalFunc(list[j]).Min })
+func sortHittablesByCenter(list []Hittable, center float64, boundingCenterFunc func(h Hittable) float64) int {
+
+	i := 0
+	j := len(list) - 1
+
+	for i <= j {
+		if boundingCenterFunc(list[i]) < center {
+			i++
+		} else {
+			tmpI := list[i]
+			tmpJ := list[j]
+			list[i] = tmpJ
+			list[j] = tmpI
+			j--
+		}
+	}
+
+	return i
 }
 
 func (b *bvh) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
@@ -108,9 +126,13 @@ func (b *bvh) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord
 }
 
 func (b *bvh) BoundingBox() aabb {
-	return *b.bBox
+	return b.bBox
 }
 
 func (b *bvh) IsLight() bool {
 	return false
+}
+
+func (b *bvh) Center() geo.Vec3 {
+	return b.bBox.center()
 }
