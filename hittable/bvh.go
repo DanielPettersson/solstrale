@@ -61,39 +61,51 @@ func createBvh(list []Hittable, start, end int) *bvh {
 	return &bvh{left: &left, right: &right, bBox: bBox}
 }
 
+func xAxis(c geo.Vec3) float64 {
+	return c.X
+}
+
+func yAxis(c geo.Vec3) float64 {
+	return c.Y
+}
+
+func zAxis(c geo.Vec3) float64 {
+	return c.Z
+}
+
 func sortHittablesSliceByMostSpreadAxis(list []Hittable, start, end int) int {
 	slice := list[start:end]
 
-	xSpread, xCenter := boundingBoxSpread(slice, func(h Hittable) float64 { return h.Center().X })
-	ySpread, yCenter := boundingBoxSpread(slice, func(h Hittable) float64 { return h.Center().Y })
-	zSpread, zCenter := boundingBoxSpread(slice, func(h Hittable) float64 { return h.Center().Z })
+	xSpread, xCenter := boundingBoxSpread(slice, xAxis)
+	ySpread, yCenter := boundingBoxSpread(slice, yAxis)
+	zSpread, zCenter := boundingBoxSpread(slice, zAxis)
 
 	if xSpread >= ySpread && xSpread >= zSpread {
-		return sortHittablesByCenter(slice, xCenter, func(h Hittable) float64 { return h.Center().X }) + start
+		return SortHittablesByCenter(slice, xCenter, xAxis) + start
 	} else if ySpread >= xSpread && ySpread >= zSpread {
-		return sortHittablesByCenter(slice, yCenter, func(h Hittable) float64 { return h.Center().Y }) + start
+		return SortHittablesByCenter(slice, yCenter, yAxis) + start
 	} else {
-		return sortHittablesByCenter(slice, zCenter, func(h Hittable) float64 { return h.Center().Z }) + start
+		return SortHittablesByCenter(slice, zCenter, zAxis) + start
 	}
 }
 
-func boundingBoxSpread(list []Hittable, centerFunc func(h Hittable) float64) (float64, float64) {
+func boundingBoxSpread(list []Hittable, axisFunc func(h geo.Vec3) float64) (float64, float64) {
 	min := util.Infinity
 	max := -util.Infinity
 	for _, h := range list {
-		min = math.Min(min, centerFunc(h))
-		max = math.Max(max, centerFunc(h))
+		min = math.Min(min, axisFunc(h.Center()))
+		max = math.Max(max, axisFunc(h.Center()))
 	}
 	return max - min, (min + max) * .5
 }
 
-func sortHittablesByCenter(list []Hittable, center float64, boundingCenterFunc func(h Hittable) float64) int {
+func SortHittablesByCenter(list []Hittable, center float64, axisFunc func(c geo.Vec3) float64) int {
 
 	i := 0
 	j := len(list) - 1
 
 	for i <= j {
-		if boundingCenterFunc(list[i]) < center {
+		if axisFunc(list[i].Center()) < center {
 			i++
 		} else {
 			tmpI := list[i]
