@@ -9,7 +9,7 @@ import (
 	"github.com/DanielPettersson/solstrale/random"
 )
 
-type triangle struct {
+type Triangle struct {
 	v0     geo.Vec3
 	v0v1   geo.Vec3
 	v0v2   geo.Vec3
@@ -26,13 +26,13 @@ type triangle struct {
 	center geo.Vec3
 }
 
-func NewTriangle(v0, v1, v2 geo.Vec3, mat material.Material) Hittable {
+func NewTriangle(v0, v1, v2 geo.Vec3, mat material.Material) Triangle {
 	return NewTriangleWithTexCoords(v0, v1, v2, 0, 0, 0, 0, 0, 0, mat)
 }
 
 // NewTriangle creates a new triangle flat hittable object
 // A counter clockwise winding is expected
-func NewTriangleWithTexCoords(v0, v1, v2 geo.Vec3, tu0, tv0, tu1, tv1, tu2, tv2 float64, mat material.Material) Hittable {
+func NewTriangleWithTexCoords(v0, v1, v2 geo.Vec3, tu0, tv0, tu1, tv1, tu2, tv2 float64, mat material.Material) Triangle {
 	bBox := createAabbFrom3Points(v0, v1, v2).padIfNeeded()
 	v0v1 := v1.Sub(v0)
 	v0v2 := v2.Sub(v0)
@@ -42,7 +42,7 @@ func NewTriangleWithTexCoords(v0, v1, v2 geo.Vec3, tu0, tv0, tu1, tv1, tu2, tv2 
 
 	center := v0.Add(v1).Add(v2).MulS(0.33333)
 
-	return triangle{
+	return Triangle{
 		v0,
 		v0v1,
 		v0v2,
@@ -60,7 +60,7 @@ func NewTriangleWithTexCoords(v0, v1, v2 geo.Vec3, tu0, tv0, tu1, tv1, tu2, tv2 
 	}
 }
 
-func (t triangle) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
+func (t Triangle) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRecord) {
 
 	pVec := r.Direction.Cross(t.v0v2)
 	det := t.v0v1.Dot(pVec)
@@ -114,15 +114,16 @@ func (t triangle) Hit(r geo.Ray, rayLength util.Interval) (bool, *material.HitRe
 	return true, &rec
 }
 
-func (t triangle) BoundingBox() aabb {
+func (t Triangle) BoundingBox() aabb {
 	return t.bBox
 }
 
-func (t triangle) Center() geo.Vec3 {
-	return t.center
+// Center returns the center point for the triangle
+func (t Triangle) Center(axis int) float64 {
+	return t.center.Axis(axis)
 }
 
-func (t triangle) PdfValue(origin, direction geo.Vec3) float64 {
+func (t Triangle) PdfValue(origin, direction geo.Vec3) float64 {
 	ray := geo.NewRay(
 		origin,
 		direction,
@@ -141,11 +142,11 @@ func (t triangle) PdfValue(origin, direction geo.Vec3) float64 {
 	return distanceSquared / (cosine * t.area)
 }
 
-func (t triangle) RandomDirection(origin geo.Vec3) geo.Vec3 {
+func (t Triangle) RandomDirection(origin geo.Vec3) geo.Vec3 {
 	p := t.v0.Add(t.v0v1.MulS(random.RandomNormalFloat())).Add(t.v0v2.MulS(random.RandomNormalFloat()))
 	return p.Sub(origin)
 }
 
-func (t triangle) IsLight() bool {
+func (t Triangle) IsLight() bool {
 	return t.mat.IsLight()
 }

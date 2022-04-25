@@ -102,10 +102,6 @@ func (s sphere) BoundingBox() aabb {
 	return s.bBox
 }
 
-func (s sphere) Center() geo.Vec3 {
-	return s.center
-}
-
 func (s sphere) PdfValue(origin, direction geo.Vec3) float64 {
 	ray := geo.NewRay(
 		origin,

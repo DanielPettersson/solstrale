@@ -60,11 +60,6 @@ func (hl *HittableList) BoundingBox() aabb {
 	return hl.bBox
 }
 
-// Center returns the center of all objects in the list
-func (hl *HittableList) Center() geo.Vec3 {
-	return hl.bBox.center()
-}
-
 // PdfValue generates a medium pdf value for all hittables in list given an origin and a direction
 func (hl *HittableList) PdfValue(origin, direction geo.Vec3) float64 {
 	weight := 1. / float64(len(hl.list))

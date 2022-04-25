@@ -81,7 +81,3 @@ func (cm constantMedium) BoundingBox() aabb {
 func (cm constantMedium) IsLight() bool {
 	return false
 }
-
-func (cm constantMedium) Center() geo.Vec3 {
-	return cm.Boundary.BoundingBox().center()
-}

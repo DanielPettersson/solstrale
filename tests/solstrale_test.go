@@ -62,11 +62,11 @@ func createTestScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 		geo.NewVec3(0, 1, 0),
 	))
 
-	balls := []hittable.Hittable{}
+	balls := []hittable.Triangle{}
 	for i := 0.; i < 1; i += .2 {
 		for j := 0.; j < 1; j += .2 {
 			for k := 0.; k < 1; k += .2 {
-				balls = append(balls, hittable.NewSphere(geo.NewVec3(i, j+.05, k+.8), .05, redMat))
+				balls = append(balls, hittable.NewTriangle(geo.NewVec3(i, j+.05, k+.8), geo.NewVec3(i, j, k+.8), geo.NewVec3(i, j+.05, k), redMat))
 			}
 		}
 	}
@@ -111,7 +111,7 @@ func createBvhTestScene(renderConfig renderer.RenderConfig, useBvh bool, numSphe
 	light := material.NewLight(10, 10, 10)
 	world.Add(hittable.NewSphere(geo.NewVec3(0, 4, 10), 4, light))
 
-	triangles := []hittable.Hittable{}
+	triangles := []hittable.Triangle{}
 	for x := 0.; x < float64(numSpheres); x += 1 {
 		cx := x - float64(numSpheres)/2
 		s := hittable.NewTriangle(geo.NewVec3(cx, -.5, 0), geo.NewVec3(cx+1, -.5, 0), geo.NewVec3(cx+.5, .5, 0), yellow)

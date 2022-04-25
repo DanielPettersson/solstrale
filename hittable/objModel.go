@@ -66,7 +66,7 @@ func NewObjModelWithDefaultMaterial(path, filename string, scale float64, defaul
 		}
 	}
 
-	triangles := make([]Hittable, 0, object.NumberOfElements())
+	triangles := make([]Triangle, 0, object.NumberOfElements())
 
 	for _, group := range object.Groups {
 
