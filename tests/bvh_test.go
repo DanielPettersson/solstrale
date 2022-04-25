@@ -25,7 +25,7 @@ func TestSortHittablesByCenter(t *testing.T) {
 		hittable.NewSphere(geo.NewVec3(-3, 0, 0), 1, nil),
 	}
 
-	mid := hittable.SortHittablesByCenter(hittables, 2, func(c geo.Vec3) float64 { return c.X })
+	mid := hittable.SortHittablesByCenter(hittables, 2, 0)
 	assert.Equal(t, 3, mid)
 	assert.Equal(t, -3., hittables[0].Center().X)
 	assert.Equal(t, -1., hittables[1].Center().X)
@@ -45,7 +45,7 @@ func TestSortHittablesByCenterOnlyOneOff(t *testing.T) {
 		hittable.NewSphere(geo.NewVec3(-1, 0, 0), 1, nil),
 	}
 
-	mid := hittable.SortHittablesByCenter(hittables, 2, func(c geo.Vec3) float64 { return c.X })
+	mid := hittable.SortHittablesByCenter(hittables, 2, 0)
 	assert.Equal(t, 3, mid)
 	assert.Equal(t, -3., hittables[0].Center().X)
 	assert.Equal(t, -1., hittables[1].Center().X)

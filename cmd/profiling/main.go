@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"image/jpeg"
+	"os"
 
 	"github.com/DanielPettersson/solstrale"
 	"github.com/DanielPettersson/solstrale/camera"
@@ -15,18 +17,19 @@ import (
 func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 	camera := camera.CameraConfig{
 		VerticalFovDegrees: 30,
-		ApertureSize:       20,
-		FocusDistance:      260,
-		LookFrom:           geo.NewVec3(-250, 30, 150),
-		LookAt:             geo.NewVec3(-50, 0, 0),
+		ApertureSize:       0,
+		FocusDistance:      10,
+		LookFrom:           geo.NewVec3(1, .05, 0),
+		LookAt:             geo.NewVec3(0, .05, 0),
 	}
 
 	world := hittable.NewHittableList()
 	light := material.NewLight(15, 15, 15)
 
-	world.Add(hittable.NewSphere(geo.NewVec3(-100, 100, 40), 35, light))
+	world.Add(hittable.NewSphere(geo.NewVec3(100, 100, 100), 35, light))
 
-	// Add scene to profile here...
+	dragon, _ := hittable.NewObjModel("", "dragon.obj", 1)
+	world.Add(dragon)
 
 	return &renderer.Scene{
 		World:           &world,
@@ -43,10 +46,8 @@ func main() {
 	defer profile.Start(profile.ProfilePath(".")).Stop()
 
 	renderConfig := renderer.RenderConfig{
-		SamplesPerPixel: 100,
-		Shader: renderer.PathTracingShader{
-			MaxDepth: 50,
-		},
+		SamplesPerPixel: 1,
+		Shader:          renderer.SimpleShader{},
 	}
 	scene := createObjScene(renderConfig)
 
@@ -54,6 +55,15 @@ func main() {
 	go solstrale.RayTrace(400, 200, scene, renderProgress, make(<-chan bool))
 
 	for p := range renderProgress {
-		fmt.Println(p.Progress)
+		if p.Error != nil {
+			fmt.Println(p.Error.Error())
+			return
+		}
+		f, err := os.Create("out.jpg")
+		if err != nil {
+			fmt.Println(p.Error.Error())
+			return
+		}
+		jpeg.Encode(f, p.RenderImage, nil)
 	}
 }

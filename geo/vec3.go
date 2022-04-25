@@ -100,6 +100,17 @@ func RandomCosineDirection() Vec3 {
 	}
 }
 
+// Axis returns value of a numbered axis
+func (v Vec3) Axis(a int) float64 {
+	if a == 0 {
+		return v.X
+	} else if a == 1 {
+		return v.Y
+	} else {
+		return v.Z
+	}
+}
+
 // Neg returns a Vec3 that has all values negated
 func (v Vec3) Neg() Vec3 {
 	return Vec3{-v.X, -v.Y, -v.Z}

@@ -5,6 +5,7 @@
 *.so
 *.dylib
 *.pprof
+*.obj
 
 # Test binary, built with `go test -c`
 *.test
@@ -22,3 +23,4 @@ out_actual_obj.png
 out_actual_obj_default.png
 out_actual_obj_diffuse.png
 out_actual_uv.png
+cmd/profiling/out.jpg

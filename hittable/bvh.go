@@ -8,6 +8,10 @@ import (
 	"github.com/DanielPettersson/solstrale/material"
 )
 
+const (
+	asyncCountThreshold int = 1000
+)
+
 // Bounding Volume Hierarchy
 type bvh struct {
 	NonPdfLightHittable
@@ -26,7 +30,9 @@ func NewBoundingVolumeHierarchy(list []Hittable) Hittable {
 		panic("Cannot create a Bvh with empty list of objects")
 	}
 
-	return createBvh(list, 0, len(list))
+	bvhChan := make(chan Hittable)
+	go createBvhAsync(list, 0, len(list), bvhChan)
+	return <-bvhChan
 }
 
 func createBvh(list []Hittable, start, end int) *bvh {
@@ -47,12 +53,6 @@ func createBvh(list []Hittable, start, end int) *bvh {
 
 	} else {
 		mid := sortHittablesSliceByMostSpreadAxis(list, start, end)
-
-		// Could not split with objects on both sides. Just split up the middle index
-		if mid == start || mid == end {
-			mid = start + numObjects/2
-		}
-
 		left = createBvh(list, start, mid)
 		right = createBvh(list, mid, end)
 		bBox = combineAabbs(left.BoundingBox(), right.BoundingBox())
@@ -61,51 +61,71 @@ func createBvh(list []Hittable, start, end int) *bvh {
 	return &bvh{left: &left, right: &right, bBox: bBox}
 }
 
-func xAxis(c geo.Vec3) float64 {
-	return c.X
-}
+func createBvhAsync(list []Hittable, start, end int, bvhChan chan<- Hittable) {
+	numObjects := end - start
 
-func yAxis(c geo.Vec3) float64 {
-	return c.Y
-}
+	if numObjects < asyncCountThreshold {
+		bvhChan <- createBvh(list, start, end)
+	} else {
+		mid := sortHittablesSliceByMostSpreadAxis(list, start, end)
 
-func zAxis(c geo.Vec3) float64 {
-	return c.Z
+		leftChan := make(chan Hittable)
+		rightChan := make(chan Hittable)
+		go createBvhAsync(list, start, mid, leftChan)
+		go createBvhAsync(list, mid, end, rightChan)
+
+		left := <-leftChan
+		right := <-rightChan
+		bBox := combineAabbs(left.BoundingBox(), right.BoundingBox())
+		bvhChan <- &bvh{left: &left, right: &right, bBox: bBox}
+	}
+
 }
 
 func sortHittablesSliceByMostSpreadAxis(list []Hittable, start, end int) int {
 	slice := list[start:end]
 
-	xSpread, xCenter := boundingBoxSpread(slice, xAxis)
-	ySpread, yCenter := boundingBoxSpread(slice, yAxis)
-	zSpread, zCenter := boundingBoxSpread(slice, zAxis)
+	xSpread, xCenter := boundingBoxSpread(slice, 0)
+	ySpread, yCenter := boundingBoxSpread(slice, 1)
+	zSpread, zCenter := boundingBoxSpread(slice, 2)
 
+	var center int
 	if xSpread >= ySpread && xSpread >= zSpread {
-		return SortHittablesByCenter(slice, xCenter, xAxis) + start
+		center = SortHittablesByCenter(slice, xCenter, 0)
 	} else if ySpread >= xSpread && ySpread >= zSpread {
-		return SortHittablesByCenter(slice, yCenter, yAxis) + start
+		center = SortHittablesByCenter(slice, yCenter, 1)
 	} else {
-		return SortHittablesByCenter(slice, zCenter, zAxis) + start
+		center = SortHittablesByCenter(slice, zCenter, 2)
 	}
+
+	center += start
+
+	// Could not split with objects on both sides. Just split up the middle index
+	if center == start || center == end {
+		center = start + (end-start)/2
+	}
+	return center
 }
 
-func boundingBoxSpread(list []Hittable, axisFunc func(h geo.Vec3) float64) (float64, float64) {
+func boundingBoxSpread(list []Hittable, axis int) (float64, float64) {
 	min := util.Infinity
 	max := -util.Infinity
-	for _, h := range list {
-		min = math.Min(min, axisFunc(h.Center()))
-		max = math.Max(max, axisFunc(h.Center()))
+	listLen := len(list)
+	for i := 0; i < listLen; i++ {
+		c := list[i].Center().Axis(axis)
+		min = math.Min(min, c)
+		max = math.Max(max, c)
 	}
 	return max - min, (min + max) * .5
 }
 
-func SortHittablesByCenter(list []Hittable, center float64, axisFunc func(c geo.Vec3) float64) int {
+func SortHittablesByCenter(list []Hittable, center float64, axis int) int {
 
 	i := 0
 	j := len(list) - 1
 
 	for i <= j {
-		if axisFunc(list[i].Center()) < center {
+		if list[i].Center().Axis(axis) < center {
 			i++
 		} else {
 			tmpI := list[i]
