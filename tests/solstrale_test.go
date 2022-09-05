@@ -297,6 +297,31 @@ func TestRenderSceneWithOidn(t *testing.T) {
 	renderAndCompareOutput(t, scene, "oidn", 200, 100)
 }
 
+func TestRenderSceneWithOidnFail(t *testing.T) {
+
+	oidnPost, err := post.NewOidn("./mock_failing_oidn.sh")
+	assert.Nil(t, err)
+
+	traceSpec := renderer.RenderConfig{
+		SamplesPerPixel: 1,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
+		PostProcessor:   oidnPost,
+	}
+	scene := createSimpleTestScene(traceSpec, true)
+
+	renderProgress := make(chan renderer.RenderProgress, 1)
+	abort := make(chan bool, 1)
+	go solstrale.RayTrace(1, 1, scene, renderProgress, abort)
+
+	p := <-renderProgress
+	assert.Nil(t, p.Error)
+	assert.NotNil(t, p.RenderImage)
+
+	p = <-renderProgress
+	assert.Equal(t, p.Error.Error(), "Oidn failed with: exit status 1")
+	assert.Nil(t, p.RenderImage)
+}
+
 func TestRenderObjWithTextures(t *testing.T) {
 
 	traceSpec := renderer.RenderConfig{

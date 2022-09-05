@@ -164,7 +164,7 @@ RenderLoop:
 
 	if postProcessor != nil && !aborted {
 
-		img := *postProcessor.PostProcess(
+		img, err := postProcessor.PostProcess(
 			pixelColors,
 			albedoColors,
 			normalColors,
@@ -173,9 +173,16 @@ RenderLoop:
 			samplesPerPixel,
 		)
 
-		r.output <- RenderProgress{
-			Progress:    1,
-			RenderImage: img,
+		if err != nil {
+			r.output <- RenderProgress{
+				Error: err,
+			}
+		} else {
+
+			r.output <- RenderProgress{
+				Progress:    1,
+				RenderImage: img,
+			}
 		}
 	}
 
