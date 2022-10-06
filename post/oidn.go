@@ -20,6 +20,7 @@ type oidnPostProcessor struct {
 	OidnDenoiseExecutablePath string
 }
 
+// NewOidn creates a new instance of Open Image Denoise postprocessor with the given path to the oidn executable
 func NewOidn(oidnDenoiseExecutablePath string) (PostProcessor, error) {
 
 	f, err := os.Stat(oidnDenoiseExecutablePath)

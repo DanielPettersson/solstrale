@@ -322,6 +322,20 @@ func TestRenderSceneWithOidnFail(t *testing.T) {
 	assert.Nil(t, p.RenderImage)
 }
 
+func TestRenderSceneWithBloom(t *testing.T) {
+
+	bloomPost := post.NewBloom()
+
+	traceSpec := renderer.RenderConfig{
+		SamplesPerPixel: 50,
+		Shader:          renderer.PathTracingShader{MaxDepth: 50},
+		PostProcessor:   bloomPost,
+	}
+	scene := createTestScene(traceSpec)
+
+	renderAndCompareOutput(t, scene, "bloom", 800, 400)
+}
+
 func TestRenderObjWithTextures(t *testing.T) {
 
 	traceSpec := renderer.RenderConfig{
