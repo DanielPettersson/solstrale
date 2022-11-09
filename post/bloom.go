@@ -1,26 +1,34 @@
 package post
 
 import (
+	"errors"
+	"fmt"
 	"image"
 	"image/color"
-	"math"
 
 	"github.com/DanielPettersson/solstrale/geo"
 	im "github.com/DanielPettersson/solstrale/internal/image"
 )
 
 type bloomPostProcessor struct {
+	blurRadius      float64
+	bloomMultiplier float64
 }
 
-// NewBloom returns a new bloom post processor instance
-func NewBloom() PostProcessor {
-	return bloomPostProcessor{}
+// NewBloom returns a new bloom post processor with the following properties.
+// blurRadius: controls the number of blur iterations applied and thus the size of the bloom
+// bloomMultiplier: a multipler for how intensive the bloom effect is
+func NewBloom(blurRadius, bloomMultiplier float64) PostProcessor {
+	return bloomPostProcessor{
+		blurRadius:      blurRadius,
+		bloomMultiplier: bloomMultiplier,
+	}
 }
 
 var BLUR_KERNEL = [][]float64{
-	{.10, .15, .10},
+	{.05, .15, .05},
 	{.15, .20, .15},
-	{.10, .15, .10},
+	{.05, .15, .05},
 }
 
 func imageIndex(x, y, width int) int {
@@ -35,9 +43,12 @@ func (b bloomPostProcessor) PostProcess(
 	width, height, numSamples int,
 ) (image.Image, error) {
 
+	if b.blurRadius < 0 || b.blurRadius > 1 {
+		return nil, errors.New(fmt.Sprintf("Invalid blurRadius %v given", b.blurRadius))
+	}
+
 	pixelCount := width * height
 	workColors := make([]geo.Vec3, pixelCount)
-	maxIntensity := 0.
 
 	// make an image of bright areas
 	for i := 0; i < pixelCount; i++ {
@@ -50,7 +61,8 @@ func (b bloomPostProcessor) PostProcess(
 
 	// apply blur
 	blurSize := len(BLUR_KERNEL)
-	for blurCount := 0; blurCount < 200; blurCount++ {
+	blurIterations := int(float64(width) * b.blurRadius)
+	for blurCount := 0; blurCount < blurIterations; blurCount++ {
 		tmpColors := make([]geo.Vec3, pixelCount)
 		for y := 1; y < height-1; y++ {
 			for x := 1; x < width-1; x++ {
@@ -69,14 +81,8 @@ func (b bloomPostProcessor) PostProcess(
 		}
 	}
 
-	// normalize
-
 	for i := 0; i < pixelCount; i++ {
-		maxIntensity = math.Max(maxIntensity, workColors[i].Length())
-	}
-
-	for i := 0; i < pixelCount; i++ {
-		workColors[i] = workColors[i].DivS(maxIntensity).MulS(float64(numSamples)).MulS(3)
+		workColors[i] = workColors[i].MulS(b.bloomMultiplier)
 	}
 
 	// Create output

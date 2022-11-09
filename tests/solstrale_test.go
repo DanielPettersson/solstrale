@@ -324,7 +324,7 @@ func TestRenderSceneWithOidnFail(t *testing.T) {
 
 func TestRenderSceneWithBloom(t *testing.T) {
 
-	bloomPost := post.NewBloom()
+	bloomPost := post.NewBloom(.5, .15)
 
 	traceSpec := renderer.RenderConfig{
 		SamplesPerPixel: 50,
