@@ -333,7 +333,7 @@ func TestRenderSceneWithBloom(t *testing.T) {
 	}
 	scene := createTestScene(traceSpec)
 
-	renderAndCompareOutput(t, scene, "bloom", 800, 400)
+	renderAndCompareOutput(t, scene, "bloom", 200, 100)
 }
 
 func TestRenderObjWithTextures(t *testing.T) {
