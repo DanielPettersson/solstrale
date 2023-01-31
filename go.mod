@@ -1,6 +1,6 @@
 module github.com/DanielPettersson/solstrale
 
-go 1.18
+go 1.19
 
 require (
 	github.com/mdouchement/hdr v0.2.3

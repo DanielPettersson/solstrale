@@ -1,7 +1,6 @@
 package material
 
 import (
-	"errors"
 	"fmt"
 	im "image"
 	_ "image/jpeg"
@@ -44,14 +43,15 @@ type imageTexture struct {
 // LoadImageTexture creates a texture that uses image data for color by loading the image from the path
 func LoadImageTexture(path string) (Texture, error) {
 	f, err := os.Open(path)
-	defer f.Close()
+
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to load image texture %v. Got error: %v", path, err.Error()))
+		return nil, fmt.Errorf("failed to load image texture %v. Got error: %v", path, err.Error())
 	}
+	defer f.Close()
 
 	image, _, err := im.Decode(f)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to decode image texture %v. Got error: %v", path, err.Error()))
+		return nil, fmt.Errorf("failed to decode image texture %v. Got error: %v", path, err.Error())
 	}
 
 	return NewImageTexture(image, false), nil
