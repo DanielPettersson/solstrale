@@ -11,6 +11,7 @@ import (
 	"github.com/DanielPettersson/solstrale/hittable"
 	"github.com/DanielPettersson/solstrale/material"
 	"github.com/DanielPettersson/solstrale/renderer"
+	"github.com/pkg/profile"
 )
 
 func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
@@ -42,15 +43,16 @@ func createObjScene(renderConfig renderer.RenderConfig) *renderer.Scene {
 // 1. run this
 // 2. Display profile info by: pprof -http=localhost:8888 profiling cpu.pprof
 func main() {
+	defer profile.Start(profile.ProfilePath(".")).Stop()
 
 	renderConfig := renderer.RenderConfig{
-		SamplesPerPixel: 50,
-		Shader:          renderer.PathTracingShader{MaxDepth: 50},
+		SamplesPerPixel: 1,
+		Shader:          renderer.SimpleShader{},
 	}
 	scene := createObjScene(renderConfig)
 
 	renderProgress := make(chan renderer.RenderProgress, 1)
-	go solstrale.RayTrace(800, 400, scene, renderProgress, make(<-chan bool))
+	go solstrale.RayTrace(400, 200, scene, renderProgress, make(<-chan bool))
 
 	for p := range renderProgress {
 		if p.Error != nil {
