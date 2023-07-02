@@ -4,6 +4,9 @@
 [![CI](https://github.com/DanielPettersson/solstrale/workflows/Go/badge.svg)](https://github.com/DanielPettersson/solstrale/actions?query=workflow%3CI)
 [![Go Report Card](https://goreportcard.com/badge/github.com/DanielPettersson/solstrale)](https://goreportcard.com/report/github.com/DanielPettersson/solstrale)
 ------
+# DEPRECATED
+This has been deprecated in favor of [The Rust port](https://github.com/DanielPettersson/solstrale-rust)
+
 # Solstråle
 A path tracer implemented in Golang.
 
